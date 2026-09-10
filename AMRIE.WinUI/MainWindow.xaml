@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="AMRIE.WinUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AMRIE.WinUI"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="AMRIE - Antimicrobial Interpretation Engine"
+    mc:Ignorable="d">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Modern App TitleBar -->
+        <Border x:Name="AppTitleBar" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
+            <Grid Height="38" Padding="16,0">
+                <!-- Title text -->
+                <TextBlock Text="AMRIE - Antimicrobial Resistance Test Interpretation Engine"
+                           VerticalAlignment="Center"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           FontWeight="SemiBold" />
+            </Grid>
+        </Border>
+
+        <!-- Main Fluent Navigation -->
+        <NavigationView
+            Grid.Row="1"
+            x:Name="NavView"
+            PaneDisplayMode="Left"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="True"
+            SelectionChanged="NavView_SelectionChanged"
+            Header="{x:Null}">
+
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem
+                    Content="Single Interpretation"
+                    Tag="SingleInterpretation"
+                    ToolTipService.ToolTip="Single test interpretation (ad-hoc CLSI, EUCAST, SFM)">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE95E;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Content="Batch Database Processing"
+                    Tag="BatchProcessing"
+                    ToolTipService.ToolTip="Interpret entire WHONET surveillance data files">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem
+                    Content="Resource Explorer"
+                    Tag="ResourceExplorer"
+                    ToolTipService.ToolTip="Browse published breakpoints, expert rules &amp; phenotypes">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE81E;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <!-- Navigation Pane Footer Actions -->
+            <NavigationView.PaneFooter>
+                <StackPanel Margin="6,4" Spacing="4">
+                    <Button
+                        x:Name="ThemeToggleButton"
+                        Click="ThemeToggleButton_Click"
+                        ToolTipService.ToolTip="Toggle Light / Dark mode"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Padding="12,8"
+                        Background="Transparent"
+                        BorderBrush="Transparent">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="16" />
+                            <TextBlock x:Name="ThemeText" Text="Light mode" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </NavigationView.PaneFooter>
+
+            <!-- Main Page Frame -->
+            <Frame x:Name="ContentFrame" Margin="0">
+                <Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <NavigationThemeTransition>
+                            <EntranceNavigationTransitionInfo />
+                        </NavigationThemeTransition>
+                    </TransitionCollection>
+                </Frame.ContentTransitions>
+            </Frame>
+        </NavigationView>
+    </Grid>
+</Window>
