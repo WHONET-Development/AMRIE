@@ -38,8 +38,7 @@ namespace AMR_Engine
 		public static void InterpretDataFile(object s, DoWorkEventArgs e)
 		{
 			FileInterpretationParameters arguments = (FileInterpretationParameters)e.Argument;
-			if (arguments.Worker != null)
-				arguments.Worker.ReportProgress(0);
+			arguments.Worker?.ReportProgress(0);
 
 			InterpretationConfiguration interpretationConfig =
 				InterpretationConfiguration.ReadConfiguration(arguments.ConfigFile);
@@ -93,14 +92,14 @@ namespace AMR_Engine
 				return value;
 			}
 
-			var results = new List<string>();
-			var result = new StringBuilder();
-			var inQualifier = false;
-			var inField = false;
+            List<string> results = new List<string>();
+            StringBuilder result = new StringBuilder();
+            bool inQualifier = false;
+            bool inField = false;
 
-			var row = $"{record}{delimiter}";
+            string row = $"{record}{delimiter}";
 
-			for (var idx = 0; idx < row.Length; idx++)
+			for (int idx = 0; idx < row.Length; idx++)
 			{
 				if (row[idx] == delimiter)
 				{
@@ -315,8 +314,7 @@ namespace AMR_Engine
 				distinctInterpretationKeys,
 				arguments.Worker);
 
-			if (arguments.Worker != null)
-				arguments.Worker.ReportProgress(0);
+			arguments.Worker?.ReportProgress(0);
 
 			Parallel.For(0, totalBlocks, (blockNumber, state) =>
 			{
@@ -354,8 +352,7 @@ namespace AMR_Engine
 						{
 							// Only report whole percentage changes.
 							previousProgressReport = currentProgress;
-							if (arguments.Worker != null)
-								arguments.Worker.ReportProgress(currentProgress);
+							arguments.Worker?.ReportProgress(currentProgress);
 						}
 					}
 				}
@@ -507,7 +504,7 @@ namespace AMR_Engine
 			}
 		}
 
-		static Func<string, int, int> IndexOfNextNonWhiteSpaceChar = delegate (string source, int startIndex)
+		static readonly Func<string, int, int> IndexOfNextNonWhiteSpaceChar = delegate (string source, int startIndex)
 		{
 			if (startIndex >= 0)
 			{

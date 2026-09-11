@@ -133,18 +133,19 @@ namespace AMR_Engine
 		/// <returns></returns>
 		public InterpretationConfiguration Clone()
 		{
-			InterpretationConfiguration newConfig
-				= new InterpretationConfiguration(RoundHalfDilutions, IncludeInterpretationComments,
-				EnabledExpertInterpretationRules == null ? null : new List<string>(EnabledExpertInterpretationRules),
-				GuidelineYear,
-				PrioritizedBreakpointTypes == null ? null : new List<string>(PrioritizedBreakpointTypes),
-				PrioritizedSitesOfInfection == null ? null : new List<string>(PrioritizedSitesOfInfection),
-				DisabledSitesOfInfection == null ? null : new List<string>(DisabledSitesOfInfection),
-				UserDefinedBreakpointsFile);
+            InterpretationConfiguration newConfig
+                = new InterpretationConfiguration(RoundHalfDilutions, IncludeInterpretationComments,
+                EnabledExpertInterpretationRules == null ? null : new List<string>(EnabledExpertInterpretationRules),
+                GuidelineYear,
+                PrioritizedBreakpointTypes == null ? null : new List<string>(PrioritizedBreakpointTypes),
+                PrioritizedSitesOfInfection == null ? null : new List<string>(PrioritizedSitesOfInfection),
+                DisabledSitesOfInfection == null ? null : new List<string>(DisabledSitesOfInfection),
+                UserDefinedBreakpointsFile)
+                {
+                    UseIntrinsicResistanceRules = UseIntrinsicResistanceRules
+                };
 
-			newConfig.UseIntrinsicResistanceRules = UseIntrinsicResistanceRules;
-
-			return newConfig;
+            return newConfig;
 		}
 
 		/// <summary>

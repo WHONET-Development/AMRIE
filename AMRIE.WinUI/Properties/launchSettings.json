@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "AMRIE.WinUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "AMRIE.WinUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

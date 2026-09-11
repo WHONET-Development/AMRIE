@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
+using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,9 +12,9 @@ namespace AMR_Engine
 
 		#region Constants
 
-		private const string AllOrganisms = "ALL";
+		public const string AllOrganisms = "ALL";
 
-		private static readonly List<ExpectedResistancePhenotypeRule> ExpectedResistancePhenotypeRules = LoadExpectedResistancePhenotypeRules();
+		public static readonly List<ExpectedResistancePhenotypeRule> ExpectedResistancePhenotypeRules = LoadExpectedResistancePhenotypeRules();
 
 		#endregion
 

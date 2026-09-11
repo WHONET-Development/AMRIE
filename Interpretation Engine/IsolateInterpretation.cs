@@ -124,9 +124,11 @@ namespace AMR_Engine
 		public static string GetSingleInterpretation(InterpretationConfiguration interpretationConfig,
 			string organismCode, string antibioticCode, string measurement)
 		{
-			Dictionary<string, string> sampleRow = new Dictionary<string, string>();
-			sampleRow.Add(Constants.KeyFields.ORGANISM, organismCode);
-			sampleRow.Add(antibioticCode, measurement);
+			Dictionary<string, string> sampleRow = new Dictionary<string, string>
+            {
+                { Constants.KeyFields.ORGANISM, organismCode },
+                { antibioticCode, measurement }
+            };
 
 			IsolateInterpretation thisInterp = new IsolateInterpretation(sampleRow,
 				sampleRow.Keys.ToList(),

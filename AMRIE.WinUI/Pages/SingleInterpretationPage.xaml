@@ -1,0 +1,368 @@
+<Page
+    x:Class="AMRIE.WinUI.Pages.SingleInterpretationPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:AMRIE.WinUI.ViewModels"
+    xmlns:models="using:AMRIE.WinUI.Models"
+    mc:Ignorable="d">
+
+    <Page.DataContext>
+        <vm:SingleInterpretationViewModel x:Name="ViewModel" />
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,16,24,20">
+        <StackPanel Spacing="14" HorizontalAlignment="Stretch">
+
+            <!-- Title Header & Status -->
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="2">
+                    <TextBlock Text="Single Test Interpretation" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                    <TextBlock Text="Perform ad-hoc interpretation of antimicrobial measurements against published CLSI, EUCAST, and SFM rules."
+                               Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Status Alert (InfoBar) -->
+            <InfoBar IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
+                     Severity="{x:Bind ViewModel.StatusInfoBarSeverity, Mode=OneWay}"
+                     Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                     IsClosable="True"
+                     Margin="0,0,0,2" />
+
+            <!-- Main 2-Column Responsive Layout -->
+            <Grid ColumnSpacing="16" RowSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.1*" MinWidth="360" />
+                    <ColumnDefinition Width="0.9*" MinWidth="340" />
+                </Grid.ColumnDefinitions>
+
+                <!-- LEFT COLUMN: Card 1 (Criteria) & Card 2 (Target Microorganism & Agent) -->
+                <StackPanel Spacing="14">
+                    
+                    <!-- Card 1: Guideline & Breakpoint Criteria -->
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16,14">
+                        <StackPanel Spacing="10">
+                            <!-- Year restriction header row -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <CheckBox Content="Restrict guideline year" 
+                                          IsChecked="{x:Bind ViewModel.RestrictGuidelineYear, Mode=TwoWay}"
+                                          FontWeight="SemiBold"
+                                          VerticalAlignment="Center" />
+
+                                <NumberBox Grid.Column="1"
+                                           Value="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
+                                           IsEnabled="{x:Bind ViewModel.RestrictGuidelineYear, Mode=OneWay}"
+                                           SpinButtonPlacementMode="Inline"
+                                           SmallChange="1"
+                                           Minimum="1990"
+                                           Maximum="2035"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+
+                            <!-- 3 Restriction Boxes: Side-by-Side with equal height -->
+                            <Grid ColumnSpacing="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="110" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Column 1: Guidelines Header & Box -->
+                                <CheckBox Grid.Row="0" Grid.Column="0"
+                                          Content="Guidelines"
+                                          IsChecked="{x:Bind ViewModel.RestrictGuidelines, Mode=TwoWay}"
+                                          FontWeight="SemiBold"
+                                          FontSize="12"
+                                          Margin="0,0,0,4" />
+                                <Border Grid.Row="1" Grid.Column="0"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        CornerRadius="4"
+                                        Padding="8,4">
+                                    <ItemsControl ItemsSource="{x:Bind ViewModel.Guidelines}"
+                                                  IsEnabled="{x:Bind ViewModel.RestrictGuidelines, Mode=OneWay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="models:SelectableItem">
+                                                <CheckBox Content="{x:Bind Name}"
+                                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                          FontSize="12"
+                                                          Margin="0,0,0,1" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+
+                                <!-- Column 2: Breakpoint Types Header & Box -->
+                                <CheckBox Grid.Row="0" Grid.Column="1"
+                                          Content="Types"
+                                          IsChecked="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=TwoWay}"
+                                          FontWeight="SemiBold"
+                                          FontSize="12"
+                                          Margin="0,0,0,4" />
+                                <Border Grid.Row="1" Grid.Column="1"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        CornerRadius="4"
+                                        Padding="8,4">
+                                    <ItemsControl ItemsSource="{x:Bind ViewModel.BreakpointTypes}"
+                                                  IsEnabled="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=OneWay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="models:SelectableItem">
+                                                <CheckBox Content="{x:Bind Name}"
+                                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                          FontSize="12"
+                                                          Margin="0,0,0,1" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+
+                                <!-- Column 3: Sites of Infection Header & Box -->
+                                <CheckBox Grid.Row="0" Grid.Column="2"
+                                          Content="Sites"
+                                          IsChecked="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=TwoWay}"
+                                          FontWeight="SemiBold"
+                                          FontSize="12"
+                                          Margin="0,0,0,4" />
+                                <Border Grid.Row="1" Grid.Column="2"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        CornerRadius="4">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,4">
+                                        <ItemsControl ItemsSource="{x:Bind ViewModel.SitesOfInfection}"
+                                                      IsEnabled="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=OneWay}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="models:SelectableItem">
+                                                    <CheckBox Content="{x:Bind Name}"
+                                                              IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                              FontSize="12"
+                                                              Margin="0,0,0,1" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 2: Microorganism & Antimicrobial Agent -->
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="16,14">
+                        <StackPanel Spacing="12">
+                            <!-- Organism search -->
+                            <StackPanel Spacing="2">
+                                <AutoSuggestBox x:Name="OrganismSuggestBox"
+                                                Header="Microorganism"
+                                                PlaceholderText="Search name or code (e.g. Escherichia coli, ECO)..."
+                                                TextChanged="OrganismSuggestBox_TextChanged"
+                                                SuggestionChosen="OrganismSuggestBox_SuggestionChosen"
+                                                QueryIcon="Find">
+                                    <AutoSuggestBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:OrganismItem">
+                                            <Grid ColumnSpacing="8" Padding="2,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{x:Bind DisplayName}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+
+                                                <!-- Code Badge -->
+                                                <Border Grid.Column="1"
+                                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind Code}"
+                                                               Style="{ThemeResource CaptionTextBlockStyle}"
+                                                               Foreground="White"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </AutoSuggestBox.ItemTemplate>
+                                </AutoSuggestBox>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedOrganism.DisplayName, Mode=OneWay, FallbackValue='No organism selected'}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                           Margin="2,1,0,0" />
+                            </StackPanel>
+
+                            <!-- Antibiotic search -->
+                            <StackPanel Spacing="2">
+                                <AutoSuggestBox x:Name="AntibioticSuggestBox"
+                                                Header="Antimicrobial Agent"
+                                                PlaceholderText="Search antibiotic name or code (e.g. Amikacin, AMK)..."
+                                                TextChanged="AntibioticSuggestBox_TextChanged"
+                                                SuggestionChosen="AntibioticSuggestBox_SuggestionChosen"
+                                                QueryIcon="Find">
+                                    <AutoSuggestBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AntibioticItem">
+                                            <Grid ColumnSpacing="8" Padding="2,4">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{x:Bind DisplayName}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+
+                                                <!-- Code Badge -->
+                                                <Border Grid.Column="1"
+                                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="6,1"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{x:Bind Code}"
+                                                               Style="{ThemeResource CaptionTextBlockStyle}"
+                                                               Foreground="White"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </AutoSuggestBox.ItemTemplate>
+                                </AutoSuggestBox>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedAntibiotic.DisplayName, Mode=OneWay, FallbackValue='No antibiotic selected'}"
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                           Margin="2,1,0,0" />
+                            </StackPanel>
+
+                            <!-- Test Method: Disk vs MIC -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Spacing="4" VerticalAlignment="Center">
+                                    <TextBlock Text="Method" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="16">
+                                        <RadioButton Content="Disk" IsChecked="{x:Bind ViewModel.IsDiskMethod, Mode=TwoWay}" />
+                                        <RadioButton Content="MIC / Etest" IsChecked="{x:Bind ViewModel.IsMicMethod, Mode=TwoWay}" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Potency dropdown (visible when disk) -->
+                                <ComboBox Grid.Column="1"
+                                          Header="Potency"
+                                          ItemsSource="{x:Bind ViewModel.DiskPotencies}"
+                                          SelectedItem="{x:Bind ViewModel.SelectedDiskPotency, Mode=TwoWay}"
+                                          PlaceholderText="Select potency"
+                                          HorizontalAlignment="Stretch"
+                                          Visibility="{x:Bind ViewModel.IsDiskMethod, Mode=OneWay}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- RIGHT COLUMN: Card 3 (Measurement Input, Interpret Action & Results) -->
+                <Border Grid.Column="1"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16,14">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Measurement &amp; Results" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+
+                        <!-- Measurement input & interpret button -->
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Header="Measurement Value"
+                                     PlaceholderText="e.g. 22 (mm) or &lt;=0.5 (mg/L)"
+                                     Text="{x:Bind ViewModel.Measurement, Mode=TwoWay}" />
+
+                            <Button Grid.Column="1"
+                                    VerticalAlignment="Bottom"
+                                    Content="Interpret"
+                                    Style="{ThemeResource AccentButtonStyle}"
+                                    Command="{x:Bind ViewModel.InterpretCommand}"
+                                    Padding="20,8" />
+                        </Grid>
+
+                        <!-- Include comments checkbox -->
+                        <CheckBox Content="Include interpretation comments"
+                                  IsChecked="{x:Bind ViewModel.IncludeComments, Mode=TwoWay}"
+                                  FontSize="12" />
+
+                        <!-- Interpretation Results Display -->
+                        <StackPanel Spacing="8" Visibility="{x:Bind ViewModel.Results.Count, Mode=OneWay, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}">
+                            <MenuFlyoutSeparator />
+                            <TextBlock Text="Results" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                            <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{x:Bind ViewModel.Results}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:InterpretationResultItem">
+                                            <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="6"
+                                                    Padding="12,10"
+                                                    Margin="0,0,0,8">
+                                                <Grid ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Badge (S / I / R) -->
+                                                    <Border CornerRadius="6"
+                                                            Padding="12,6"
+                                                            VerticalAlignment="Center"
+                                                            Background="{x:Bind BadgeBackground}">
+                                                        <TextBlock Text="{x:Bind ResultBadge}"
+                                                                   FontWeight="Bold"
+                                                                   FontSize="18"
+                                                                   Foreground="{x:Bind BadgeForeground}"
+                                                                   HorizontalAlignment="Center" />
+                                                    </Border>
+
+                                                    <!-- Details -->
+                                                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{x:Bind TestCode}" FontWeight="SemiBold" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                                                        <TextBlock Text="{x:Bind Interpretation}" Style="{ThemeResource CaptionTextBlockStyle}" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
