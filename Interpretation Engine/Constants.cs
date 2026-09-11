@@ -17,7 +17,7 @@ namespace AMR_Engine
 
 		// We use this to locate resources.
 		public static string SystemRootPath =
-			Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + System.IO.Path.DirectorySeparatorChar;
+			Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + Path.DirectorySeparatorChar;
 
 		public static readonly char Quote = '"';
 

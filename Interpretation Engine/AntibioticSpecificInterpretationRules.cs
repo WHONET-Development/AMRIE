@@ -66,8 +66,10 @@ namespace AMR_Engine
 						}
 						else
 						{
-							Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>();
-							abxSet.Add(thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule);
+							Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>
+                            {
+                                { thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule }
+                            };
 
 							IntrinsicResistanceRuleLookup[whonetOrganismCode].Add(thisAntibiotic.Guideline, abxSet);
 						}
@@ -75,11 +77,15 @@ namespace AMR_Engine
 					else
 					{
 						// The organism code missing, which means we need the whole structure.
-						Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>();
-						abxSet.Add(thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule);
+						Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>
+                        {
+                            { thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule }
+                        };
 
-						Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>> guidelineSet = new Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>>();
-						guidelineSet.Add(thisAntibiotic.Guideline, abxSet);
+						Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>> guidelineSet = new Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>>
+                        {
+                            { thisAntibiotic.Guideline, abxSet }
+                        };
 
 						IntrinsicResistanceRuleLookup.Add(whonetOrganismCode, guidelineSet);
 					}
@@ -467,8 +473,10 @@ namespace AMR_Engine
 							}
 							else
 							{
-								Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>();
-								abxSet.Add(whonetAntimicrobialFullCode, mostApplicableBreakpoint);
+								Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
+                                {
+                                    { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
+                                };
 
 								BreakpointLookup[whonetOrganismCode][guideline].Add(guidelineYear, abxSet);
 							}
@@ -476,11 +484,15 @@ namespace AMR_Engine
 						else
 						{
 							// Create everything below the organism.
-							Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>();
-							abxSet.Add(whonetAntimicrobialFullCode, mostApplicableBreakpoint);
+							Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
+                            {
+                                { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
+                            };
 
-							Dictionary<int, Dictionary<string, Breakpoint>> yearSet = new Dictionary<int, Dictionary<string, Breakpoint>>();
-							yearSet.Add(guidelineYear, abxSet);
+							Dictionary<int, Dictionary<string, Breakpoint>> yearSet = new Dictionary<int, Dictionary<string, Breakpoint>>
+                            {
+                                { guidelineYear, abxSet }
+                            };
 
 							BreakpointLookup[whonetOrganismCode].Add(guideline, yearSet);
 						}
@@ -488,14 +500,20 @@ namespace AMR_Engine
 					else
 					{
 						// The organism key missing, which means we have to create the whole structure.
-						Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>();
-						abxSet.Add(whonetAntimicrobialFullCode, mostApplicableBreakpoint);
+						Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
+                        {
+                            { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
+                        };
 
-						Dictionary<int, Dictionary<string, Breakpoint>> yearSet = new Dictionary<int, Dictionary<string, Breakpoint>>();
-						yearSet.Add(guidelineYear, abxSet);
+						Dictionary<int, Dictionary<string, Breakpoint>> yearSet = new Dictionary<int, Dictionary<string, Breakpoint>>
+                        {
+                            { guidelineYear, abxSet }
+                        };
 
-						Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>> guidelineSet = new Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>>();
-						guidelineSet.Add(guideline, yearSet);
+						Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>> guidelineSet = new Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>>
+                        {
+                            { guideline, yearSet }
+                        };
 
 						BreakpointLookup.Add(whonetOrganismCode, guidelineSet);
 					}
