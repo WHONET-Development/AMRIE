@@ -13,6 +13,7 @@
     <None Remove="Resources\ExpectedResistancePhenotypes.sql" />
     <None Remove="Resources\ExpectedResistancePhenotypes.txt" />
     <None Remove="Resources\ExpertInterpretationRules.txt" />
+    <None Remove="Resources\FilterBreakpointsTable.sql" />
     <None Remove="Resources\Organisms.txt" />
     <None Remove="Resources\QC_Ranges.txt" />
     <None Remove="Resources\SampleConfig.json" />
@@ -22,6 +23,9 @@
 
   <ItemGroup>
     <Content Include="Resources\Antibiotics.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\FilterBreakpointsTable.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\SampleUserDefinedBreakpoints.txt">
