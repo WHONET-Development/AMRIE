@@ -150,6 +150,11 @@
 					  Source="$(var.Interpretation_Interface.TargetDir)Resources\ExpertInterpretationRules.txt" KeyPath="yes" />
 			</Component>
 
+			<Component Id="FilterBreakpointsTable.sql" Guid="BCAD0C20-D3A0-4C78-B2B6-A044487BD3AC">
+				<File Id="FilterBreakpointsTable.sql" Name="FilterBreakpointsTable.sql"
+					  Source="$(var.Interpretation_Interface.TargetDir)Resources\FilterBreakpointsTable.sql" KeyPath="yes" />
+			</Component>
+
 			<Component Id="Organisms.txt" Guid="600629F9-229D-47AF-8584-F63CFDFA0B8A">
 				<File Id="Organisms.txt" Name="Organisms.txt"
 					  Source="$(var.Interpretation_Interface.TargetDir)Resources\Organisms.txt" KeyPath="yes" />
