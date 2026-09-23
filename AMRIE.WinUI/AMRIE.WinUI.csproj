@@ -18,6 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Assets\amrie_logo - banner.svg" />
+    <Content Include="Assets\amrie_logo - icon.svg" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />

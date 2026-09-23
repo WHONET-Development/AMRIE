@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:AMRIE.WinUI"
+    xmlns:media="using:Microsoft.UI.Xaml.Media.Imaging"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="AMRIE - Antimicrobial Interpretation Engine"
     mc:Ignorable="d">
@@ -22,11 +23,17 @@
         <!-- Modern App TitleBar -->
         <Border x:Name="AppTitleBar" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
             <Grid Height="38" Padding="16,0">
-                <!-- Title text -->
-                <TextBlock Text="AMRIE - Antimicrobial Resistance Test Interpretation Engine"
-                           VerticalAlignment="Center"
-                           Style="{ThemeResource CaptionTextBlockStyle}"
-                           FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Image Width="22" Height="22" Stretch="Uniform">
+                        <Image.Source>
+                            <media:SvgImageSource UriSource="ms-appx:///Assets/amrie_logo%20-%20icon.svg" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock Text="AMRIE - Antimicrobial Resistance Test Interpretation Engine"
+                               VerticalAlignment="Center"
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               FontWeight="SemiBold" />
+                </StackPanel>
             </Grid>
         </Border>
 
