@@ -23,7 +23,7 @@ public sealed partial class MainWindow : Window
 
         try
         {
-            AppWindow.SetIcon("Assets/microscope.ico");
+            AppWindow.SetIcon("Assets/AppIcon.ico");
         }
         catch { }
 
