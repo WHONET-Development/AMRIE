@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 768 256"
+   width="768"
+   height="256"
+   version="1.1"
+   id="svg23"
+   sodipodi:docname="amrie_logo - banner.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   inkscape:export-filename="gemini-svg.svg"
+   inkscape:export-xdpi="79.68"
+   inkscape:export-ydpi="79.68"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs23">
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Drop Shadow"
+       id="filter36"
+       x="-0.13125"
+       y="-0.13125"
+       width="1.340625"
+       height="1.340625">
+      <feFlood
+         result="flood"
+         in="SourceGraphic"
+         flood-opacity="0.101961"
+         flood-color="rgb(0,0,0)"
+         id="feFlood35" />
+      <feGaussianBlur
+         result="blur"
+         in="SourceGraphic"
+         stdDeviation="3.500000"
+         id="feGaussianBlur35" />
+      <feOffset
+         result="offset"
+         in="blur"
+         dx="5.000000"
+         dy="5.000000"
+         id="feOffset35" />
+      <feComposite
+         result="comp1"
+         operator="in"
+         in="flood"
+         in2="offset"
+         id="feComposite35" />
+      <feComposite
+         result="comp2"
+         operator="over"
+         in="SourceGraphic"
+         in2="comp1"
+         id="feComposite36" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Drop Shadow"
+       id="filter45"
+       x="-0.13125"
+       y="-0.13125"
+       width="1.340625"
+       height="1.340625">
+      <feFlood
+         result="flood"
+         in="SourceGraphic"
+         flood-opacity="0.121569"
+         flood-color="rgb(0,0,0)"
+         id="feFlood44" />
+      <feGaussianBlur
+         result="blur"
+         in="SourceGraphic"
+         stdDeviation="3.500000"
+         id="feGaussianBlur44" />
+      <feOffset
+         result="offset"
+         in="blur"
+         dx="5.000000"
+         dy="5.000000"
+         id="feOffset44" />
+      <feComposite
+         result="comp1"
+         operator="in"
+         in="flood"
+         in2="offset"
+         id="feComposite44" />
+      <feComposite
+         result="comp2"
+         operator="over"
+         in="SourceGraphic"
+         in2="comp1"
+         id="feComposite45" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Drop Shadow"
+       id="filter47"
+       x="-0.13125"
+       y="-0.13125"
+       width="1.340625"
+       height="1.340625">
+      <feFlood
+         result="flood"
+         in="SourceGraphic"
+         flood-opacity="0.121569"
+         flood-color="rgb(0,0,0)"
+         id="feFlood45" />
+      <feGaussianBlur
+         result="blur"
+         in="SourceGraphic"
+         stdDeviation="3.500000"
+         id="feGaussianBlur45" />
+      <feOffset
+         result="offset"
+         in="blur"
+         dx="5.000000"
+         dy="5.000000"
+         id="feOffset45" />
+      <feComposite
+         result="comp1"
+         operator="in"
+         in="flood"
+         in2="offset"
+         id="feComposite46" />
+      <feComposite
+         result="comp2"
+         operator="over"
+         in="SourceGraphic"
+         in2="comp1"
+         id="feComposite47" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="namedview23"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.92037931"
+     inkscape:cx="203.72036"
+     inkscape:cy="116.79967"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg23"
+     showguides="true" />
+  <style
+     id="style1">
+    .brand-title {
+      font-family: 'Times New Roman', Times, 'Georgia', serif;
+      font-weight: 700;
+      fill: #0c2d48;
+      letter-spacing: 0.18em;
+    }
+    .brand-sub {
+      font-family: 'Times New Roman', Times, 'Georgia', serif;
+      font-weight: 600;
+      fill: #0c2d48;
+      letter-spacing: 0.01em;
+    }
+  </style>
+  <!-- ==================== PETRI DISH / CULTURE ==================== -->
+  <!-- ==================== CONNECTING BRACKET ==================== -->
+  <!-- ==================== STATUS INDICATOR BADGES ==================== -->
+  <!-- Top: Green Checkmark (Susceptible) -->
+  <!-- Middle: Orange Exclamation (Intermediate) -->
+  <!-- Bottom: Red Cross (Resistant) -->
+  <g
+     id="g51"
+     transform="matrix(0.66516296,0,0,0.66516296,-50.009815,-22.659412)">
+    <g
+       id="petri-dish"
+       transform="translate(6,-16)">
+      <!-- Outer Dark Blue Broken Ring -->
+      <path
+         d="m 342,299 a 118,118 0 1 1 0,-118"
+         fill="none"
+         stroke="#005d9e"
+         stroke-width="15"
+         stroke-linecap="round"
+         id="path1" />
+      <!-- Agar Culture Field -->
+      <circle
+         cx="240"
+         cy="240"
+         r="95"
+         fill="#2baee5"
+         id="circle1" />
+      <!-- Zones of Inhibition (Halos) -->
+      <circle
+         cx="240"
+         cy="182"
+         r="27.987898"
+         fill="#ffffff"
+         opacity="0.32"
+         id="circle2"
+         style="stroke-width:1.11952" />
+      <circle
+         cx="290"
+         cy="211"
+         r="17.653965"
+         fill="#ffffff"
+         opacity="0.32"
+         id="circle3"
+         style="stroke-width:0.802453" />
+      <circle
+         cx="290"
+         cy="269"
+         r="24"
+         fill="#ffffff"
+         opacity="0.32"
+         id="circle4" />
+      <circle
+         cx="240"
+         cy="298"
+         r="31.519051"
+         fill="#ffffff"
+         opacity="0.32"
+         id="circle5"
+         style="stroke-width:1.26076" />
+      <circle
+         cx="190"
+         cy="269"
+         fill="#ffffff"
+         opacity="0.32"
+         id="circle6"
+         r="11.59166"
+         style="stroke-width:0.503985" />
+      <circle
+         cx="190"
+         cy="211"
+         r="21.826982"
+         fill="#ffffff"
+         opacity="0.32"
+         id="circle7"
+         style="stroke-width:0.909458" />
+      <!-- Antibiotic Discs (Plain white, reduced size) -->
+      <circle
+         cx="240"
+         cy="182"
+         r="7.5"
+         fill="#ffffff"
+         id="circle8" />
+      <circle
+         cx="290"
+         cy="211"
+         r="7.5"
+         fill="#ffffff"
+         id="circle9" />
+      <circle
+         cx="290"
+         cy="269"
+         r="7.5"
+         fill="#ffffff"
+         id="circle10" />
+      <circle
+         cx="240"
+         cy="298"
+         r="7.5"
+         fill="#ffffff"
+         id="circle11" />
+      <circle
+         cx="190"
+         cy="269"
+         r="7.5"
+         fill="#ffffff"
+         id="circle12" />
+      <circle
+         cx="190"
+         cy="211"
+         r="7.5"
+         fill="#ffffff"
+         id="circle13" />
+    </g>
+    <g
+       id="connector"
+       stroke="#005d9e"
+       stroke-width="14"
+       fill="none"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       transform="translate(0,-16)">
+      <line
+         x1="356"
+         y1="240"
+         x2="407"
+         y2="240"
+         id="line13" />
+      <path
+         d="m 408,135 c -23,0 -23,25 -23,55 v 100 c 0,30 0,55 23,55"
+         id="path13" />
+    </g>
+    <g
+       id="g50">
+      <g
+         id="status-susceptible"
+         style="filter:url(#filter36)"
+         transform="translate(-14,-16)">
+        <!-- Vector Drop Shadow -->
+        <circle
+           cx="475"
+           cy="135"
+           r="32"
+           fill="#43a047"
+           id="circle15" />
+        <path
+           d="m 462,135 9,9 17,-18"
+           fill="none"
+           stroke="#ffffff"
+           stroke-width="6.5"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           id="path15" />
+      </g>
+      <g
+         id="status-intermediate"
+         style="filter:url(#filter45)"
+         transform="translate(-14,-16)">
+        <!-- Vector Drop Shadow -->
+        <circle
+           cx="475"
+           cy="240"
+           r="32"
+           fill="#fb8c00"
+           id="circle17" />
+        <line
+           x1="475"
+           y1="223"
+           x2="475"
+           y2="243"
+           stroke="#ffffff"
+           stroke-width="6.5"
+           stroke-linecap="round"
+           id="line17" />
+        <circle
+           cx="475"
+           cy="256"
+           r="3.5"
+           fill="#ffffff"
+           id="circle18" />
+      </g>
+      <g
+         id="status-resistant"
+         style="filter:url(#filter47)"
+         transform="translate(-14,-16)">
+        <!-- Vector Drop Shadow -->
+        <circle
+           cx="475"
+           cy="345"
+           r="32"
+           fill="#e53935"
+           id="circle20" />
+        <line
+           x1="463"
+           y1="333"
+           x2="487"
+           y2="357"
+           stroke="#ffffff"
+           stroke-width="6.5"
+           stroke-linecap="round"
+           id="line20" />
+        <line
+           x1="487"
+           y1="333"
+           x2="463"
+           y2="357"
+           stroke="#ffffff"
+           stroke-width="6.5"
+           stroke-linecap="round"
+           id="line21" />
+      </g>
+    </g>
+  </g>
+  <!-- ==================== TYPOGRAPHY ==================== -->
+  <g
+     id="g52"
+     transform="matrix(0.91267943,0,0,0.91267943,243.04846,-323.94571)">
+    <text
+       x="311.93033"
+       y="482.87061"
+       class="brand-title"
+       font-size="60"
+       text-anchor="middle"
+       id="text21"
+       style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:105.523px;font-family:'Lucida Sans';-inkscape-font-specification:'Lucida Sans, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0.18em;text-anchor:middle;fill:#13446c;fill-opacity:1;stroke-width:1.75872">AMRIE</text>
+    <text
+       x="309.90097"
+       y="531.97449"
+       class="brand-sub"
+       font-size="35.5997px"
+       text-anchor="middle"
+       id="text22"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:35.5997px;font-family:'Lucida Sans';-inkscape-font-specification:'Lucida Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0.01em;text-anchor:middle;fill:#12456e;fill-opacity:1;stroke-width:1.77998"><tspan
+         sodipodi:role="line"
+         id="tspan49"
+         x="309.90097"
+         y="531.97449"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:35.5997px;font-family:'Lucida Sans';-inkscape-font-specification:'Lucida Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#12456e;fill-opacity:1;stroke-width:1.77998">Antimicrobial Resistance</tspan><tspan
+         sodipodi:role="line"
+         id="tspan50"
+         x="310.07895"
+         y="576.47412"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:35.5997px;font-family:'Lucida Sans';-inkscape-font-specification:'Lucida Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#12456e;fill-opacity:1;stroke-width:1.77998">Test Interpretation Engine</tspan></text>
+  </g>
+</svg>

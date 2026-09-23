@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using AMR_Engine;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -178,8 +179,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
     private List<ExpertRuleRow> _allExpertRules = new();
     private List<IntrinsicRuleRow> _allIntrinsicRules = new();
 
-    private static readonly Dictionary<string, string> OrganismNameCache = BuildOrganismNameLookup();
-
+    private Task? _loadTask;
     private static Dictionary<string, string> BuildOrganismNameLookup()
     {
         var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -197,20 +197,40 @@ public partial class ResourceExplorerViewModel : ObservableObject
         return lookup;
     }
 
-    private static string ResolveOrganismName(string? code)
+    private static string ResolveOrganismName(string? code, Dictionary<string, string> organismNameCache)
     {
         if (string.IsNullOrWhiteSpace(code)) return string.Empty;
-        return OrganismNameCache.TryGetValue(code, out var name) ? name : string.Empty;
+        return organismNameCache.TryGetValue(code, out var name) ? name : string.Empty;
     }
 
     public ResourceExplorerViewModel()
     {
-        LoadAllResources();
+    }
+
+    public Task LoadAsync()
+    {
+        return _loadTask ??= LoadAllResourcesAsync();
+    }
+
+    private async Task LoadAllResourcesAsync()
+    {
+        var years = await Task.Run(LoadAllResources);
+
+        AvailableYears.Clear();
+        AvailableYears.Add("All Years");
+        foreach (var year in years)
+        {
+            AvailableYears.Add(year.ToString());
+        }
+
         ApplyFilter();
     }
 
-    private void LoadAllResources()
+    private List<int> LoadAllResources()
     {
+        var organismNameCache = BuildOrganismNameLookup();
+        var years = new List<int>();
+
         try
         {
             // Breakpoints
@@ -220,7 +240,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 b.TEST_METHOD,
                 b.POTENCY,
                 b.ORGANISM_CODE,
-                ResolveOrganismName(b.ORGANISM_CODE),
+                ResolveOrganismName(b.ORGANISM_CODE, organismNameCache),
                 b.BREAKPOINT_TYPE,
                 b.HOST,
                 b.SITE_OF_INFECTION,
@@ -234,10 +254,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 b.COMMENTS
             )).ToList();
 
-            var years = _allBreakpoints.Select(b => b.Year).Distinct().OrderByDescending(y => y).ToList();
-            AvailableYears.Clear();
-            AvailableYears.Add("All Years");
-            foreach (var y in years) AvailableYears.Add(y.ToString());
+            years = _allBreakpoints.Select(b => b.Year).Distinct().OrderByDescending(y => y).ToList();
         }
         catch { }
 
@@ -248,7 +265,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 r.RULE_CODE,
                 r.DESCRIPTION,
                 r.ORGANISM_CODE,
-                ResolveOrganismName(r.ORGANISM_CODE),
+                ResolveOrganismName(r.ORGANISM_CODE, organismNameCache),
                 string.Join(", ", r.AFFECTED_ANTIBIOTICS ?? new List<string>()),
                 string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>())
             )).ToList();
@@ -262,13 +279,15 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 .Select(r => new IntrinsicRuleRow(
                     r.GUIDELINE,
                     r.ORGANISM_CODE,
-                    ResolveOrganismName(r.ORGANISM_CODE),
+                    ResolveOrganismName(r.ORGANISM_CODE, organismNameCache),
                     r.ABX_CODE,
                     string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>()),
                     r.COMMENTS
                 )).ToList();
         }
         catch { }
+
+        return years;
     }
 
     partial void OnSelectedSectionIndexChanged(int value)
