@@ -1,34 +1,34 @@
 ﻿namespace AMR_Engine
 {
-	class AntibioticComponents
-	{
-		#region Constants
+    class AntibioticComponents
+    {
+        #region Constants
 
-		private const string UserDefinedAntibiotic = "X";
+        private const string UserDefinedAntibiotic = "X";
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		public readonly string Code;
+        public readonly string Code;
 
-		public readonly string Guideline;
+        public readonly string Guideline;
 
-		public readonly string TestMethod;
+        public readonly string TestMethod;
 
-		#endregion
+        #endregion
 
-		#region Init
+        #region Init
 
-		/// <summary>
-		/// Break the full antimicrobial code into its components.
-		/// </summary>
-		/// <param name="whonetAntibioticFullCode"></param>
-		public AntibioticComponents(string whonetAntibioticFullCode)
-		{
-			char guidelineCode;
-			string[] abxComponents = IO_Library.SplitLine(whonetAntibioticFullCode, Constants.Delimiters.Underscore);
-			Code = abxComponents[0];
+        /// <summary>
+        /// Break the full antimicrobial code into its components.
+        /// </summary>
+        /// <param name="whonetAntibioticFullCode"></param>
+        public AntibioticComponents(string whonetAntibioticFullCode)
+        {
+            char guidelineCode;
+            string[] abxComponents = IO_Library.SplitLine(whonetAntibioticFullCode, Constants.Delimiters.Underscore);
+            Code = abxComponents[0];
 
 			if (Code == UserDefinedAntibiotic)
 			{
@@ -44,9 +44,9 @@
 				TestMethod = Antibiotic.TestMethods.GetTestMethodFromCode(abxComponents[1][1]);
 			}
 
-			Guideline = Antibiotic.GuidelineNames.GetGuidelineFromCode(guidelineCode);
-		}
+            Guideline = Antibiotic.GuidelineNames.GetGuidelineFromCode(guidelineCode);
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
