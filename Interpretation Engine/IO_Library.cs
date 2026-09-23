@@ -19,11 +19,11 @@ namespace AMR_Engine
             public const string AntibioticMeasurement = "ANTIBIOTIC_MEASUREMENT";
             public const string AntibioticInterpretation = "ANTIBIOTIC_INTERPRETATION";
 
-            public static readonly string[] VerticalAntibioticFields = {
+            public static readonly string[] VerticalAntibioticFields = [
                 AntibioticCode,
                 AntibioticMeasurement,
                 AntibioticInterpretation
-            };
+            ];
         }
 
         #endregion
@@ -51,7 +51,7 @@ namespace AMR_Engine
             Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults =
                 InterpretIsolates(e, arguments, interpretationConfig, inputColumnNames, rowValueSets);
 
-            GenerateOutputFile(e, arguments, interpretationConfig, inputColumnNames, interpretationResults);
+            GenerateOutputFile(e, arguments, interpretationConfig, inputColumnNames, interpretationResults);  
         }
 
         /// <summary>
@@ -316,19 +316,26 @@ namespace AMR_Engine
 
             arguments.Worker?.ReportProgress(0);
 
+            if (arguments.Worker != null && arguments.Worker.CancellationPending)
+            {
+                e.Cancel = true;
+                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = [];
+                return _;
+            }
+
             Parallel.For(0, totalBlocks, (blockNumber, state) =>
             {
-                if (arguments.Worker != null && arguments.Worker.CancellationPending)
-                {
-                    e.Cancel = true;
-                    state.Break();
-                }
-
                 int blockRowStart = (blockSize * blockNumber);
                 int blockRowCount = Math.Min(blockSize, rowValueSets.Count - blockRowStart);
 
                 for (int lineNumber = blockRowStart; lineNumber < blockRowStart + blockRowCount; lineNumber++)
                 {
+                    if (arguments.Worker != null && arguments.Worker.CancellationPending)
+                    {
+                        e.Cancel = true;
+                        state.Break();
+                    }
+
                     Dictionary<string, string> results =
                     new IsolateInterpretation(rowValueSets[lineNumber],
                     inputColumnNames,
@@ -358,7 +365,13 @@ namespace AMR_Engine
                 }
             });
 
-            return interpretationResults;
+            if (e.Cancel)
+            {
+                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = [];
+                return _;
+            }                
+            else
+                return interpretationResults;
         }
 
         /// <summary>
@@ -373,6 +386,12 @@ namespace AMR_Engine
             List<string> inputColumnNames,
             Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults)
         {
+            if (arguments.Worker != null && arguments.Worker.CancellationPending)
+            {
+                e.Cancel = true;
+                return;
+            }
+
             const string InterpSuffix = "_INTERP";
 
             IEnumerable<string> interpretationHeaders =

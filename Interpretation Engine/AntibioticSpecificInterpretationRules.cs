@@ -170,33 +170,39 @@ namespace AMR_Engine
 
             Parallel.ForEach(
                 distinctInterpretationKeys,
-                key =>
-            {
-                // Evaluating the breakpoint for the side effect that the cache will be populated.
-                // We don't need a reference to the breakpoint itself here.
-                DetermineMostApplicableBreakpoint(
-                    userDefinedBreakpoints,
-                    guidelineYear,
-                    prioritizedBreakpointTypes,
-                    prioritizedSitesOfInfection,
-                    key.Item1, key.Item2, key.Item3);
-
-                // Update the UI's progress
-                if (worker != null)
+                (key, state) =>
                 {
-                    lock (syncObject)
-                    {
-                        completedKeys++;
-                        int currentProgress = (completedKeys * 100) / totalKeys;
+                    if (worker != null && worker.CancellationPending)
+                        state.Break();
 
-                        if (currentProgress > lastReportedProgress)
+                    // Evaluating the breakpoint for the side effect that the cache will be populated.
+                    // We don't need a reference to the breakpoint itself here.
+                    DetermineMostApplicableBreakpoint(
+                        userDefinedBreakpoints,
+                        guidelineYear,
+                        prioritizedBreakpointTypes,
+                        prioritizedSitesOfInfection,
+                        key.Item1, key.Item2, key.Item3);
+
+                    // Update the UI's progress
+                    if (worker != null)
+                    {
+                        if (worker.CancellationPending)
+                            state.Break();
+
+                        lock (syncObject)
                         {
-                            lastReportedProgress = currentProgress;
-                            worker.ReportProgress(lastReportedProgress);
+                            completedKeys++;
+                            int currentProgress = (completedKeys * 100) / totalKeys;
+
+                            if (currentProgress > lastReportedProgress)
+                            {
+                                lastReportedProgress = currentProgress;
+                                worker.ReportProgress(lastReportedProgress);
+                            }
                         }
                     }
-                }
-            });
+                });
         }
 
         /// <summary>
