@@ -19,11 +19,11 @@ namespace AMR_Engine
             public const string AntibioticMeasurement = "ANTIBIOTIC_MEASUREMENT";
             public const string AntibioticInterpretation = "ANTIBIOTIC_INTERPRETATION";
 
-            public static readonly string[] VerticalAntibioticFields = [
+            public static readonly string[] VerticalAntibioticFields = {
                 AntibioticCode,
                 AntibioticMeasurement,
                 AntibioticInterpretation
-            ];
+            };
         }
 
         #endregion
@@ -319,7 +319,8 @@ namespace AMR_Engine
             if (arguments.Worker != null && arguments.Worker.CancellationPending)
             {
                 e.Cancel = true;
-                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = [];
+                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ =
+                    new Tuple<Dictionary<string, string>, Dictionary<string, string>>[0];
                 return _;
             }
 
@@ -367,7 +368,8 @@ namespace AMR_Engine
 
             if (e.Cancel)
             {
-                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = [];
+                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = 
+                    new Tuple<Dictionary<string, string>, Dictionary<string, string>>[0];
                 return _;
             }                
             else
