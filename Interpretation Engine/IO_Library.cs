@@ -383,6 +383,12 @@ namespace AMR_Engine
             List<string> inputColumnNames,
             Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults)
         {
+            if (arguments.Worker != null && arguments.Worker.CancellationPending)
+            {
+                e.Cancel = true;
+                return;
+            }
+
             const string InterpSuffix = "_INTERP";
 
             IEnumerable<string> interpretationHeaders =
