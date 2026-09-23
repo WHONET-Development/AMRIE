@@ -1,11 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Interpretation_CLI</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>
+    <ApplicationIcon>AMRIE_Square_No_Text.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="AMRIE_Square_No_Text.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Interpretation Engine\Interpretation Engine.csproj" />

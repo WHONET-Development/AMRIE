@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>AMR_Engine</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>
+    <ApplicationIcon>AMRIE_Square_No_Text.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="AMRIE_Square_No_Text.ico" />
     <Content Include="Resources\Antibiotics.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

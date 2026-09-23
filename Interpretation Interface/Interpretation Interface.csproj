@@ -7,6 +7,7 @@
     <Version>$(VersionPrefix)26.3.26</Version>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <SignAssembly>False</SignAssembly>
+    <ApplicationIcon>Icons\AMRIE_Square_No_Text.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,13 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="microscope.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="microscope.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Icons\AMRIE_Square_No_Text.ico" />
   </ItemGroup>
 
   <ItemGroup>
