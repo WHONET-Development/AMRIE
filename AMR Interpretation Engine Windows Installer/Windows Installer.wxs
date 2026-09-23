@@ -29,7 +29,7 @@
 		<ui:WixUI Id="WixUI_Mondo_Custom" />
 		<UIRef Id="WixUI_ErrorProgressText" />
 
-		<Icon Id="microscope.ico" SourceFile="$(var.Interpretation_Interface.TargetDir)microscope.ico" />
+		<Icon Id="AMRIE.ico" SourceFile="$(var.Interpretation_Interface.TargetDir)Icons\AMRIE_Square_No_Text.ico" />
 
 		<!-- Replaces the default EULA text and background images -->
 		<WixVariable Id="WixUILicenseRtf" Value="eula.rtf" />
@@ -82,8 +82,8 @@
 			<Component Id="InterpretationInterface" Guid="E4C90ED0-25B2-4C01-97A0-ACD5C83553CA">
 				<File Id="InterpretationInterface.exe" Name="Interpretation Interface.exe" Source="$(var.Interpretation_Interface.TargetDir)Interpretation Interface.exe" KeyPath="yes">
 
-					<Shortcut Id="StartMenuShortcut" Directory="ProgramMenuDir" Name="$(var.Title)" Icon="microscope.ico" IconIndex="0" Advertise="yes" />
-					<Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="$(var.Title)" Icon="microscope.ico" IconIndex="0" Advertise="yes" />
+					<Shortcut Id="StartMenuShortcut" Directory="ProgramMenuDir" Name="$(var.Title)" Icon="AMRIE.ico" IconIndex="0" Advertise="yes" />
+					<Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="$(var.Title)" Icon="AMRIE.ico" IconIndex="0" Advertise="yes" />
 				</File>
 			</Component>
 

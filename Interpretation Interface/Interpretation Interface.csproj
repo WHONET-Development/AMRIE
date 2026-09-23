@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Icons\AMRIE_Square_No_Text.ico" />
+    <Content Include="Icons\AMRIE_Square_No_Text.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

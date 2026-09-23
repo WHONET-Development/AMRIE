@@ -262,15 +262,15 @@ namespace AMR_InterpretationInterface
             MultipleInterpretationsTab.Padding = new System.Windows.Forms.Padding(3);
             MultipleInterpretationsTab.Size = new System.Drawing.Size(820, 396);
             MultipleInterpretationsTab.TabIndex = 0;
-            MultipleInterpretationsTab.Text = "Whole-database interpretation";
+            MultipleInterpretationsTab.Text = "File interpretation";
             MultipleInterpretationsTab.UseVisualStyleBackColor = true;
             // 
             // ProgressMeter
             // 
             ProgressMeter.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            ProgressMeter.Location = new System.Drawing.Point(6, 408);
+            ProgressMeter.Location = new System.Drawing.Point(111, 123);
             ProgressMeter.Name = "ProgressMeter";
-            ProgressMeter.Size = new System.Drawing.Size(164, 23);
+            ProgressMeter.Size = new System.Drawing.Size(480, 23);
             ProgressMeter.TabIndex = 11;
             // 
             // BrowseForConfigFileButton
@@ -352,8 +352,8 @@ namespace AMR_InterpretationInterface
             // 
             // InterpretFileButton
             // 
-            InterpretFileButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            InterpretFileButton.Location = new System.Drawing.Point(597, 408);
+            InterpretFileButton.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            InterpretFileButton.Location = new System.Drawing.Point(597, 123);
             InterpretFileButton.Name = "InterpretFileButton";
             InterpretFileButton.Size = new System.Drawing.Size(217, 23);
             InterpretFileButton.TabIndex = 8;
@@ -402,7 +402,7 @@ namespace AMR_InterpretationInterface
             SingleInterpretationTab.Padding = new System.Windows.Forms.Padding(3);
             SingleInterpretationTab.Size = new System.Drawing.Size(820, 396);
             SingleInterpretationTab.TabIndex = 1;
-            SingleInterpretationTab.Text = "Single interpretation";
+            SingleInterpretationTab.Text = "Individual interpretations and resources";
             SingleInterpretationTab.UseVisualStyleBackColor = true;
             // 
             // InterpretationPanel
@@ -589,7 +589,7 @@ namespace AMR_InterpretationInterface
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             MinimumSize = new System.Drawing.Size(868, 516);
             Name = "MainApplicationForm";
-            Text = "Antimicrobial test result interpretation system";
+            Text = "AMRIE";
             Load += MainApplicationForm_Load;
             ((System.ComponentModel.ISupportInitialize)GuidelineYearUpDown).EndInit();
             ModeTabControl.ResumeLayout(false);
