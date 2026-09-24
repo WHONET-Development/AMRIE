@@ -12,11 +12,11 @@ There are three sets of needs that the solution aims to support:
 2. Command line use
 3. Library integration with an external system
 
-The library code is written in .NET 8 with no additional dependencies. It can be built for and integrated with software on any platform which supports .NET 8,
+The library code is written in .NET 8 with no additional dependencies. It can be built for and integrated with software on any platform that supports .NET 8,
 which includes Windows, GNU/Linux and Mac.
 
 The interactive and command line interfaces exercise various interpretation features, demonstrating how one might incorporate the library into their systems. The user
-interfaces can be used to generate interpretations, but we expect that most groups will have a greater need for library integration to provide the interpretations for
+interfaces can be used to generate interpretations as an end goal, but we expect that most groups will have a greater need for library integration to provide the interpretations for
 their own work.
 
 The interactive applications may be used to generate interpretations for an entire data file, or explore ad hoc interpretations and view filtered resources.
