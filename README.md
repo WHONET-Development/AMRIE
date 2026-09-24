@@ -7,7 +7,7 @@ For more information about the guidelines, please visit their websites: [CLSI](h
 
 You can install this software on Windows using the command `winget install WHONET.AMRIE` or by downloading the latest release from GitHub.
 
-There are four sets of needs that the solution aims to support:
+There are three sets of needs that the solution aims to support:
 1. Interactive use through one of the two desktop applications
 2. Command line use
 3. Library integration with an external system
