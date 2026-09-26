@@ -1,5 +1,6 @@
 <Page
     x:Class="AMRIE.WinUI.Pages.SingleInterpretationPage"
+    NavigationCacheMode="Required"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -183,6 +184,7 @@
                                                 PlaceholderText="Search name or code (e.g. Escherichia coli, ECO)..."
                                                 TextChanged="OrganismSuggestBox_TextChanged"
                                                 SuggestionChosen="OrganismSuggestBox_SuggestionChosen"
+                                                QuerySubmitted="OrganismSuggestBox_QuerySubmitted"
                                                 QueryIcon="Find">
                                     <AutoSuggestBox.ItemTemplate>
                                         <DataTemplate x:DataType="vm:OrganismItem">
@@ -221,6 +223,7 @@
                                                 PlaceholderText="Search antibiotic name or code (e.g. Amikacin, AMK)..."
                                                 TextChanged="AntibioticSuggestBox_TextChanged"
                                                 SuggestionChosen="AntibioticSuggestBox_SuggestionChosen"
+                                                QuerySubmitted="AntibioticSuggestBox_QuerySubmitted"
                                                 QueryIcon="Find">
                                     <AutoSuggestBox.ItemTemplate>
                                         <DataTemplate x:DataType="vm:AntibioticItem">
@@ -262,8 +265,8 @@
                                 <StackPanel Spacing="4" VerticalAlignment="Center">
                                     <TextBlock Text="Method" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     <StackPanel Orientation="Horizontal" Spacing="16">
-                                        <RadioButton Content="Disk" IsChecked="{x:Bind ViewModel.IsDiskMethod, Mode=TwoWay}" />
-                                        <RadioButton Content="MIC / Etest" IsChecked="{x:Bind ViewModel.IsMicMethod, Mode=TwoWay}" />
+                                        <RadioButton Content="Disk" IsChecked="{x:Bind ViewModel.IsDiskMethod, Mode=TwoWay}" GroupName="TestMethodGroup" />
+                                        <RadioButton Content="MIC / Etest" IsChecked="{x:Bind ViewModel.IsMicMethod, Mode=TwoWay}" GroupName="TestMethodGroup" />
                                     </StackPanel>
                                 </StackPanel>
 
@@ -299,7 +302,8 @@
 
                             <TextBox Header="Measurement Value"
                                      PlaceholderText="e.g. 22 (mm) or &lt;=0.5 (mg/L)"
-                                     Text="{x:Bind ViewModel.Measurement, Mode=TwoWay}" />
+                                     Text="{x:Bind ViewModel.Measurement, Mode=TwoWay}"
+                                     KeyDown="MeasurementTextBox_KeyDown" />
 
                             <Button Grid.Column="1"
                                     VerticalAlignment="Bottom"

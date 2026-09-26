@@ -14,7 +14,7 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid x:Name="RootGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -98,7 +98,7 @@
             </NavigationView.PaneFooter>
 
             <!-- Main Page Frame -->
-            <Frame x:Name="ContentFrame" Margin="0">
+            <Frame x:Name="ContentFrame" Margin="0" CacheSize="10">
                 <Frame.ContentTransitions>
                     <TransitionCollection>
                         <NavigationThemeTransition>

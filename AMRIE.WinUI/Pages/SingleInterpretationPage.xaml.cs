@@ -43,6 +43,31 @@ public sealed partial class SingleInterpretationPage : Page
         }
     }
 
+    private void OrganismSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (args.ChosenSuggestion is OrganismItem chosen)
+        {
+            ViewModel.SelectedOrganism = chosen;
+            sender.Text = chosen.DisplayName;
+        }
+        else if (!string.IsNullOrWhiteSpace(args.QueryText))
+        {
+            string query = args.QueryText.Trim();
+            var match = ViewModel.AllOrganisms.FirstOrDefault(o =>
+                o.Code.Equals(query, StringComparison.OrdinalIgnoreCase) ||
+                o.DisplayName.Equals(query, StringComparison.OrdinalIgnoreCase))
+                ?? ViewModel.AllOrganisms.FirstOrDefault(o =>
+                o.DisplayName.StartsWith(query, StringComparison.OrdinalIgnoreCase) ||
+                o.Code.StartsWith(query, StringComparison.OrdinalIgnoreCase));
+
+            if (match != null)
+            {
+                ViewModel.SelectedOrganism = match;
+                sender.Text = match.DisplayName;
+            }
+        }
+    }
+
     private void AntibioticSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
@@ -71,6 +96,43 @@ public sealed partial class SingleInterpretationPage : Page
         {
             ViewModel.SelectedAntibiotic = chosen;
             sender.Text = chosen.DisplayName;
+        }
+    }
+
+    private void AntibioticSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (args.ChosenSuggestion is AntibioticItem chosen)
+        {
+            ViewModel.SelectedAntibiotic = chosen;
+            sender.Text = chosen.DisplayName;
+        }
+        else if (!string.IsNullOrWhiteSpace(args.QueryText))
+        {
+            string query = args.QueryText.Trim();
+            var match = ViewModel.AllAntibiotics.FirstOrDefault(a =>
+                a.Code.Equals(query, StringComparison.OrdinalIgnoreCase) ||
+                a.DisplayName.Equals(query, StringComparison.OrdinalIgnoreCase))
+                ?? ViewModel.AllAntibiotics.FirstOrDefault(a =>
+                a.DisplayName.StartsWith(query, StringComparison.OrdinalIgnoreCase) ||
+                a.Code.StartsWith(query, StringComparison.OrdinalIgnoreCase));
+
+            if (match != null)
+            {
+                ViewModel.SelectedAntibiotic = match;
+                sender.Text = match.DisplayName;
+            }
+        }
+    }
+
+    private void MeasurementTextBox_KeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter)
+        {
+            e.Handled = true;
+            if (ViewModel.InterpretCommand.CanExecute(null))
+            {
+                ViewModel.InterpretCommand.Execute(null);
+            }
         }
     }
 }

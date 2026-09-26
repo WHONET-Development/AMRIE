@@ -195,7 +195,10 @@ public partial class SingleInterpretationViewModel : ObservableObject
     {
         DiskPotencies.Clear();
         if (SelectedAntibiotic == null)
+        {
+            SelectedDiskPotency = null;
             return;
+        }
 
         var activeGuidelines = Guidelines.Where(g => g.IsSelected).Select(g => g.Name).ToList();
         var potencies = Antibiotic.AllAntibiotics
@@ -217,6 +220,10 @@ public partial class SingleInterpretationViewModel : ObservableObject
         if (DiskPotencies.Count > 0)
         {
             SelectedDiskPotency = DiskPotencies[0];
+        }
+        else
+        {
+            SelectedDiskPotency = null;
         }
     }
 
@@ -250,7 +257,14 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
         if (!InterpretationLibrary.ParseResult(testMethod, Measurement.Trim(), ref discardedNum, ref discardedMod))
         {
-            SetError("The test measurement could not be parsed. Please check the value format.");
+            if (IsDiskMethod)
+            {
+                SetError("The disk measurement could not be parsed. Disk zone diameters must be an integer between 6 and 80 mm (e.g. 18, 22).");
+            }
+            else
+            {
+                SetError("The MIC measurement could not be parsed. Please enter a valid MIC (e.g. 0.5, <=1, >16).");
+            }
             return;
         }
 
