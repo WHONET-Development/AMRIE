@@ -164,7 +164,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     // Year Filter ("All Years" or specific year)
     [ObservableProperty]
-    private string _selectedYear = "All Years";
+    private string _selectedYear = Constants.BreakpointTableRevisionYear.ToString();
 
     public ObservableCollection<string> AvailableYears { get; } = new();
 
@@ -221,6 +221,16 @@ public partial class ResourceExplorerViewModel : ObservableObject
         foreach (var year in years)
         {
             AvailableYears.Add(year.ToString());
+        }
+
+        string currentYear = Constants.BreakpointTableRevisionYear.ToString();
+        if (years.Contains((int)Constants.BreakpointTableRevisionYear))
+        {
+            SelectedYear = currentYear;
+        }
+        else if (years.Count > 0)
+        {
+            SelectedYear = years[0].ToString();
         }
 
         ApplyFilter();

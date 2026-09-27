@@ -1,5 +1,9 @@
 <Page
     x:Class="AMRIE.WinUI.Pages.BatchProcessingPage"
+    NavigationCacheMode="Required"
+    AllowDrop="True"
+    DragOver="Page_DragOver"
+    Drop="Page_Drop"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -25,7 +29,13 @@
             <InfoBar IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
                      Severity="{x:Bind ViewModel.StatusInfoBarSeverity, Mode=OneWay}"
                      Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                     IsClosable="True" />
+                     IsClosable="True">
+                <InfoBar.ActionButton>
+                    <Button Content="Open Results"
+                            Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.OpenOutputFileCommand}" />
+                </InfoBar.ActionButton>
+            </InfoBar>
 
             <!-- Configuration Card -->
             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -145,6 +155,10 @@
                                 Padding="28,10" />
                         <Button Content="Cancel Operation"
                                 Command="{x:Bind ViewModel.CancelProcessingCommand}"
+                                Padding="20,10" />
+                        <Button Content="Open Folder"
+                                Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
+                                Command="{x:Bind ViewModel.OpenOutputFolderCommand}"
                                 Padding="20,10" />
                     </StackPanel>
                 </StackPanel>

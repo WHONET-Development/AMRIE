@@ -8,7 +8,7 @@ public class InterpretationResultItem
     public string StatusSeverity { get; set; } = "Informational"; // Success, Warning, Error, Informational
     public string Comments { get; set; } = string.Empty;
 
-    public string BadgeBackground => ResultBadge.Trim() switch
+    public string BadgeBackground => (ResultBadge ?? string.Empty).Trim() switch
     {
         "S" => "#107C41",  // Green (Susceptible)
         "I" or "SDD" or "S-DD" => "#D83B01",  // Orange (Intermediate / SDD)

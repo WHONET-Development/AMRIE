@@ -58,6 +58,15 @@ public partial class BatchProcessingViewModel : ObservableObject
 
     public BatchProcessingViewModel()
     {
+        try
+        {
+            string defaultConfig = Path.Combine(AppContext.BaseDirectory, "Resources", "SampleConfig.json");
+            if (File.Exists(defaultConfig))
+            {
+                ConfigFilePath = defaultConfig;
+            }
+        }
+        catch { }
     }
 
     [RelayCommand]
@@ -77,6 +86,24 @@ public partial class BatchProcessingViewModel : ObservableObject
             if (file != null)
             {
                 InputFilePath = file.Path;
+
+                if (string.IsNullOrWhiteSpace(OutputFilePath))
+                {
+                    string dir = Path.GetDirectoryName(file.Path) ?? string.Empty;
+                    string name = Path.GetFileNameWithoutExtension(file.Path);
+                    string ext = Path.GetExtension(file.Path);
+                    if (string.IsNullOrWhiteSpace(ext)) ext = ".txt";
+                    OutputFilePath = Path.Combine(dir, $"{name}_interpreted{ext}");
+                }
+
+                if (file.FileType.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    SelectedDelimiter = ",";
+                }
+                else if (file.FileType.Equals(".tsv", StringComparison.OrdinalIgnoreCase))
+                {
+                    SelectedDelimiter = "TAB";
+                }
             }
         }
         catch (Exception ex)
@@ -138,17 +165,43 @@ public partial class BatchProcessingViewModel : ObservableObject
         IsSuccess = false;
         IsError = false;
 
-        string inputFile = InputFilePath.Trim();
-        if (!Path.IsPathFullyQualified(inputFile))
-            inputFile = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, inputFile));
+        string inputFile = InputFilePath?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(inputFile))
+        {
+            SetError("Please select or enter an input surveillance data file.");
+            return;
+        }
 
-        string configFile = ConfigFilePath.Trim();
-        if (!Path.IsPathFullyQualified(configFile))
-            configFile = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configFile));
+        string configFile = ConfigFilePath?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(configFile))
+        {
+            SetError("Please select or enter an interpretation configuration file (.json).");
+            return;
+        }
 
-        string outputFile = OutputFilePath.Trim();
-        if (!Path.IsPathFullyQualified(outputFile))
-            outputFile = Path.GetFullPath(outputFile);
+        string outputFile = OutputFilePath?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(outputFile))
+        {
+            SetError("Please specify an output results file destination.");
+            return;
+        }
+
+        try
+        {
+            if (!Path.IsPathFullyQualified(inputFile))
+                inputFile = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, inputFile));
+
+            if (!Path.IsPathFullyQualified(configFile))
+                configFile = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configFile));
+
+            if (!Path.IsPathFullyQualified(outputFile))
+                outputFile = Path.GetFullPath(outputFile);
+        }
+        catch (Exception ex)
+        {
+            SetError($"Invalid file path: {ex.Message}");
+            return;
+        }
 
         if (!File.Exists(inputFile))
         {
@@ -248,6 +301,41 @@ public partial class BatchProcessingViewModel : ObservableObject
     }
 
     private bool CanCancelProcessing() => IsProcessing;
+
+    [RelayCommand]
+    public void OpenOutputFile()
+    {
+        try
+        {
+            if (File.Exists(OutputFilePath))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = OutputFilePath,
+                    UseShellExecute = true
+                });
+            }
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    public void OpenOutputFolder()
+    {
+        try
+        {
+            string? dir = Path.GetDirectoryName(OutputFilePath);
+            if (!string.IsNullOrWhiteSpace(dir) && Directory.Exists(dir))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = dir,
+                    UseShellExecute = true
+                });
+            }
+        }
+        catch { }
+    }
 
     private void SetError(string message)
     {

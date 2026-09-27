@@ -18,6 +18,11 @@ public sealed partial class MainWindow : Window
         WindowHelper.MainWindow = this;
         WindowHelper.SetWindowSize(this, 1150, 780);
 
+        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.Maximize();
+        }
+
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
