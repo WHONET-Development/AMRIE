@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 
 namespace AMR_Engine
@@ -125,9 +125,13 @@ namespace AMR_Engine
 
         /// <summary>
         /// Handle half-dilution rounding, which is optional. The standard behavior is to round up to the next full dilution with some exceptions.
+        /// Dilution series follows geometric doubling (power of 2) scale:
+        /// ... 0.002, 0.004, 0.008, 0.016 (or 0.015 for Oxoid/Fisher), 0.032 (or 0.03 for Oxoid),
+        /// 0.064 (or 0.06), 0.125 (or 0.12), 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048.
+        /// Fixed high concentrations (500, 1000) are used specifically for high-level aminoglycoside resistance (GEH, STH, KAH) and are not rounded.
         /// </summary>
-        /// <param name="numericMeasurement"></param>
-        /// <returns></returns>
+        /// <param name="numericMeasurement">Measured continuous MIC value.</param>
+        /// <returns>Rounded full-dilution step value.</returns>
         public static decimal Round_ETestHalfDilutionsUp(decimal numericMeasurement)
         {
             if (numericMeasurement == 500M || numericMeasurement == 1000M)

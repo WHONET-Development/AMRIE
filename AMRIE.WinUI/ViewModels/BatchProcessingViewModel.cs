@@ -168,7 +168,7 @@ public partial class BatchProcessingViewModel : ObservableObject
         string inputFile = InputFilePath?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(inputFile))
         {
-            SetError("Please select or enter an input surveillance data file.");
+            SetError("Please select or enter an input data file.");
             return;
         }
 
@@ -215,38 +215,41 @@ public partial class BatchProcessingViewModel : ObservableObject
             return;
         }
 
+        if (string.IsNullOrEmpty(SelectedDelimiter))
+        {
+            SetError("Please select a column delimiter.");
+            return;
+        }
         char delimiter = SelectedDelimiter == "TAB" ? Constants.Delimiters.TabChar : SelectedDelimiter[0];
         int guidelineYear = Convert.ToInt32(GuidelineYear);
 
-        // Capture the DispatcherQueue before entering the background thread
-        var dispatcherQueue = WindowHelper.MainWindow?.DispatcherQueue;
+        // Create BackgroundWorker on the UI thread so its ProgressChanged event
+        // marshals back to the UI synchronization context automatically.
+        _worker = new BackgroundWorker
+        {
+            WorkerReportsProgress = true,
+            WorkerSupportsCancellation = true
+        };
+        _worker.ProgressChanged += (s, e) => ProgressPercentage = e.ProgressPercentage;
 
         IsProcessing = true;
         ProgressPercentage = 0;
         StartProcessingCommand.NotifyCanExecuteChanged();
         CancelProcessingCommand.NotifyCanExecuteChanged();
 
+        // Snapshot fields so the closure is safe across threads.
+        var worker = _worker;
+        var fileArgs = new FileInterpretationParameters(
+            inputFile, delimiter, guidelineYear, configFile, outputFile, worker);
+        var doWorkArgs = new DoWorkEventArgs(fileArgs);
+
+        var dispatcherQueue = WindowHelper.MainWindow?.DispatcherQueue;
+
         await Task.Run(() =>
         {
-            _worker = new BackgroundWorker
-            {
-                WorkerReportsProgress = true,
-                WorkerSupportsCancellation = true
-            };
-
-            _worker.ProgressChanged += (s, e) =>
-            {
-                dispatcherQueue?.TryEnqueue(() =>
-                    ProgressPercentage = e.ProgressPercentage);
-            };
-
-            var fileArgs = new FileInterpretationParameters(
-                inputFile, delimiter, guidelineYear, configFile, outputFile, _worker);
-            var doWorkArgs = new DoWorkEventArgs(fileArgs);
-
             try
             {
-                IO_Library.InterpretDataFile(_worker, doWorkArgs);
+                IO_Library.InterpretDataFile(worker, doWorkArgs);
 
                 dispatcherQueue?.TryEnqueue(() =>
                 {
@@ -279,6 +282,7 @@ public partial class BatchProcessingViewModel : ObservableObject
                 {
                     HasStatusMessage = true;
                     IsProcessing = false;
+                    _worker = null;  // Clear so CancelProcessing can't target a stale worker.
                     StartProcessingCommand.NotifyCanExecuteChanged();
                     CancelProcessingCommand.NotifyCanExecuteChanged();
                 });

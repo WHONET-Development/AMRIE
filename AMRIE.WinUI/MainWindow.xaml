@@ -83,7 +83,7 @@
                 <NavigationViewItem
                     Content="Batch Processing"
                     Tag="BatchProcessing"
-                    ToolTipService.ToolTip="Interpret entire WHONET surveillance data files">
+                    ToolTipService.ToolTip="Interpret entire WHONET data files">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8B7;" />
                     </NavigationViewItem.Icon>

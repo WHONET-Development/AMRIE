@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Microsoft.UI.Xaml.Controls;
 using AMRIE.WinUI.ViewModels;
+using AMRIE.WinUI.Models;
 
 namespace AMRIE.WinUI.Pages;
 
@@ -27,7 +28,7 @@ public sealed partial class SingleInterpretationPage : Page
             var matches = ViewModel.AllOrganisms
                 .Where(o => terms.All(t => o.DisplayName.Contains(t, StringComparison.OrdinalIgnoreCase) ||
                                            o.Code.Contains(t, StringComparison.OrdinalIgnoreCase)))
-                .Take(25)
+                .Take(50)
                 .ToList();
 
             sender.ItemsSource = matches;
@@ -83,7 +84,7 @@ public sealed partial class SingleInterpretationPage : Page
             var matches = ViewModel.AllAntibiotics
                 .Where(a => terms.All(t => a.DisplayName.Contains(t, StringComparison.OrdinalIgnoreCase) ||
                                            a.Code.Contains(t, StringComparison.OrdinalIgnoreCase)))
-                .Take(25)
+                .Take(50)
                 .ToList();
 
             sender.ItemsSource = matches;

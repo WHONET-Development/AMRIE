@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+using System;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace AMR_Engine
@@ -15,9 +16,11 @@ namespace AMR_Engine
         // For example, if there is a document correction or error on our part.
         public static readonly int BreakpointTableRevisionMinorChangeNumber = 1;
 
-        // We use this to locate resources.
-        public static string SystemRootPath =
-            Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + Path.DirectorySeparatorChar;
+        // AppContext.BaseDirectory is always non-null (unlike GetEntryAssembly().Location
+        // which returns null in test runners, plugin hosts, and single-file publish scenarios).
+        public static readonly string SystemRootPath =
+            AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
 
         public static readonly char Quote = '"';
 

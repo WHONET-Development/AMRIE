@@ -22,13 +22,7 @@ public partial class App : Application
 
         UnhandledException += App_UnhandledException;
 
-        // Configure system root path for Interpretation Engine tables and resources
-        string baseDir = AppContext.BaseDirectory;
-        if (!baseDir.EndsWith(Path.DirectorySeparatorChar.ToString()))
-        {
-            baseDir += Path.DirectorySeparatorChar;
-        }
-        Constants.SystemRootPath = baseDir;
+
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)

@@ -16,6 +16,7 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
 
         WindowHelper.MainWindow = this;
+        // Configure default restore-state dimensions before maximizing so restoring the window returns to a sensible size
         WindowHelper.SetWindowSize(this, 1150, 780);
 
         if (AppWindow.Presenter is OverlappedPresenter presenter)

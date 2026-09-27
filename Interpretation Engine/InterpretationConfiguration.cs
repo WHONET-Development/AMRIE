@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Json;
+using System.Text.Json;
 
 namespace AMR_Engine
 {
@@ -14,15 +14,27 @@ namespace AMR_Engine
         public bool RoundHalfDilutions { get; set; } = true;
         public bool IncludeInterpretationComments { get; set; } = false;
         public bool UseIntrinsicResistanceRules { get; set; } = true;
+        /// <summary>
+        /// Gets or sets the list of enabled expert rule codes. A null value indicates all default rules are evaluated; an empty list disables all expert rules.
+        /// </summary>
         public List<string> EnabledExpertInterpretationRules { get; set; }
         public long GuidelineYear { get; set; }
+        /// <summary>
+        /// Gets or sets the prioritized breakpoint types (e.g. Human, Animal, ECOFF). A null value indicates no filtering; all types are eligible.
+        /// </summary>
         public List<string> PrioritizedBreakpointTypes { get; set; }
+        /// <summary>
+        /// Gets or sets the prioritized infection sites. A null value indicates no preference order; default order applies.
+        /// </summary>
         public List<string> PrioritizedSitesOfInfection { get; set; }
+        /// <summary>
+        /// Gets or sets disabled infection sites. A null or empty list means all infection sites are enabled.
+        /// </summary>
         public List<string> DisabledSitesOfInfection { get; set; }
         public bool HorizontalAntibioticResults { get; set; } = true;
         public string UserDefinedBreakpointsFile { get; set; }
 
-        public List<Breakpoint> UserDefinedBreakpoints = new List<Breakpoint>();
+        public List<Breakpoint> UserDefinedBreakpoints { get; set; } = new List<Breakpoint>();
 
         public InterpretationConfiguration() { }
 
@@ -76,13 +88,15 @@ namespace AMR_Engine
         /// <returns></returns>
         public static InterpretationConfiguration ReadConfiguration(string configFile)
         {
-            DataContractJsonSerializer deserializer = new DataContractJsonSerializer(typeof(InterpretationConfiguration));
-
-            InterpretationConfiguration config;
-            using (StreamReader configReader = new StreamReader(configFile))
+            string jsonString = File.ReadAllText(configFile);
+            var options = new JsonSerializerOptions
             {
-                config = (InterpretationConfiguration)deserializer.ReadObject(configReader.BaseStream);
-            }
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            };
+            InterpretationConfiguration config = JsonSerializer.Deserialize<InterpretationConfiguration>(jsonString, options)
+                ?? new InterpretationConfiguration();
 
             if (config.EnabledExpertInterpretationRules != null && config.EnabledExpertInterpretationRules.Count == 0)
                 config.EnabledExpertInterpretationRules = null;
@@ -142,7 +156,8 @@ namespace AMR_Engine
                 DisabledSitesOfInfection == null ? null : new List<string>(DisabledSitesOfInfection),
                 UserDefinedBreakpointsFile)
                 {
-                    UseIntrinsicResistanceRules = UseIntrinsicResistanceRules
+                    UseIntrinsicResistanceRules = UseIntrinsicResistanceRules,
+                    UserDefinedBreakpoints = UserDefinedBreakpoints == null ? new List<Breakpoint>() : new List<Breakpoint>(UserDefinedBreakpoints)
                 };
 
             return newConfig;
