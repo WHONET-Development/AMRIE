@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>AMR_Engine</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>
     <ApplicationIcon>AMRIE_Square_No_Text.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x64;win-x86;win-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -79,7 +80,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if $(ConfigurationName) == Release (&#xD;&#xA;echo Attempting to sign binary...&#xD;&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /a &quot;$(TargetDir)$(TargetName).dll&quot;&#xD;&#xA;) else (&#xD;&#xA;echo Signing skipped because we are not in Release mode.&#xD;&#xA;)" />
+    <Exec Command="if $(ConfigurationName) == Release (&#xD;&#xA;echo Attempting to sign binary...&#xD;&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /a &quot;$(TargetDir)$(TargetName).dll&quot;&#xD;&#xA;) else (&#xD;&#xA;echo Signing skipped because we are not in Release mode.&#xD;&#xA;)" ContinueOnError="true" />
   </Target>
 
 </Project>

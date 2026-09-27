@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -16,6 +16,8 @@ Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "AMR Interpretation Engine W
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMRIE.WinUI", "AMRIE.WinUI\AMRIE.WinUI.csproj", "{02C6E248-4844-4480-AE1F-4F77E2C93079}"
+EndProject
+Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "AMRIE.WinUI.Installer", "AMRIE.WinUI.Installer\AMRIE.WinUI.Installer.wixproj", "{2F814B7C-4083-4475-979B-4A07B7070992}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -108,6 +110,22 @@ Global
 		{02C6E248-4844-4480-AE1F-4F77E2C93079}.Release|x64.Build.0 = Release|x64
 		{02C6E248-4844-4480-AE1F-4F77E2C93079}.Release|x86.ActiveCfg = Release|x86
 		{02C6E248-4844-4480-AE1F-4F77E2C93079}.Release|x86.Build.0 = Release|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|Any CPU.Build.0 = Debug|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|ARM64.Build.0 = Debug|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|x64.ActiveCfg = Debug|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|x64.Build.0 = Debug|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|x86.ActiveCfg = Debug|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|x86.Build.0 = Debug|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|Any CPU.ActiveCfg = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|Any CPU.Build.0 = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|ARM64.ActiveCfg = Release|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|ARM64.Build.0 = Release|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x64.ActiveCfg = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x64.Build.0 = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x86.ActiveCfg = Release|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

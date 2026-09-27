@@ -28,7 +28,11 @@ public sealed partial class MainWindow : Window
 
         try
         {
-            AppWindow.SetIcon("Assets/AppIcon.ico");
+            string iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                AppWindow.SetIcon(iconPath);
+            }
         }
         catch { }
 
@@ -64,18 +68,51 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+    /// <summary>Raised whenever the app theme changes. Subscribers receive the new <see cref="ElementTheme"/>.</summary>
+    public static event Action<ElementTheme>? ThemeChanged;
+
+    public ElementTheme CurrentTheme
     {
+        get => RootGrid.RequestedTheme;
+        set
+        {
+            RootGrid.RequestedTheme = value;
+            UpdateThemeButtonVisuals();
+            ThemeChanged?.Invoke(value);
+        }
+    }
+
+    private DateTime _lastThemeToggle = DateTime.MinValue;
+
+    private void ThemeToggleItem_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        ToggleTheme();
+    }
+
+    private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        if (args.InvokedItemContainer == ThemeToggleItem || (args.InvokedItem as string) == ThemeToggleItem.Content as string)
+        {
+            ToggleTheme();
+        }
+    }
+
+    public void ToggleTheme()
+    {
+        if ((DateTime.UtcNow - _lastThemeToggle).TotalMilliseconds < 250)
+        {
+            return;
+        }
+        _lastThemeToggle = DateTime.UtcNow;
+
         if (RootGrid.ActualTheme == ElementTheme.Dark)
         {
-            RootGrid.RequestedTheme = ElementTheme.Light;
+            CurrentTheme = ElementTheme.Light;
         }
         else
         {
-            RootGrid.RequestedTheme = ElementTheme.Dark;
+            CurrentTheme = ElementTheme.Dark;
         }
-
-        UpdateThemeButtonVisuals();
     }
 
     public void UpdateThemeButtonVisuals()
@@ -86,14 +123,14 @@ public sealed partial class MainWindow : Window
         if (isDark)
         {
             ThemeIcon.Glyph = "\uE706"; // Light/Sun icon
-            ThemeText.Text = "Light mode";
-            ToolTipService.SetToolTip(ThemeToggleButton, "Switch to Light mode");
+            ThemeToggleItem.Content = "Light mode";
+            ToolTipService.SetToolTip(ThemeToggleItem, "Switch to Light mode");
         }
         else
         {
             ThemeIcon.Glyph = "\uE708"; // Moon icon
-            ThemeText.Text = "Dark mode";
-            ToolTipService.SetToolTip(ThemeToggleButton, "Switch to Dark mode");
+            ThemeToggleItem.Content = "Dark mode";
+            ToolTipService.SetToolTip(ThemeToggleItem, "Switch to Dark mode");
         }
 
         UpdateTitleBarColors(isDark);

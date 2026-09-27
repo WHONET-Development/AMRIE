@@ -20,19 +20,29 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Modern App TitleBar -->
-        <Border x:Name="AppTitleBar" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
-            <Grid Height="38" Padding="16,0">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Image Width="22" Height="22" Stretch="Uniform">
+        <!-- Seamless App TitleBar blending with sidebar and window backdrop -->
+        <Border x:Name="AppTitleBar" Background="Transparent" BorderThickness="0">
+            <Grid Height="40" Padding="14,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Image Width="20" Height="20" Stretch="Uniform">
                         <Image.Source>
-                            <media:SvgImageSource UriSource="ms-appx:///Assets/amrie_logo%20-%20icon.svg" />
+                            <BitmapImage UriSource="ms-appx:///Assets/Square44x44Logo.scale-200.png" />
                         </Image.Source>
                     </Image>
-                    <TextBlock Text="AMRIE - Antimicrobial Resistance Test Interpretation Engine"
+                    <TextBlock Text="AMRIE"
+                               VerticalAlignment="Center"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}"
+                               FontSize="13"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="•  Antimicrobial Interpretation Engine"
                                VerticalAlignment="Center"
                                Style="{ThemeResource CaptionTextBlockStyle}"
-                               FontWeight="SemiBold" />
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -42,11 +52,23 @@
             Grid.Row="1"
             x:Name="NavView"
             PaneDisplayMode="Left"
+            OpenPaneLength="216"
+            CompactPaneLength="48"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="True"
             SelectionChanged="NavView_SelectionChanged"
+            ItemInvoked="NavView_ItemInvoked"
+            Background="Transparent"
             Header="{x:Null}">
 
+            <NavigationView.Resources>
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewBorderBrush" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewExpandedPaneBorderBrush" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent" />
+                <SolidColorBrush x:Key="NavigationViewContentGridBorderBrush" Color="Transparent" />
+            </NavigationView.Resources>
 
             <NavigationView.MenuItems>
                 <NavigationViewItem
@@ -59,7 +81,7 @@
                 </NavigationViewItem>
 
                 <NavigationViewItem
-                    Content="Batch Database Processing"
+                    Content="Batch Processing"
                     Tag="BatchProcessing"
                     ToolTipService.ToolTip="Interpret entire WHONET surveillance data files">
                     <NavigationViewItem.Icon>
@@ -78,35 +100,35 @@
             </NavigationView.MenuItems>
 
             <!-- Navigation Pane Footer Actions -->
-            <NavigationView.PaneFooter>
-                <StackPanel Margin="6,4" Spacing="4">
-                    <Button
-                        x:Name="ThemeToggleButton"
-                        Click="ThemeToggleButton_Click"
-                        ToolTipService.ToolTip="Toggle Light / Dark mode"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,8"
-                        Background="Transparent"
-                        BorderBrush="Transparent">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" FontSize="16" />
-                            <TextBlock x:Name="ThemeText" Text="Light mode" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </NavigationView.PaneFooter>
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem
+                    x:Name="ThemeToggleItem"
+                    Content="Light mode"
+                    SelectsOnInvoked="False"
+                    Tapped="ThemeToggleItem_Tapped"
+                    ToolTipService.ToolTip="Switch to Light mode">
+                    <NavigationViewItem.Icon>
+                        <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
 
-            <!-- Main Page Frame -->
-            <Frame x:Name="ContentFrame" Margin="0" CacheSize="10">
-                <Frame.ContentTransitions>
-                    <TransitionCollection>
-                        <NavigationThemeTransition>
-                            <EntranceNavigationTransitionInfo />
-                        </NavigationThemeTransition>
-                    </TransitionCollection>
-                </Frame.ContentTransitions>
-            </Frame>
+            <!-- Main App Body with Fluent curved corner, stroke, and surface shading -->
+            <Border
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1,1,0,0"
+                CornerRadius="8,0,0,0">
+                <Frame x:Name="ContentFrame" Margin="0" CacheSize="10">
+                    <Frame.ContentTransitions>
+                        <TransitionCollection>
+                            <NavigationThemeTransition>
+                                <EntranceNavigationTransitionInfo />
+                            </NavigationThemeTransition>
+                        </TransitionCollection>
+                    </Frame.ContentTransitions>
+                </Frame>
+            </Border>
         </NavigationView>
     </Grid>
 </Window>

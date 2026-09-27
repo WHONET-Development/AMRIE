@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
@@ -6,9 +6,9 @@ using AMR_Engine;
 
 namespace Interpretation_CLI
 {
-	class Program
+	public class Program
 	{
-		static int Main(string[] args)
+		public static int Main(string[] args)
 		{
 			const char newLine = '\n';
 			if (!(args.Length == 5 && args[0].ToUpperInvariant() == Constants.CommandLineModes.File) 
@@ -92,12 +92,13 @@ namespace Interpretation_CLI
 
 		private static void WriteCliParameterInfoToConsole()
 		{
+			string processName = Path.GetFileName(Environment.ProcessPath ?? "amrie");
 			Console.WriteLine();
 			Console.WriteLine(Translations.Resources.WholeFileMode);
-			Console.WriteLine("\"Interpretation CLI.exe\" FILE {Config file} {Delimiter character (use 'TAB' or the delimiter character} {Input file} {Output file}");
+			Console.WriteLine($"\"{processName}\" FILE {{Config file}} {{Delimiter character (use 'TAB' or the delimiter character}} {{Input file}} {{Output file}}");
 			Console.WriteLine();
 			Console.WriteLine(Translations.Resources.SingleInterpretationMode);
-			Console.WriteLine("\"Interpretation CLI.exe\" SINGLE_INTERPRETATION {Config file} {Organism code} {Antibiotic code} {Measurement} {Output file}");
+			Console.WriteLine($"\"{processName}\" SINGLE_INTERPRETATION {{Config file}} {{Organism code}} {{Antibiotic code}} {{Measurement}} {{Output file}}");
 		}
 	}
 }

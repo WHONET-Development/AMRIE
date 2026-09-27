@@ -205,6 +205,8 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     public ResourceExplorerViewModel()
     {
+        AvailableYears.Add("All Years");
+        AvailableYears.Add(Constants.BreakpointTableRevisionYear.ToString());
     }
 
     public Task LoadAsync()
@@ -216,22 +218,36 @@ public partial class ResourceExplorerViewModel : ObservableObject
     {
         var years = await Task.Run(LoadAllResources);
 
-        AvailableYears.Clear();
-        AvailableYears.Add("All Years");
+        string targetYear = Constants.BreakpointTableRevisionYear.ToString();
+        var yearList = new List<string> { "All Years" };
         foreach (var year in years)
         {
-            AvailableYears.Add(year.ToString());
+            string yStr = year.ToString();
+            if (!yearList.Contains(yStr))
+            {
+                yearList.Add(yStr);
+            }
         }
 
-        string currentYear = Constants.BreakpointTableRevisionYear.ToString();
-        if (years.Contains((int)Constants.BreakpointTableRevisionYear))
+        AvailableYears.Clear();
+        foreach (var yStr in yearList)
         {
-            SelectedYear = currentYear;
+            AvailableYears.Add(yStr);
         }
-        else if (years.Count > 0)
+
+        if (AvailableYears.Contains(targetYear))
         {
-            SelectedYear = years[0].ToString();
+            SelectedYear = targetYear;
         }
+        else if (AvailableYears.Count > 1)
+        {
+            SelectedYear = AvailableYears[1];
+        }
+        else
+        {
+            SelectedYear = "All Years";
+        }
+        OnPropertyChanged(nameof(SelectedYear));
 
         ApplyFilter();
     }

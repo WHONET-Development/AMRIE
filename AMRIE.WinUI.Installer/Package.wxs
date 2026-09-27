@@ -1,0 +1,131 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package Name="!(loc.ApplicationTitle)"
+           Language="!(loc.LCID)"
+           Version="$(var.Version)"
+           Manufacturer="!(loc.ManufacturerName)"
+           UpgradeCode="2b7ee258-8274-45d5-ba81-182ba51deb16"
+           InstallerVersion="500"
+           Scope="perMachine">
+
+    <SummaryInformation Description="!(loc.ApplicationTitle) Installer ($(var.BuildDate))"
+                        Manufacturer="!(loc.ManufacturerName)" />
+
+    <MajorUpgrade Schedule="afterInstallInitialize"
+                  AllowDowngrades="yes" />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- UI Customizations -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch AMR Interpretation Engine" />
+    <SetProperty Id="WixShellExecTarget" Value="[INSTALLFOLDER]AMRIE.WinUI.exe" After="CostFinalize" />
+
+    <CustomAction Id="LaunchApplication"
+                  BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)"
+                  DllEntry="WixShellExec"
+                  Impersonate="yes" />
+
+    <UI>
+      <ui:WixUI Id="WixUI_InstallDir" />
+      <Publish Dialog="ExitDialog"
+               Control="Finish"
+               Event="DoAction"
+               Value="LaunchApplication"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+    </UI>
+
+    <WixVariable Id="WixUILicenseRtf" Value="eula.rtf" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.bmp" />
+
+    <Icon Id="AppIcon.ico" SourceFile="AMRIE.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    <Property Id="ARPHELPLINK" Value="https://whonet.org" />
+    <Property Id="ARPCOMMENTS" Value="Antimicrobial Resistance Test Interpretation Engine (WinUI 3) - Build Date: $(var.BuildDate)" />
+    <Property Id="ARPCONTACT" Value="!(loc.ManufacturerName)" />
+
+    <Feature Id="AMRIE_WinUI_Feature"
+             Title="!(loc.ApplicationTitle)"
+             Level="1"
+             AllowAbsent="no"
+             Description="!(loc.AMR_EngineFeatureDescription)">
+      <ComponentRef Id="AppShortcutsComponent" />
+      <ComponentGroupRef Id="WinUIPublishedFiles" />
+      <ComponentGroupRef Id="CLIComponents" />
+    </Feature>
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="$(var.Title)" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuDir" Name="$(var.Title)" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <!-- Shortcuts -->
+    <Component Id="AppShortcutsComponent" Directory="ProgramMenuDir" Guid="D2A6877E-4217-4D69-8CA2-302BEB5771AC">
+      <Shortcut Id="StartMenuShortcut"
+                Name="$(var.Title)"
+                Description="$(var.Title)"
+                Target="[INSTALLFOLDER]AMRIE.WinUI.exe"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="AppIcon.ico" />
+      <Shortcut Id="DesktopShortcut"
+                Directory="DesktopFolder"
+                Name="$(var.Title)"
+                Description="$(var.Title)"
+                Target="[INSTALLFOLDER]AMRIE.WinUI.exe"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="AppIcon.ico" />
+      <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\AMRIE\$(var.Title)" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <!-- Published WinUI Files -->
+    <ComponentGroup Id="WinUIPublishedFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.WinUIPublishDir)\**" />
+    </ComponentGroup>
+
+    <!-- Interpretation CLI Components & amrie alias -->
+    <ComponentGroup Id="CLIComponents" Directory="INSTALLFOLDER">
+      <Component Id="CLIExeComponent" Guid="7F90B1E2-1A3C-4E5D-91E2-A3B4C5D6E7F8">
+        <File Id="InterpretationCLI.exe" Source="$(var.CLIPublishDir)\Interpretation CLI.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="CLIDllComponent" Guid="8A01C2F3-2B4D-5E6F-A2F3-B4C5D6E7F8A9">
+        <File Id="InterpretationCLI.dll" Source="$(var.CLIPublishDir)\Interpretation CLI.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="CLIRuntimeConfigComponent" Guid="9B12D3E4-3C5E-6F7A-B3A4-C5D6E7F8A9B0">
+        <File Id="InterpretationCLI.runtimeconfig.json" Source="$(var.CLIPublishDir)\Interpretation CLI.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+      <Component Id="AmrieExeComponent" Guid="B2C3D4E5-F6A7-4B8C-9D0E-1F2A3B4C5D6E">
+        <File Id="AmrieExe" Source="$(var.CLIPublishDir)\amrie.exe" KeyPath="yes" />
+        <Environment Id="AMRIEPATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="yes" />
+      </Component>
+      <Component Id="AmrieCmdComponent" Guid="C3D4E5F6-A7B8-4C9D-0E1F-2A3B4C5D6E7F">
+        <File Id="AmrieCmd" Source="$(var.CLIPublishDir)\amrie.cmd" KeyPath="yes" />
+      </Component>
+      <Component Id="AmrieShComponent" Guid="D4E5F6A7-B8C9-4D0E-1F2A-3B4C5D6E7F80">
+        <File Id="AmrieSh" Source="$(var.CLIPublishDir)\amrie" KeyPath="yes" />
+      </Component>
+      <Component Id="AmrieAppPathsComponent" Guid="E3F4A5B6-C7D8-4E9F-0A1B-2C3D4E5F6A7B">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\amrie.exe">
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]amrie.exe" KeyPath="yes" />
+          <RegistryValue Type="string" Name="Path" Value="[INSTALLFOLDER]" />
+        </RegistryKey>
+      </Component>
+      <Component Id="CLIAppPathsComponent" Guid="F4A5B6C7-D8E9-4F0A-1B2C-3D4E5F6A7B8C">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Interpretation CLI.exe">
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]Interpretation CLI.exe" KeyPath="yes" />
+          <RegistryValue Type="string" Name="Path" Value="[INSTALLFOLDER]" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+  </Package>
+</Wix>
