@@ -16,7 +16,6 @@ namespace Interpretation_CLI
 			{
 				Console.WriteLine(Translations.Resources.InvalidCommandLineArguments);
 				WriteCliParameterInfoToConsole();
-				return 1;
 			}
 
 			else if (args[0].ToUpperInvariant() == Constants.CommandLineModes.File)

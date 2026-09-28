@@ -42,6 +42,6 @@
     <PackageReference Include="WixToolset.NetFx.wixext" Version="5.0.2" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo Attempting to sign installation package...&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;" ContinueOnError="true" />
+    <Exec Command="echo Attempting to sign installation package...&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;" />
   </Target>
 </Project>

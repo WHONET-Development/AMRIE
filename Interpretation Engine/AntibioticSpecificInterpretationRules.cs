@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,13 +43,14 @@ namespace AMR_Engine
 
             lock (IntrinsicResistanceRuleLookupLock)
             {
-                // Double-checked inside lock — Dictionary is not safe for concurrent read+write.
                 if (IntrinsicResistanceRuleLookup.ContainsKey(whonetOrganismCode)
                 && IntrinsicResistanceRuleLookup[whonetOrganismCode].ContainsKey(thisAntibiotic.Guideline)
                 && IntrinsicResistanceRuleLookup[whonetOrganismCode][thisAntibiotic.Guideline].ContainsKey(thisAntibiotic.Code))
+                    // We have seen this combination previously, so there no need for us to determine the applicable intrinsic resistance rules again.
                     MostApplicableIntrinsicResistanceRule = IntrinsicResistanceRuleLookup[whonetOrganismCode][thisAntibiotic.Guideline][thisAntibiotic.Code];
                 else
                 {
+                    // We haven't seen this combination before, so we need to evaluate it.
                     MostApplicableIntrinsicResistanceRule =
                         ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
                             whonetOrganismCode,
@@ -61,6 +61,7 @@ namespace AMR_Engine
                     {
                         if (IntrinsicResistanceRuleLookup[whonetOrganismCode].ContainsKey(thisAntibiotic.Guideline))
                         {
+                            // Only missing the antibiotic part.
                             IntrinsicResistanceRuleLookup[whonetOrganismCode][thisAntibiotic.Guideline].Add(thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule);
                         }
                         else
@@ -75,6 +76,7 @@ namespace AMR_Engine
                     }
                     else
                     {
+                        // The organism code missing, which means we need the whole structure.
                         Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>
                         {
                             { thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule }
@@ -428,50 +430,82 @@ namespace AMR_Engine
             string guideline,
             string whonetAntimicrobialFullCode)
         {
-            lock (BreakpointLookupModificationLock)
+            // Create the missing levels in our lookup for next time, and store this breakpoint set.
+            if (BreakpointLookup.ContainsKey(whonetOrganismCode)
+                && BreakpointLookup[whonetOrganismCode].ContainsKey(guideline)
+                && BreakpointLookup[whonetOrganismCode][guideline].ContainsKey(guidelineYear)
+                && BreakpointLookup[whonetOrganismCode][guideline][guidelineYear].ContainsKey(whonetAntimicrobialFullCode))
             {
-                // Check and write are both inside the lock — Dictionary is not safe for concurrent
-                // read+write (Parallel.For in IO_Library can call this from multiple threads).
-                if (BreakpointLookup.ContainsKey(whonetOrganismCode)
-                    && BreakpointLookup[whonetOrganismCode].ContainsKey(guideline)
-                    && BreakpointLookup[whonetOrganismCode][guideline].ContainsKey(guidelineYear)
-                    && BreakpointLookup[whonetOrganismCode][guideline][guidelineYear].ContainsKey(whonetAntimicrobialFullCode))
+                // We have seen this combination previously, so retrieve it from the cache.
+                return BreakpointLookup[whonetOrganismCode][guideline][guidelineYear][whonetAntimicrobialFullCode];
+            }
+            else
+            {
+                lock (BreakpointLookupModificationLock)
                 {
-                    return BreakpointLookup[whonetOrganismCode][guideline][guidelineYear][whonetAntimicrobialFullCode];
-                }
-
-                // Cache miss — evaluate and store.
-                Breakpoint mostApplicableBreakpoint =
-                    Breakpoint.GetApplicableBreakpoints(
-                        whonetOrganismCode,
-                        userDefinedBreakpoints,
-                        prioritizedGuidelines: new List<string>() { guideline },
-                        prioritizedGuidelineYears: new List<int> { guidelineYear },
-                        prioritizedBreakpointTypes: prioritizedBreakpointTypes,
-                        prioritizedSitesOfInfection: prioritizedSitesOfInfection,
-                        prioritizedWhonetAbxFullDrugCodes: new List<string>() { whonetAntimicrobialFullCode },
-                        returnFirstBreakpointOnly: true).FirstOrDefault();
-
-                if (BreakpointLookup.ContainsKey(whonetOrganismCode))
-                {
-                    if (BreakpointLookup[whonetOrganismCode].ContainsKey(guideline))
+                    // We have to check if the breakpoint exists once again now that we are inside the lock to avoid potential race conditions
+                    // while preserving fast (lockless) lookups that are cache hits while avoiding a duplicate lookup.
+                    if (BreakpointLookup.ContainsKey(whonetOrganismCode)
+                        && BreakpointLookup[whonetOrganismCode].ContainsKey(guideline)
+                        && BreakpointLookup[whonetOrganismCode][guideline].ContainsKey(guidelineYear)
+                        && BreakpointLookup[whonetOrganismCode][guideline][guidelineYear].ContainsKey(whonetAntimicrobialFullCode))
                     {
-                        if (BreakpointLookup[whonetOrganismCode][guideline].ContainsKey(guidelineYear))
+                        // We have seen this combination previously, so retrieve it from the cache and return.
+                        return BreakpointLookup[whonetOrganismCode][guideline][guidelineYear][whonetAntimicrobialFullCode];
+                    }
+
+                    // We haven't seen this combination before, so we need to evaluate it.
+                    // If there is no breakpoint matching these requirements, then we will return Null here
+                    // and save that value for future lookups to indicate that there is no applicable breakpoint.
+                    Breakpoint mostApplicableBreakpoint =
+                        Breakpoint.GetApplicableBreakpoints(
+                            whonetOrganismCode,
+                            userDefinedBreakpoints,
+                            prioritizedGuidelines: new List<string>() { guideline },
+                            prioritizedGuidelineYears: new List<int> { guidelineYear },
+                            prioritizedBreakpointTypes: prioritizedBreakpointTypes,
+                            prioritizedSitesOfInfection: prioritizedSitesOfInfection,
+                            prioritizedWhonetAbxFullDrugCodes: new List<string>() { whonetAntimicrobialFullCode },
+                            returnFirstBreakpointOnly: true).FirstOrDefault();
+
+                    if (BreakpointLookup.ContainsKey(whonetOrganismCode))
+                    {
+                        if (BreakpointLookup[whonetOrganismCode].ContainsKey(guideline))
                         {
-                            BreakpointLookup[whonetOrganismCode][guideline][guidelineYear].Add(whonetAntimicrobialFullCode, mostApplicableBreakpoint);
+                            if (BreakpointLookup[whonetOrganismCode][guideline].ContainsKey(guidelineYear))
+                            {
+                                // Only the antibiotic info missing.
+                                BreakpointLookup[whonetOrganismCode][guideline][guidelineYear].Add(whonetAntimicrobialFullCode, mostApplicableBreakpoint);
+                            }
+                            else
+                            {
+                                Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
+                                {
+                                    { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
+                                };
+
+                                BreakpointLookup[whonetOrganismCode][guideline].Add(guidelineYear, abxSet);
+                            }
                         }
                         else
                         {
+                            // Create everything below the organism.
                             Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
                             {
                                 { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
                             };
 
-                            BreakpointLookup[whonetOrganismCode][guideline].Add(guidelineYear, abxSet);
+                            Dictionary<int, Dictionary<string, Breakpoint>> yearSet = new Dictionary<int, Dictionary<string, Breakpoint>>
+                            {
+                                { guidelineYear, abxSet }
+                            };
+
+                            BreakpointLookup[whonetOrganismCode].Add(guideline, yearSet);
                         }
                     }
                     else
                     {
+                        // The organism key missing, which means we have to create the whole structure.
                         Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
                         {
                             { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
@@ -482,30 +516,16 @@ namespace AMR_Engine
                             { guidelineYear, abxSet }
                         };
 
-                        BreakpointLookup[whonetOrganismCode].Add(guideline, yearSet);
+                        Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>> guidelineSet = new Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>>
+                        {
+                            { guideline, yearSet }
+                        };
+
+                        BreakpointLookup.Add(whonetOrganismCode, guidelineSet);
                     }
+
+                    return mostApplicableBreakpoint;
                 }
-                else
-                {
-                    Dictionary<string, Breakpoint> abxSet = new Dictionary<string, Breakpoint>
-                    {
-                        { whonetAntimicrobialFullCode, mostApplicableBreakpoint }
-                    };
-
-                    Dictionary<int, Dictionary<string, Breakpoint>> yearSet = new Dictionary<int, Dictionary<string, Breakpoint>>
-                    {
-                        { guidelineYear, abxSet }
-                    };
-
-                    Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>> guidelineSet = new Dictionary<string, Dictionary<int, Dictionary<string, Breakpoint>>>
-                    {
-                        { guideline, yearSet }
-                    };
-
-                    BreakpointLookup.Add(whonetOrganismCode, guidelineSet);
-                }
-
-                return mostApplicableBreakpoint;
             }
         }
 
