@@ -1,14 +1,13 @@
 <Project Sdk="WixToolset.Sdk/5.0.1">
   <PropertyGroup>
     <OutputName>AMR_Interpretation_Engine_WinUI_$(Platform)</OutputName>
-    <Platforms>x64;x86;ARM64</Platforms>
+    <Platforms>x64;ARM64</Platforms>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
     <SuppressIces>ICE03;ICE61</SuppressIces>
   </PropertyGroup>
-
   <PropertyGroup>
     <BuildDate Condition="'$(BuildDate)' == ''">$([System.DateTime]::Now.ToString("dd-MM-yyyy"))</BuildDate>
     <Version Condition="'$(Version)' == ''">$([System.DateTime]::Now.ToString("yy.M.d"))</Version>
@@ -19,26 +18,19 @@
     <CLIPublishDir Condition="'$(CLIPublishDir)' == ''">..\Interpretation CLI\bin\$(Configuration)\net8.0</CLIPublishDir>
     <DefineConstants>Title=$(Title);Version=$(Version);BuildDate=$(BuildDate);WinUIPublishDir=$(WinUIPublishDir);CLIPublishDir=$(CLIPublishDir)</DefineConstants>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
     <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
   </ItemGroup>
-
   <!-- Pre-build publish of AMRIE.WinUI (unpackaged, self-contained) and CLI -->
   <Target Name="PublishDependencies" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(IntermediateOutputPath)en-us" />
     <Message Importance="high" Text="Publishing AMRIE.WinUI (win-$(Platform) $(Configuration))..." />
-    <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj"
-             Targets="Publish"
-             Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=win-$(Platform);WindowsPackageType=None;PublishProfile=Properties\PublishProfiles\win-$(Platform).pubxml;WindowsAppSDKSelfContained=true;SelfContained=true" />
+    <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=win-$(Platform);WindowsPackageType=None;PublishProfile=Properties\PublishProfiles\win-$(Platform).pubxml;WindowsAppSDKSelfContained=true;SelfContained=true" />
     <Message Importance="high" Text="Building Interpretation CLI ($(Configuration))..." />
-    <MSBuild Projects="..\Interpretation CLI\Interpretation CLI.csproj"
-             Targets="Build"
-             Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="..\Interpretation CLI\Interpretation CLI.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="where signtool.exe >nul 2>&amp;1 &amp;&amp; (echo Attempting to sign installer package... &amp; signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE WinUI&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;) || (echo Signtool not found or signing skipped.)" ContinueOnError="true" />
+    <Exec Command="where signtool.exe &gt;nul 2&gt;&amp;1 &amp;&amp; (echo Attempting to sign installer package... &amp; signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE WinUI&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;) || (echo Signtool not found or signing skipped.)" ContinueOnError="true" />
   </Target>
 </Project>

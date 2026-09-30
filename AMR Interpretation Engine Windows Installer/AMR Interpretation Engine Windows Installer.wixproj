@@ -1,14 +1,7 @@
 <Project Sdk="WixToolset.Sdk/5.0.1">
   <PropertyGroup>
     <OutputName>AMR_Interpretation_Engine</OutputName>
-    <Platforms>x86</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <DefineConstants>Debug</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <SuppressPdbOutput>True</SuppressPdbOutput>
-    <DefineConstants>Title=AMR Interpretation Engine;Version=26.3.26</DefineConstants>
+    <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Interpretation CLI\Interpretation CLI.csproj">
