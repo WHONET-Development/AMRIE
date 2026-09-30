@@ -85,30 +85,62 @@ public partial class BatchProcessingViewModel : ObservableObject
             var file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                InputFilePath = file.Path;
-
-                if (string.IsNullOrWhiteSpace(OutputFilePath))
-                {
-                    string dir = Path.GetDirectoryName(file.Path) ?? string.Empty;
-                    string name = Path.GetFileNameWithoutExtension(file.Path);
-                    string ext = Path.GetExtension(file.Path);
-                    if (string.IsNullOrWhiteSpace(ext)) ext = ".txt";
-                    OutputFilePath = Path.Combine(dir, $"{name}_interpreted{ext}");
-                }
-
-                if (file.FileType.Equals(".csv", StringComparison.OrdinalIgnoreCase))
-                {
-                    SelectedDelimiter = ",";
-                }
-                else if (file.FileType.Equals(".tsv", StringComparison.OrdinalIgnoreCase))
-                {
-                    SelectedDelimiter = "TAB";
-                }
+                await SetInputFileAsync(file.Path);
             }
         }
         catch (Exception ex)
         {
             SetError($"Error browsing for input file: {ex.Message}");
+        }
+    }
+
+    public async Task SetInputFileAsync(string filePath)
+    {
+        InputFilePath = filePath;
+
+        if (string.IsNullOrWhiteSpace(OutputFilePath))
+        {
+            string dir = Path.GetDirectoryName(filePath) ?? string.Empty;
+            string name = Path.GetFileNameWithoutExtension(filePath);
+            string ext = Path.GetExtension(filePath);
+            if (string.IsNullOrWhiteSpace(ext)) ext = ".txt";
+            OutputFilePath = Path.Combine(dir, $"{name}_interpreted{ext}");
+        }
+
+        string extension = Path.GetExtension(filePath);
+        if (extension.Equals(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedDelimiter = ",";
+        }
+        else if (extension.Equals(".tsv", StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedDelimiter = "TAB";
+        }
+        else
+        {
+            // Inspect first line of the file to auto-select delimiter (|, TAB, ,, ;)
+            try
+            {
+                using var reader = new StreamReader(filePath);
+                string? firstLine = await reader.ReadLineAsync();
+                if (!string.IsNullOrEmpty(firstLine))
+                {
+                    int pipeCount = firstLine.Count(c => c == '|');
+                    int tabCount = firstLine.Count(c => c == '\t');
+                    int commaCount = firstLine.Count(c => c == ',');
+                    int semiCount = firstLine.Count(c => c == ';');
+
+                    int max = Math.Max(pipeCount, Math.Max(tabCount, Math.Max(commaCount, semiCount)));
+                    if (max > 0)
+                    {
+                        if (max == pipeCount) SelectedDelimiter = "|";
+                        else if (max == tabCount) SelectedDelimiter = "TAB";
+                        else if (max == commaCount) SelectedDelimiter = ",";
+                        else if (max == semiCount) SelectedDelimiter = ";";
+                    }
+                }
+            }
+            catch { }
         }
     }
 
@@ -189,13 +221,25 @@ public partial class BatchProcessingViewModel : ObservableObject
         try
         {
             if (!Path.IsPathFullyQualified(inputFile))
-                inputFile = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, inputFile));
+            {
+                string localPath = Path.GetFullPath(inputFile);
+                inputFile = File.Exists(localPath) ? localPath : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, inputFile));
+            }
 
             if (!Path.IsPathFullyQualified(configFile))
-                configFile = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configFile));
+            {
+                string localConfig = Path.GetFullPath(configFile);
+                configFile = File.Exists(localConfig) ? localConfig : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configFile));
+            }
 
             if (!Path.IsPathFullyQualified(outputFile))
                 outputFile = Path.GetFullPath(outputFile);
+
+            string? outputDir = Path.GetDirectoryName(outputFile);
+            if (!string.IsNullOrEmpty(outputDir) && !Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
         }
         catch (Exception ex)
         {
@@ -223,14 +267,25 @@ public partial class BatchProcessingViewModel : ObservableObject
         char delimiter = SelectedDelimiter == "TAB" ? Constants.Delimiters.TabChar : SelectedDelimiter[0];
         int guidelineYear = Convert.ToInt32(GuidelineYear);
 
-        // Create BackgroundWorker on the UI thread so its ProgressChanged event
-        // marshals back to the UI synchronization context automatically.
+        var dispatcherQueue = WindowHelper.MainWindow?.DispatcherQueue;
+
         _worker = new BackgroundWorker
         {
             WorkerReportsProgress = true,
             WorkerSupportsCancellation = true
         };
-        _worker.ProgressChanged += (s, e) => ProgressPercentage = e.ProgressPercentage;
+        _worker.ProgressChanged += (s, e) =>
+        {
+            int p = e.ProgressPercentage;
+            if (dispatcherQueue != null)
+            {
+                dispatcherQueue.TryEnqueue(() => ProgressPercentage = p);
+            }
+            else
+            {
+                ProgressPercentage = p;
+            }
+        };
 
         IsProcessing = true;
         ProgressPercentage = 0;
@@ -242,8 +297,6 @@ public partial class BatchProcessingViewModel : ObservableObject
         var fileArgs = new FileInterpretationParameters(
             inputFile, delimiter, guidelineYear, configFile, outputFile, worker);
         var doWorkArgs = new DoWorkEventArgs(fileArgs);
-
-        var dispatcherQueue = WindowHelper.MainWindow?.DispatcherQueue;
 
         await Task.Run(() =>
         {
@@ -269,9 +322,29 @@ public partial class BatchProcessingViewModel : ObservableObject
             }
             catch (Exception ex)
             {
+                string message;
+                if (ex is AggregateException agg && agg.InnerExceptions.Count > 0)
+                {
+                    var details = agg.InnerExceptions.Select(ie =>
+                    {
+                        string typeName = ie.GetType().Name;
+                        string desc = string.IsNullOrEmpty(ie.Message)
+                            ? (ie is System.Runtime.InteropServices.COMException comEx ? $"0x{comEx.HResult:X8}" : string.Empty)
+                            : ie.Message;
+                        return string.IsNullOrEmpty(desc) ? typeName : $"{typeName}: {desc}";
+                    });
+                    message = string.Join("; ", details);
+                }
+                else
+                {
+                    string inner = ex.InnerException != null ? $" ({ex.InnerException.GetType().Name}: {ex.InnerException.Message})" : string.Empty;
+                    string baseMsg = string.IsNullOrEmpty(ex.Message) ? ex.GetType().Name : ex.Message;
+                    message = $"{baseMsg}{inner}";
+                }
+
                 dispatcherQueue?.TryEnqueue(() =>
                 {
-                    StatusMessage = $"Error processing file: {ex.Message}";
+                    StatusMessage = $"Error processing file: {message}";
                     IsError = true;
                     StatusInfoBarSeverity = InfoBarSeverity.Error;
                 });
