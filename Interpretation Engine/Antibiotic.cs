@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
+using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,7 +92,7 @@ namespace AMR_Engine
                         return AFA;
 
                     default:
-                        throw new ArgumentException();
+                        throw new ArgumentException($"Unknown guideline code '{guidelineCode}'.");
                 }
             }
         }

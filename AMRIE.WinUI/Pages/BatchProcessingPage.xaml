@@ -21,7 +21,7 @@
             <!-- Title Header -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Whole-Database Batch Interpretation" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
-                <TextBlock Text="Process entire WHONET-formatted surveillance data files and export interpreted results."
+                <TextBlock Text="Process entire WHONET data files and export interpreted results."
                            Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
 
@@ -53,7 +53,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBox Header="Input Data File"
-                                 PlaceholderText="Path to surveillance data file..."
+                                 PlaceholderText="Path to data file..."
                                  Text="{x:Bind ViewModel.InputFilePath, Mode=TwoWay}" />
                         <Button Grid.Column="1"
                                 VerticalAlignment="Bottom"
@@ -83,7 +83,7 @@
                                    SmallChange="1"
                                    Minimum="1990"
                                    Maximum="2035"
-                                   Width="135"
+                                   Width="180"
                                    HorizontalAlignment="Left"
                                    VerticalAlignment="Bottom" />
                     </Grid>

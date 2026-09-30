@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AMR_Engine;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,38 +11,6 @@ using AMRIE.WinUI.Models;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AMRIE.WinUI.ViewModels;
-
-public class OrganismItem
-{
-    public string DisplayName { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
-
-    public OrganismItem() { }
-
-    public OrganismItem(string displayName, string code)
-    {
-        DisplayName = displayName;
-        Code = code;
-    }
-
-    public override string ToString() => DisplayName;
-}
-
-public class AntibioticItem
-{
-    public string DisplayName { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
-
-    public AntibioticItem() { }
-
-    public AntibioticItem(string displayName, string code)
-    {
-        DisplayName = displayName;
-        Code = code;
-    }
-
-    public override string ToString() => DisplayName;
-}
 
 public partial class SingleInterpretationViewModel : ObservableObject
 {
@@ -87,11 +56,37 @@ public partial class SingleInterpretationViewModel : ObservableObject
     private string _antibioticSearchText = string.Empty;
 
     // Test Method (Disk vs MIC)
-    [ObservableProperty]
-    private bool _isDiskMethod = true;
+    // Single source of truth: one private field drives both public booleans.
+    // This avoids the fragile pattern of each partial void hook writing the other's backing field.
+    private string _testMethod = Antibiotic.TestMethods.Disk;
 
-    [ObservableProperty]
-    private bool _isMicMethod = false;
+    public bool IsDiskMethod
+    {
+        get => _testMethod == Antibiotic.TestMethods.Disk;
+        set
+        {
+            if (value && _testMethod != Antibiotic.TestMethods.Disk)
+            {
+                _testMethod = Antibiotic.TestMethods.Disk;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsMicMethod));
+            }
+        }
+    }
+
+    public bool IsMicMethod
+    {
+        get => _testMethod == Antibiotic.TestMethods.MIC;
+        set
+        {
+            if (value && _testMethod != Antibiotic.TestMethods.MIC)
+            {
+                _testMethod = Antibiotic.TestMethods.MIC;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsDiskMethod));
+            }
+        }
+    }
 
     public ObservableCollection<string> DiskPotencies { get; } = new();
 
@@ -150,6 +145,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
         // Cache Organisms (identical to classic WinForms app: string.Format("{0} - ({1})", o.ORGANISM, o.WHONET_ORG_CODE).Distinct())
         try
         {
+            // Anonymous type projection relies on compiler-generated Equals/GetHashCode value equality for Distinct().
             var orgs = Organism.AllOrganisms
                 .OrderBy(o => o.ORGANISM)
                 .Select(o => new { Display = $"{o.ORGANISM} - ({o.WHONET_ORG_CODE})", Code = o.WHONET_ORG_CODE })
@@ -179,17 +175,6 @@ public partial class SingleInterpretationViewModel : ObservableObject
         UpdateDiskPotencies();
     }
 
-    partial void OnIsDiskMethodChanged(bool value)
-    {
-        _isMicMethod = !value;
-        OnPropertyChanged(nameof(IsMicMethod));
-    }
-
-    partial void OnIsMicMethodChanged(bool value)
-    {
-        _isDiskMethod = !value;
-        OnPropertyChanged(nameof(IsDiskMethod));
-    }
 
     private void UpdateDiskPotencies()
     {
@@ -228,7 +213,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void Interpret()
+    public async Task InterpretAsync()
     {
         HasStatusMessage = false;
         Results.Clear();
@@ -251,7 +236,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             return;
         }
 
-        string testMethod = IsDiskMethod ? Antibiotic.TestMethods.Disk : Antibiotic.TestMethods.MIC;
+        string testMethod = _testMethod;
         decimal discardedNum = decimal.Zero;
         string discardedMod = string.Empty;
 
@@ -276,8 +261,6 @@ public partial class SingleInterpretationViewModel : ObservableObject
         }
 
         // Build config
-        AntibioticSpecificInterpretationRules.ClearBreakpoints();
-
         var config = new InterpretationConfiguration
         {
             IncludeInterpretationComments = IncludeComments,
@@ -300,44 +283,63 @@ public partial class SingleInterpretationViewModel : ObservableObject
             config.PrioritizedSitesOfInfection = SitesOfInfection.Where(s => s.IsSelected).Select(s => s.Name).ToList();
         }
 
-        foreach (var testCode in fullTestCodes)
+        // Capture immutable locals needed in Task.Run before leaving the UI thread.
+        var organism = SelectedOrganism;
+        var measurement = Measurement.Trim();
+        var testCodes = fullTestCodes;
+        var includeComments = IncludeComments;
+        var capturedConfig = config;
+
+        var results = await Task.Run(() =>
         {
-            try
+            var items = new List<InterpretationResultItem>();
+            foreach (var testCode in testCodes)
             {
-                string rawInterpretation = IsolateInterpretation.GetSingleInterpretation(
-                    config, SelectedOrganism.Code, testCode, Measurement.Trim());
-
-                string badge = ExtractBadge(rawInterpretation);
-                string cleanInterpretation = IncludeComments ? rawInterpretation : IsolateInterpretation.RemoveComments(rawInterpretation);
-
-                string severity = badge switch
+                try
                 {
-                    "S" => "Success",
-                    "I" or "SDD" => "Warning",
-                    "R" => "Error",
-                    _ => "Informational"
-                };
+                    string rawInterpretation = IsolateInterpretation.GetSingleInterpretation(
+                        capturedConfig, organism.Code, testCode, measurement);
 
-                Results.Add(new InterpretationResultItem
+                    // The badge is the first whitespace-delimited token (e.g. "S", "R!", "SDD").
+                    string badge = ExtractBadge(rawInterpretation);
+
+                    // cleanInterpretation strips comment markers (*!/?) when the user has opted out.
+                    string cleanInterpretation = includeComments
+                        ? rawInterpretation
+                        : IsolateInterpretation.RemoveComments(rawInterpretation);
+
+                    string severity = badge switch
+                    {
+                        "S" => "Success",
+                        "I" or "SDD" => "Warning",
+                        "R" => "Error",
+                        _ => "Informational"
+                    };
+
+                    items.Add(new InterpretationResultItem
+                    {
+                        TestCode = testCode,
+                        Interpretation = cleanInterpretation,
+                        ResultBadge = badge,
+                        StatusSeverity = severity
+                    });
+                }
+                catch (Exception ex)
                 {
-                    TestCode = testCode,
-                    Interpretation = cleanInterpretation,
-                    ResultBadge = badge,
-                    StatusSeverity = severity,
-                    Comments = rawInterpretation.Length > badge.Length ? rawInterpretation : string.Empty
-                });
+                    items.Add(new InterpretationResultItem
+                    {
+                        TestCode = testCode,
+                        Interpretation = $"Error: {ex.Message}",
+                        ResultBadge = "ERR",
+                        StatusSeverity = "Error"
+                    });
+                }
             }
-            catch (Exception ex)
-            {
-                Results.Add(new InterpretationResultItem
-                {
-                    TestCode = testCode,
-                    Interpretation = $"Error: {ex.Message}",
-                    ResultBadge = "ERR",
-                    StatusSeverity = "Error"
-                });
-            }
-        }
+            return items;
+        });
+
+        foreach (var item in results)
+            Results.Add(item);
 
         if (Results.Count == 0)
         {

@@ -29,27 +29,7 @@ public sealed partial class BatchProcessingPage : Page
             var items = await e.DataView.GetStorageItemsAsync();
             if (items.Count > 0 && items[0] is StorageFile file)
             {
-                ViewModel.InputFilePath = file.Path;
-
-                // Auto-suggest output path if not yet configured
-                if (string.IsNullOrWhiteSpace(ViewModel.OutputFilePath))
-                {
-                    string dir = Path.GetDirectoryName(file.Path) ?? string.Empty;
-                    string name = Path.GetFileNameWithoutExtension(file.Path);
-                    string ext = Path.GetExtension(file.Path);
-                    if (string.IsNullOrWhiteSpace(ext)) ext = ".txt";
-                    ViewModel.OutputFilePath = Path.Combine(dir, $"{name}_interpreted{ext}");
-                }
-
-                // If delimiter can be inferred from extension
-                if (file.FileType.Equals(".csv", StringComparison.OrdinalIgnoreCase))
-                {
-                    ViewModel.SelectedDelimiter = ",";
-                }
-                else if (file.FileType.Equals(".tsv", StringComparison.OrdinalIgnoreCase))
-                {
-                    ViewModel.SelectedDelimiter = "TAB";
-                }
+                await ViewModel.SetInputFileAsync(file.Path);
             }
         }
     }
