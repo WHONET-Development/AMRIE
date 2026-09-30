@@ -17,6 +17,8 @@ Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "AMR Interpretation Engine W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMRIE.WinUI", "AMRIE.WinUI\AMRIE.WinUI.csproj", "{02C6E248-4844-4480-AE1F-4F77E2C93079}"
 EndProject
+Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "AMRIE.WinUI.Installer", "AMRIE.WinUI.Installer\AMRIE.WinUI.Installer.wixproj", "{2F814B7C-4083-4475-979B-4A07B7070992}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +110,18 @@ Global
 		{02C6E248-4844-4480-AE1F-4F77E2C93079}.Release|x64.Build.0 = Release|x64
 		{02C6E248-4844-4480-AE1F-4F77E2C93079}.Release|x86.ActiveCfg = Release|x86
 		{02C6E248-4844-4480-AE1F-4F77E2C93079}.Release|x86.Build.0 = Release|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|Any CPU.ActiveCfg = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|ARM64.ActiveCfg = Release|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|x64.ActiveCfg = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Debug|x86.ActiveCfg = Release|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|Any CPU.ActiveCfg = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|Any CPU.Build.0 = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|ARM64.ActiveCfg = Release|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|ARM64.Build.0 = Release|ARM64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x64.ActiveCfg = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x64.Build.0 = Release|x64
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x86.ActiveCfg = Release|x86
+		{2F814B7C-4083-4475-979B-4A07B7070992}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

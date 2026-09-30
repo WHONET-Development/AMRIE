@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -201,7 +201,9 @@ namespace AMR_Engine
                 }
 
                 // Exclude the drugs which have already been evaluated.
-                unevaluatedExpertRuleDrugs = unevaluatedExpertRuleDrugs.Except(ResultInterpretations.Keys.Select(k => k.Substring(0, 3))).Distinct();
+                // Use Antibiotic.ShortCode() rather than Substring(0, 3) — codes can be longer
+                // than 3 chars (e.g. X_01 for custom antibiotics).
+                unevaluatedExpertRuleDrugs = unevaluatedExpertRuleDrugs.Except(ResultInterpretations.Keys.Select(k => Antibiotic.ShortCode(k))).Distinct();
 
                 foreach (string abxCode in unevaluatedExpertRuleDrugs)
                     // This 3-letter abx code might correspond to multiple tests which differ by method (AMP_NM, AMP_ND10, AMP_EM, AMP_ED10, etc.)

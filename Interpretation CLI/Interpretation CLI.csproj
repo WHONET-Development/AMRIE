@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <AssemblyName>AMRIE</AssemblyName>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Interpretation_CLI</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>
@@ -15,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Interpretation Engine\Interpretation Engine.csproj" />
   </ItemGroup>
+
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="if $(ConfigurationName) == Release (&#xD;&#xA;echo Attempting to sign binary...&#xD;&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /a &quot;$(TargetDir)$(TargetName).exe&quot;&#xD;&#xA;) else (&#xD;&#xA;echo Signing skipped because we are not in Release mode.&#xD;&#xA;)" />

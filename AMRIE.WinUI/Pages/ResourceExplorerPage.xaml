@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:AMRIE.WinUI.ViewModels"
+    xmlns:models="using:AMRIE.WinUI.Models"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
@@ -141,7 +142,7 @@
                               ItemsSource="{x:Bind ViewModel.FilteredBreakpoints}"
                               SelectionMode="None">
                         <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="vm:BreakpointRow">
+                            <DataTemplate x:DataType="models:BreakpointRow">
                                 <Grid ColumnSpacing="10" Padding="0,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="65" />
@@ -224,7 +225,7 @@
                               ItemsSource="{x:Bind ViewModel.FilteredExpertRules}"
                               SelectionMode="None">
                         <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="vm:ExpertRuleRow">
+                            <DataTemplate x:DataType="models:ExpertRuleRow">
                                 <Grid ColumnSpacing="16" Padding="0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160" />
@@ -282,7 +283,7 @@
                               ItemsSource="{x:Bind ViewModel.FilteredIntrinsicRules}"
                               SelectionMode="None">
                         <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="vm:IntrinsicRuleRow">
+                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                 <Grid ColumnSpacing="16" Padding="0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="90" />

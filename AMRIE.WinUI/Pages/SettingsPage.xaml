@@ -26,7 +26,7 @@
                     <TextBlock Text="Appearance" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
                     <TextBlock Text="Choose how AMRIE appears on your system." Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                    <RadioButtons x:Name="ThemeRadioButtons" SelectionChanged="ThemeRadioButtons_SelectionChanged" SelectedIndex="0">
+                    <RadioButtons x:Name="ThemeRadioButtons" SelectionChanged="ThemeRadioButtons_SelectionChanged">
                         <RadioButton Content="Use system setting" Tag="Default" />
                         <RadioButton Content="Light mode" Tag="Light" />
                         <RadioButton Content="Dark mode" Tag="Dark" />
@@ -47,7 +47,7 @@
                                Style="{ThemeResource BodyTextBlockStyle}" TextWrapping="Wrap" />
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Version: 26.3.26 (WinUI 3 Modernized Edition)" FontWeight="SemiBold" />
+                        <TextBlock x:Name="VersionTextBlock" Text="Version: 26.9.27 (WinUI 3 Edition)" FontWeight="SemiBold" />
                         <TextBlock Text="Runtime: .NET 8.0 with Windows App SDK 2.4" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <HyperlinkButton Content="CLSI Guidelines Website" NavigateUri="https://clsi.org/" Padding="0" />
                         <HyperlinkButton Content="EUCAST Guidelines Website" NavigateUri="https://www.eucast.org/" Padding="0" />

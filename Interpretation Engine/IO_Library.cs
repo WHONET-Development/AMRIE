@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
+using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -324,6 +324,8 @@ namespace AMR_Engine
                 return _;
             }
 
+            int isCancelled = 0;
+
             Parallel.For(0, totalBlocks, (blockNumber, state) =>
             {
                 int blockRowStart = (blockSize * blockNumber);
@@ -333,8 +335,13 @@ namespace AMR_Engine
                 {
                     if (arguments.Worker != null && arguments.Worker.CancellationPending)
                     {
-                        e.Cancel = true;
+                        System.Threading.Volatile.Write(ref isCancelled, 1);
                         state.Break();
+                    }
+
+                    if (System.Threading.Volatile.Read(ref isCancelled) == 1)
+                    {
+                        break;
                     }
 
                     Dictionary<string, string> results =
@@ -366,7 +373,7 @@ namespace AMR_Engine
                 }
             });
 
-            if (e.Cancel)
+            if (System.Threading.Volatile.Read(ref isCancelled) == 1)
             {
                 Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = 
                     new Tuple<Dictionary<string, string>, Dictionary<string, string>>[0];

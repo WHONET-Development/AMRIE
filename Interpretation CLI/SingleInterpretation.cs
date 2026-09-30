@@ -1,22 +1,12 @@
-﻿namespace Interpretation_CLI
+namespace Interpretation_CLI
 {
-	public class SingleInterpretation
+	// Inherit from engine class so existing callers/serialization remain 100% compatible
+	public class SingleInterpretation : AMR_Engine.SingleInterpretation
 	{
 		public SingleInterpretation(string organismCode_, string antibioticCode_,
 			string measurement_, string interpretation_)
+			: base(organismCode_, antibioticCode_, measurement_, interpretation_)
 		{
-			OrganismCode = organismCode_;
-			AntibioticCode = antibioticCode_;
-			Measurement = measurement_;
-			Interpretation = interpretation_;
 		}
-
-		public string OrganismCode { get; private set; }
-
-		public string AntibioticCode { get; private set; }
-
-		public string Measurement { get; private set; }
-
-		public string Interpretation { get; private set; }
 	}
 }

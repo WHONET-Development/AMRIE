@@ -57,7 +57,7 @@
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="180" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
@@ -187,7 +187,7 @@
                                                 QuerySubmitted="OrganismSuggestBox_QuerySubmitted"
                                                 QueryIcon="Find">
                                     <AutoSuggestBox.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:OrganismItem">
+                                        <DataTemplate x:DataType="models:OrganismItem">
                                             <Grid ColumnSpacing="8" Padding="2,4">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -226,7 +226,7 @@
                                                 QuerySubmitted="AntibioticSuggestBox_QuerySubmitted"
                                                 QueryIcon="Find">
                                     <AutoSuggestBox.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:AntibioticItem">
+                                        <DataTemplate x:DataType="models:AntibioticItem">
                                             <Grid ColumnSpacing="8" Padding="2,4">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
