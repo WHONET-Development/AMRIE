@@ -36,15 +36,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Custom installer assets generator script (`generate_installer_assets.ps1`).
 - Code-signing step with graceful skip when `signtool.exe` is unavailable.
 
-### Added — `amrie` CLI Alias (`Interpretation CLI`)
+### Changed — Interpretation CLI (`AMRIE.exe`)
 
-- `amrie.exe` — copy of `Interpretation CLI.exe` with a short, space-free name, built via post-build copy target.
-- `amrie.cmd` — Windows batch wrapper for `amrie` in cmd/PowerShell sessions.
-- `amrie` — POSIX shell wrapper for WSL/Git Bash sessions.
-- **System `PATH` registration** via MSI `Environment` element — `amrie` works from any terminal after install.
-- **App Paths registry entry** (`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\amrie.exe`) — `amrie` is launchable from `Win+R` and Start.
-- `App Paths` entry also registered for `Interpretation CLI.exe` (backward compatibility).
-- `Program.cs` updated to display the actual process name (`amrie` or `Interpretation CLI.exe`) in help text dynamically.
+- Renamed CLI project assembly output to **`AMRIE.exe`** (`<AssemblyName>AMRIE</AssemblyName>`).
+- **System `PATH` registration** via MSI `Environment` element — `AMRIE.exe` is directly accessible from any terminal.
+- **App Paths registry entry** (`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AMRIE.exe`) — launchable from `Win+R` and system run prompts.
+- `Program.cs` updated to display the actual process name dynamically in usage and help text.
 
 ### Fixed — WinUI 3 Application
 

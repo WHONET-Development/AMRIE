@@ -92,7 +92,7 @@ namespace Interpretation_CLI
 
 		private static void WriteCliParameterInfoToConsole()
 		{
-			string processName = Path.GetFileName(Environment.ProcessPath ?? "amrie");
+			string processName = Path.GetFileName(Environment.ProcessPath ?? "AMRIE.exe");
 			Console.WriteLine();
 			Console.WriteLine(Translations.Resources.WholeFileMode);
 			Console.WriteLine($"\"{processName}\" FILE {{Config file}} {{Delimiter character (use 'TAB' or the delimiter character}} {{Input file}} {{Output file}}");

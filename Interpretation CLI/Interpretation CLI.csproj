@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <AssemblyName>AMRIE</AssemblyName>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Interpretation_CLI</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>

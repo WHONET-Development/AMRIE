@@ -1,4 +1,4 @@
-﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
 	 xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
 	 xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
 
@@ -108,13 +108,13 @@
 		<ComponentGroup Id="CLI_Components" Directory="INSTALLFOLDER">
 			<!-- CLI components. -->
 			<Component Id="InterpretationCLI.exe" Guid="220A63D9-027E-4134-93A9-E8245002DDA6">
-				<File Id="InterpretationCLI.exe" Name="Interpretation CLI.exe"
+				<File Id="InterpretationCLI.exe" Name="AMRIE.exe"
 					  Source="$(var.Interpretation_CLI.TargetPath)" KeyPath="yes" />
 			</Component>
 
 			<Component Id="InterpretationCLIdll" Guid="ECAC5873-9C2A-4C03-8127-64A388BC624F">
-				<File Id="InterpretationCLIdll" Name="Interpretation CLI.dll"
-					  Source="$(var.Interpretation_CLI.TargetDir)Interpretation CLI.dll" KeyPath="yes" />
+				<File Id="InterpretationCLIdll" Name="AMRIE.dll"
+					  Source="$(var.Interpretation_CLI.TargetDir)AMRIE.dll" KeyPath="yes" />
 			</Component>
 		</ComponentGroup>
 
