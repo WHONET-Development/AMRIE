@@ -54,10 +54,10 @@
                             Padding="16,14">
                         <StackPanel Spacing="10">
                             <!-- Year restriction header row -->
-                            <Grid ColumnSpacing="16">
+                            <Grid ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
@@ -66,14 +66,12 @@
                                           FontWeight="SemiBold"
                                           VerticalAlignment="Center" />
 
-                                <NumberBox Grid.Column="1"
-                                           Value="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
-                                           IsEnabled="{x:Bind ViewModel.RestrictGuidelineYear, Mode=OneWay}"
-                                           SpinButtonPlacementMode="Inline"
-                                           SmallChange="1"
-                                           Minimum="1990"
-                                           Maximum="2035"
-                                           VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{x:Bind ViewModel.AvailableYears}"
+                                          SelectedItem="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
+                                          IsEnabled="{x:Bind ViewModel.RestrictGuidelineYear, Mode=OneWay}"
+                                          Width="105"
+                                          VerticalAlignment="Center" />
                             </Grid>
 
                             <!-- 3 Restriction Boxes: Side-by-Side with equal height -->
@@ -279,6 +277,35 @@
                                           HorizontalAlignment="Stretch"
                                           Visibility="{x:Bind ViewModel.IsDiskMethod, Mode=OneWay}" />
                             </Grid>
+
+                            <!-- Quick Applicable Lookup Buttons -->
+                            <MenuFlyoutSeparator Margin="0,6,0,2" />
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0"
+                                        HorizontalAlignment="Stretch"
+                                        Click="GetApplicableBreakpoints_Click"
+                                        ToolTipService.ToolTip="View applicable breakpoints for current organism/antibiotic/filters">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE81C;" FontSize="13" />
+                                        <TextBlock Text="Applicable Breakpoints" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Column="1"
+                                        HorizontalAlignment="Stretch"
+                                        Click="GetApplicableIntrinsicResistance_Click"
+                                        ToolTipService.ToolTip="View applicable intrinsic resistance phenotypes for current organism/antibiotic/filters">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE730;" FontSize="13" />
+                                        <TextBlock Text="Intrinsic Resistance" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -307,10 +334,11 @@
 
                             <Button Grid.Column="1"
                                     VerticalAlignment="Bottom"
+                                    Height="32"
                                     Content="Interpret"
                                     Style="{ThemeResource AccentButtonStyle}"
                                     Command="{x:Bind ViewModel.InterpretCommand}"
-                                    Padding="20,8" />
+                                    Padding="20,0" />
                         </Grid>
 
                         <!-- Include comments checkbox -->

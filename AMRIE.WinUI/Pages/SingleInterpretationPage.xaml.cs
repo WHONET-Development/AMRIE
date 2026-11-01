@@ -20,6 +20,7 @@ public sealed partial class SingleInterpretationPage : Page
             string query = sender.Text.Trim();
             if (string.IsNullOrWhiteSpace(query))
             {
+                ViewModel.SelectedOrganism = null;
                 sender.ItemsSource = null;
                 return;
             }
@@ -40,6 +41,7 @@ public sealed partial class SingleInterpretationPage : Page
         if (args.SelectedItem is OrganismItem chosen)
         {
             ViewModel.SelectedOrganism = chosen;
+            ViewModel.OrganismSearchText = chosen.DisplayName;
             sender.Text = chosen.DisplayName;
         }
     }
@@ -49,21 +51,16 @@ public sealed partial class SingleInterpretationPage : Page
         if (args.ChosenSuggestion is OrganismItem chosen)
         {
             ViewModel.SelectedOrganism = chosen;
+            ViewModel.OrganismSearchText = chosen.DisplayName;
             sender.Text = chosen.DisplayName;
         }
         else if (!string.IsNullOrWhiteSpace(args.QueryText))
         {
-            string query = args.QueryText.Trim();
-            var match = ViewModel.AllOrganisms.FirstOrDefault(o =>
-                o.Code.Equals(query, StringComparison.OrdinalIgnoreCase) ||
-                o.DisplayName.Equals(query, StringComparison.OrdinalIgnoreCase))
-                ?? ViewModel.AllOrganisms.FirstOrDefault(o =>
-                o.DisplayName.StartsWith(query, StringComparison.OrdinalIgnoreCase) ||
-                o.Code.StartsWith(query, StringComparison.OrdinalIgnoreCase));
-
+            var match = ViewModel.ResolveOrganism(args.QueryText);
             if (match != null)
             {
                 ViewModel.SelectedOrganism = match;
+                ViewModel.OrganismSearchText = match.DisplayName;
                 sender.Text = match.DisplayName;
             }
         }
@@ -76,6 +73,7 @@ public sealed partial class SingleInterpretationPage : Page
             string query = sender.Text.Trim();
             if (string.IsNullOrWhiteSpace(query))
             {
+                ViewModel.SelectedAntibiotic = null;
                 sender.ItemsSource = null;
                 return;
             }
@@ -96,6 +94,7 @@ public sealed partial class SingleInterpretationPage : Page
         if (args.SelectedItem is AntibioticItem chosen)
         {
             ViewModel.SelectedAntibiotic = chosen;
+            ViewModel.AntibioticSearchText = chosen.DisplayName;
             sender.Text = chosen.DisplayName;
         }
     }
@@ -105,21 +104,16 @@ public sealed partial class SingleInterpretationPage : Page
         if (args.ChosenSuggestion is AntibioticItem chosen)
         {
             ViewModel.SelectedAntibiotic = chosen;
+            ViewModel.AntibioticSearchText = chosen.DisplayName;
             sender.Text = chosen.DisplayName;
         }
         else if (!string.IsNullOrWhiteSpace(args.QueryText))
         {
-            string query = args.QueryText.Trim();
-            var match = ViewModel.AllAntibiotics.FirstOrDefault(a =>
-                a.Code.Equals(query, StringComparison.OrdinalIgnoreCase) ||
-                a.DisplayName.Equals(query, StringComparison.OrdinalIgnoreCase))
-                ?? ViewModel.AllAntibiotics.FirstOrDefault(a =>
-                a.DisplayName.StartsWith(query, StringComparison.OrdinalIgnoreCase) ||
-                a.Code.StartsWith(query, StringComparison.OrdinalIgnoreCase));
-
+            var match = ViewModel.ResolveAntibiotic(args.QueryText);
             if (match != null)
             {
                 ViewModel.SelectedAntibiotic = match;
+                ViewModel.AntibioticSearchText = match.DisplayName;
                 sender.Text = match.DisplayName;
             }
         }
@@ -135,5 +129,29 @@ public sealed partial class SingleInterpretationPage : Page
                 ViewModel.InterpretCommand.Execute(null);
             }
         }
+    }
+
+    private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
+        var (rows, summary) = ViewModel.GetApplicableBreakpoints();
+        var dialog = new Dialogs.ApplicableBreakpointsDialog
+        {
+            XamlRoot = this.XamlRoot
+        };
+        dialog.SetData(rows, summary);
+        await dialog.ShowAsync();
+    }
+
+    private async void GetApplicableIntrinsicResistance_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
+        var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
+        var dialog = new Dialogs.ApplicableIntrinsicRulesDialog
+        {
+            XamlRoot = this.XamlRoot
+        };
+        dialog.SetData(rows, summary);
+        await dialog.ShowAsync();
     }
 }

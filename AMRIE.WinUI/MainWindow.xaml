@@ -103,13 +103,32 @@
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem
                     x:Name="ThemeToggleItem"
-                    Content="Light mode"
+                    Content="System theme"
                     SelectsOnInvoked="False"
                     Tapped="ThemeToggleItem_Tapped"
-                    ToolTipService.ToolTip="Switch to Light mode">
+                    ToolTipService.ToolTip="Theme: Use system setting (click to cycle)">
                     <NavigationViewItem.Icon>
-                        <FontIcon x:Name="ThemeIcon" Glyph="&#xE706;" />
+                        <FontIcon x:Name="ThemeIcon" Glyph="&#xE790;" />
                     </NavigationViewItem.Icon>
+                    <NavigationViewItem.ContextFlyout>
+                        <MenuFlyout>
+                            <RadioMenuFlyoutItem x:Name="SystemThemeMenuItem" Text="Use system setting" Click="ThemeMenuItem_Click" Tag="Default">
+                                <RadioMenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE790;" />
+                                </RadioMenuFlyoutItem.Icon>
+                            </RadioMenuFlyoutItem>
+                            <RadioMenuFlyoutItem x:Name="LightThemeMenuItem" Text="Light mode" Click="ThemeMenuItem_Click" Tag="Light">
+                                <RadioMenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE706;" />
+                                </RadioMenuFlyoutItem.Icon>
+                            </RadioMenuFlyoutItem>
+                            <RadioMenuFlyoutItem x:Name="DarkThemeMenuItem" Text="Dark mode" Click="ThemeMenuItem_Click" Tag="Dark">
+                                <RadioMenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE708;" />
+                                </RadioMenuFlyoutItem.Icon>
+                            </RadioMenuFlyoutItem>
+                        </MenuFlyout>
+                    </NavigationViewItem.ContextFlyout>
                 </NavigationViewItem>
             </NavigationView.FooterMenuItems>
 

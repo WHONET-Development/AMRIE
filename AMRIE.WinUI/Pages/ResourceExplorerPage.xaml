@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:AMRIE.WinUI.ViewModels"
     xmlns:models="using:AMRIE.WinUI.Models"
+    xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
@@ -93,221 +94,186 @@
             <Grid>
                 <!-- Section 0: Breakpoints -->
                 <Grid Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="40" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <!-- Column Headers Header Grid -->
-                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="16,0">
-                        <Grid ColumnSpacing="10" VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="65" />
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="55" />
-                                <ColumnDefinition Width="60" />
-                                <ColumnDefinition Width="140" />
-                                <ColumnDefinition Width="65" />
-                                <ColumnDefinition Width="90" />
-                                <ColumnDefinition Width="100" />
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="40" />
-                                <ColumnDefinition Width="45" />
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="55" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Guide" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="1" Text="Year" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="2" Text="Method" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="3" Text="Potency" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="4" Text="Organism" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="5" Text="Type" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="6" Text="Site" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="7" Text="WHONET Test" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="8" Text="R" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="9" Text="I" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="10" Text="SDD" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="11" Text="S" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="12" Text="ECV" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="13" Text="Comments" FontWeight="SemiBold" />
-                        </Grid>
-                    </Border>
-
-                    <!-- Breakpoints ListView -->
-                    <ListView Grid.Row="1"
-                              ItemsSource="{x:Bind ViewModel.FilteredBreakpoints}"
-                              SelectionMode="None">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:BreakpointRow">
-                                <Grid ColumnSpacing="10" Padding="0,6">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="65" />
-                                        <ColumnDefinition Width="50" />
-                                        <ColumnDefinition Width="55" />
-                                        <ColumnDefinition Width="60" />
-                                        <ColumnDefinition Width="140" />
-                                        <ColumnDefinition Width="65" />
-                                        <ColumnDefinition Width="90" />
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition Width="50" />
-                                        <ColumnDefinition Width="40" />
-                                        <ColumnDefinition Width="45" />
-                                        <ColumnDefinition Width="50" />
-                                        <ColumnDefinition Width="55" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{x:Bind Guidelines}" />
-                                    <TextBlock Grid.Column="1" Text="{x:Bind Year}" />
-                                    <TextBlock Grid.Column="2" Text="{x:Bind TestMethod}" />
-                                    <TextBlock Grid.Column="3" Text="{x:Bind Potency}" />
-                                    <StackPanel Grid.Column="4" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
-                                        <TextBlock Text="{x:Bind OrganismName}"
-                                                   ToolTipService.ToolTip="{x:Bind OrganismName}"
-                                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="5" Text="{x:Bind BreakpointType}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="6"
-                                               Text="{x:Bind SiteOfInfection}"
-                                               ToolTipService.ToolTip="{x:Bind SiteOfInfection}"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="7" Text="{x:Bind WhonetTest}" />
-                                    <TextBlock Grid.Column="8" Text="{x:Bind RDisplay}" Foreground="#A80000" FontWeight="SemiBold" />
-                                    <TextBlock Grid.Column="9" Text="{x:Bind I}" />
-                                    <TextBlock Grid.Column="10" Text="{x:Bind Sdd}" />
-                                    <TextBlock Grid.Column="11" Text="{x:Bind SDisplay}" Foreground="#107C41" FontWeight="SemiBold" />
-                                    <TextBlock Grid.Column="12" Text="{x:Bind EcvEcoffDisplay}" FontWeight="SemiBold" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                    <TextBlock Grid.Column="13"
-                                               Text="{x:Bind Comments}"
-                                               ToolTipService.ToolTip="{x:Bind Comments}"
-                                               TextTrimming="CharacterEllipsis"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <tabular:TableView ItemsSource="{x:Bind ViewModel.FilteredBreakpoints}"
+                                       SelectionMode="None"
+                                       CanUserResizeColumns="True">
+                        <tabular:TableView.Columns>
+                            <tabular:TableViewTextColumn Header="Guide" Binding="{Binding Guidelines}" Width="70" FrozenEdge="Leading" />
+                            <tabular:TableViewTextColumn Header="Year" Binding="{Binding Year}" Width="60" FrozenEdge="Leading" />
+                            <tabular:TableViewTextColumn Header="Method" Binding="{Binding TestMethod}" Width="70" />
+                            <tabular:TableViewTextColumn Header="Potency" Binding="{Binding Potency}" Width="75" />
+                            <tabular:TableViewTemplateColumn Header="Organism" Width="160" SortMemberPath="OrganismCode">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:BreakpointRow">
+                                        <Grid Padding="12,4" VerticalAlignment="Center">
+                                            <StackPanel>
+                                                <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
+                                                <TextBlock Text="{x:Bind OrganismName}"
+                                                           ToolTipService.ToolTip="{x:Bind OrganismName}"
+                                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTextColumn Header="Type" Binding="{Binding BreakpointType}" Width="75" />
+                            <tabular:TableViewTemplateColumn Header="Site" Width="100" SortMemberPath="SiteOfInfection">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:BreakpointRow">
+                                        <Grid Padding="12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind SiteOfInfection}"
+                                                       ToolTipService.ToolTip="{x:Bind SiteOfInfection}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTextColumn Header="Antibiotic Code" Binding="{Binding AbxCode}" Width="115" />
+                            <tabular:TableViewTemplateColumn Header="R" Width="60" SortMemberPath="R">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:BreakpointRow">
+                                        <Grid Padding="12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind RDisplay}" Foreground="#A80000" FontWeight="SemiBold" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTextColumn Header="I" Binding="{Binding I}" Width="50" />
+                            <tabular:TableViewTextColumn Header="SDD" Binding="{Binding Sdd}" Width="55" />
+                            <tabular:TableViewTemplateColumn Header="S" Width="60" SortMemberPath="S">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:BreakpointRow">
+                                        <Grid Padding="12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind SDisplay}" Foreground="#107C41" FontWeight="SemiBold" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTemplateColumn Header="ECV" Width="65" SortMemberPath="EcvEcoff">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:BreakpointRow">
+                                        <Grid Padding="12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind EcvEcoffDisplay}" FontWeight="SemiBold" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTemplateColumn Header="Comments" Width="*" SortMemberPath="Comments">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:BreakpointRow">
+                                        <Grid Padding="12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Comments}"
+                                                       ToolTipService.ToolTip="{x:Bind Comments}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                        </tabular:TableView.Columns>
+                    </tabular:TableView>
                 </Grid>
 
                 <!-- Section 1: Expert Rules -->
                 <Grid Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=1, Converter={StaticResource IntToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="40" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="16,0">
-                        <Grid ColumnSpacing="16" VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="160" />
-                                <ColumnDefinition Width="150" />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition Width="140" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Rule Code" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="1" Text="Organism" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="2" Text="Affected Drugs" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="3" Text="Exceptions" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="4" Text="Description" FontWeight="SemiBold" />
-                        </Grid>
-                    </Border>
-
-                    <ListView Grid.Row="1"
-                              ItemsSource="{x:Bind ViewModel.FilteredExpertRules}"
-                              SelectionMode="None">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:ExpertRuleRow">
-                                <Grid ColumnSpacing="16" Padding="0,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="160" />
-                                        <ColumnDefinition Width="150" />
-                                        <ColumnDefinition Width="200" />
-                                        <ColumnDefinition Width="140" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{x:Bind RuleCode}" FontWeight="SemiBold" />
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
-                                        <TextBlock Text="{x:Bind OrganismName}"
-                                                   ToolTipService.ToolTip="{x:Bind OrganismName}"
-                                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{x:Bind AffectedAntibiotics}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Column="3" Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Column="4" Text="{x:Bind Description}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <tabular:TableView ItemsSource="{x:Bind ViewModel.FilteredExpertRules}"
+                                       SelectionMode="None"
+                                       CanUserResizeColumns="True">
+                        <tabular:TableView.Columns>
+                            <tabular:TableViewTextColumn Header="Rule Code" Binding="{Binding RuleCode}" Width="160" FrozenEdge="Leading" />
+                            <tabular:TableViewTemplateColumn Header="Organism" Width="160" SortMemberPath="OrganismCode">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:ExpertRuleRow">
+                                        <Grid Padding="12,4" VerticalAlignment="Center">
+                                            <StackPanel>
+                                                <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
+                                                <TextBlock Text="{x:Bind OrganismName}"
+                                                           ToolTipService.ToolTip="{x:Bind OrganismName}"
+                                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTemplateColumn Header="Affected Drugs" Width="220" SortMemberPath="AffectedAntibiotics">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:ExpertRuleRow">
+                                        <Grid Padding="12,6" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind AffectedAntibiotics}" TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:ExpertRuleRow">
+                                        <Grid Padding="12,6" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTemplateColumn Header="Description" Width="*" SortMemberPath="Description">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:ExpertRuleRow">
+                                        <Grid Padding="12,6" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                        </tabular:TableView.Columns>
+                    </tabular:TableView>
                 </Grid>
 
                 <!-- Section 2: Intrinsic Resistance Rules -->
                 <Grid Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=2, Converter={StaticResource IntToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="40" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="0,0,0,1"
-                            Padding="16,0">
-                        <Grid ColumnSpacing="16" VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="90" />
-                                <ColumnDefinition Width="160" />
-                                <ColumnDefinition Width="140" />
-                                <ColumnDefinition Width="140" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="Guideline" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="1" Text="Organism" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="2" Text="Antibiotic" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="3" Text="Exceptions" FontWeight="SemiBold" />
-                            <TextBlock Grid.Column="4" Text="Comments" FontWeight="SemiBold" />
-                        </Grid>
-                    </Border>
-
-                    <ListView Grid.Row="1"
-                              ItemsSource="{x:Bind ViewModel.FilteredIntrinsicRules}"
-                              SelectionMode="None">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
-                                <Grid ColumnSpacing="16" Padding="0,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="90" />
-                                        <ColumnDefinition Width="160" />
-                                        <ColumnDefinition Width="140" />
-                                        <ColumnDefinition Width="140" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{x:Bind Guideline}" />
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
-                                        <TextBlock Text="{x:Bind OrganismName}"
-                                                   ToolTipService.ToolTip="{x:Bind OrganismName}"
-                                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{x:Bind AbxCode}" />
-                                    <TextBlock Grid.Column="3" Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
-                                    <TextBlock Grid.Column="4" Text="{x:Bind Comments}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                    <tabular:TableView ItemsSource="{x:Bind ViewModel.FilteredIntrinsicRules}"
+                                       SelectionMode="None"
+                                       CanUserResizeColumns="True">
+                        <tabular:TableView.Columns>
+                            <tabular:TableViewTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="100" FrozenEdge="Leading" />
+                            <tabular:TableViewTemplateColumn Header="Organism" Width="180" SortMemberPath="OrganismCode" FrozenEdge="Leading">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                        <Grid Padding="12,4" VerticalAlignment="Center">
+                                            <StackPanel>
+                                                <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
+                                                <TextBlock Text="{x:Bind OrganismName}"
+                                                           ToolTipService.ToolTip="{x:Bind OrganismName}"
+                                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTextColumn Header="Antibiotic" Binding="{Binding AbxCode}" Width="120" />
+                            <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                        <Grid Padding="12,6" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                            <tabular:TableViewTemplateColumn Header="Comments" Width="*" SortMemberPath="Comments">
+                                <tabular:TableViewTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                        <Grid Padding="12,6" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Comments}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </tabular:TableViewTemplateColumn.CellTemplate>
+                            </tabular:TableViewTemplateColumn>
+                        </tabular:TableView.Columns>
+                    </tabular:TableView>
                 </Grid>
             </Grid>
         </Border>
