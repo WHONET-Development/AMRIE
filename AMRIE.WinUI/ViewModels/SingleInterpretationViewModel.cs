@@ -620,42 +620,31 @@ public partial class SingleInterpretationViewModel : ObservableObject
             }
         }
 
-        var query = Breakpoint.Breakpoints.AsEnumerable();
+        // Same defaults as InterpretAsync: Human breakpoints unless types are restricted.
+        var typeFilter = activeTypes != null && activeTypes.Count > 0
+            ? activeTypes
+            : new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Breakpoint.BreakpointTypes.Human };
+
+        IEnumerable<Breakpoint> query;
 
         if (organismEntity != null)
         {
-            var o = organismEntity;
-            query = query.Where(b =>
-                ((b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.WHONET_ORG_CODE), StringComparison.OrdinalIgnoreCase) && o.WHONET_ORG_CODE.Equals(b.ORGANISM_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                 b.ORGANISM_CODE.Equals(o.WHONET_ORG_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrWhiteSpace(o.GENUS_CODE) &&
-                 ((b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.GENUS_CODE), StringComparison.OrdinalIgnoreCase) && o.GENUS_CODE.Equals(b.ORGANISM_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                  b.ORGANISM_CODE.Equals(o.GENUS_CODE, StringComparison.OrdinalIgnoreCase))) ||
-                (!string.IsNullOrWhiteSpace(o.FAMILY_CODE) &&
-                 ((b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.FAMILY_CODE), StringComparison.OrdinalIgnoreCase) && o.FAMILY_CODE.Equals(b.ORGANISM_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                  b.ORGANISM_CODE.Equals(o.FAMILY_CODE, StringComparison.OrdinalIgnoreCase))) ||
-                (!string.IsNullOrWhiteSpace(o.SPECIES_GROUP) &&
-                 ((b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.SPECIES_GROUP), StringComparison.OrdinalIgnoreCase) && o.SPECIES_GROUP.Equals(b.ORGANISM_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                  b.ORGANISM_CODE.Equals(o.SPECIES_GROUP, StringComparison.OrdinalIgnoreCase))) ||
-                (!string.IsNullOrWhiteSpace(o.GENUS_GROUP) &&
-                 ((b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.GENUS_GROUP), StringComparison.OrdinalIgnoreCase) && o.GENUS_GROUP.Equals(b.ORGANISM_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                  b.ORGANISM_CODE.Equals(o.GENUS_GROUP, StringComparison.OrdinalIgnoreCase))) ||
-                (!string.IsNullOrWhiteSpace(o.SEROVAR_GROUP) &&
-                 ((b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.SEROVAR_GROUP), StringComparison.OrdinalIgnoreCase) && o.SEROVAR_GROUP.Equals(b.ORGANISM_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                  b.ORGANISM_CODE.Equals(o.SEROVAR_GROUP, StringComparison.OrdinalIgnoreCase))) ||
-                (o.ANAEROBE && (
-                    (b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(nameof(o.ANAEROBE), StringComparison.OrdinalIgnoreCase) && (b.ORGANISM_CODE.Equals(Constants.OrganismGroups.Anaerobes, StringComparison.OrdinalIgnoreCase) || b.ORGANISM_CODE.Equals("ANA", StringComparison.OrdinalIgnoreCase))) ||
-                    (b.ORGANISM_CODE_TYPE != null && b.ORGANISM_CODE_TYPE.Equals(Constants.OrganismGroups.AnaerobePlusSubkingdomCode, StringComparison.OrdinalIgnoreCase) && (
-                        (o.SUBKINGDOM_CODE == Constants.TestResultCodes.Positive && b.ORGANISM_CODE.Equals(Constants.OrganismGroups.GramPositiveAnaerobes, StringComparison.OrdinalIgnoreCase)) ||
-                        (o.SUBKINGDOM_CODE == Constants.TestResultCodes.Negative && b.ORGANISM_CODE.Equals(Constants.OrganismGroups.GramNegativeAnaerobes, StringComparison.OrdinalIgnoreCase))
-                    )) ||
-                    b.ORGANISM_CODE.Equals("ANA", StringComparison.OrdinalIgnoreCase)
-                ))
-            );
+            // Reuse the engine so superseded parent-group breakpoints are dropped as in interpretation.
+            query = Breakpoint.GetApplicableBreakpoints(
+                organismEntity.WHONET_ORG_CODE,
+                new List<Breakpoint>(),
+                prioritizedGuidelines: activeGuidelines != null && activeGuidelines.Count > 0 ? activeGuidelines.ToList() : null,
+                prioritizedGuidelineYears: activeYear.HasValue ? new List<int> { activeYear.Value } : null,
+                prioritizedBreakpointTypes: typeFilter.ToList(),
+                prioritizedSitesOfInfection: activeSites != null && activeSites.Count > 0 ? activeSites.ToList() : null);
         }
-        else if (!string.IsNullOrWhiteSpace(orgCode))
+        else
         {
-            query = query.Where(b => b.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            query = Breakpoint.Breakpoints.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(orgCode))
+            {
+                query = query.Where(b => b.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(abxCode))
@@ -687,14 +676,13 @@ public partial class SingleInterpretationViewModel : ObservableObject
             query = query.Where(b => b.YEAR == activeYear.Value);
         }
 
-        if (activeTypes != null && activeTypes.Count > 0)
-        {
-            query = query.Where(b => activeTypes.Contains(b.BREAKPOINT_TYPE));
-        }
+        query = query.Where(b => typeFilter.Contains(b.BREAKPOINT_TYPE));
 
         if (activeSites != null && activeSites.Count > 0)
         {
-            query = query.Where(b => b.SITES_OF_INFECTION.Any(s => activeSites.Contains(s)));
+            // Breakpoints store blank sites as an empty string, while the UI uses the "(Blank)" constant.
+            query = query.Where(b => b.SITES_OF_INFECTION.Any(s =>
+                activeSites.Contains(string.IsNullOrWhiteSpace(s) ? Constants.SitesOfInfection.Blank : s)));
         }
 
         var list = query
@@ -732,8 +720,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             summaryParts.Add($"Guidelines: {string.Join(", ", activeGuidelines)}");
         if (activeYear.HasValue)
             summaryParts.Add($"Year: {activeYear.Value}");
-        if (activeTypes != null && activeTypes.Count > 0)
-            summaryParts.Add($"Type: {string.Join(", ", activeTypes)}");
+        summaryParts.Add($"Type: {string.Join(", ", typeFilter)}");
         if (activeSites != null && activeSites.Count > 0)
             summaryParts.Add($"Site: {string.Join(", ", activeSites)}");
 
@@ -776,45 +763,33 @@ public partial class SingleInterpretationViewModel : ObservableObject
             }
         }
 
-        var query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules.AsEnumerable();
+        IEnumerable<ExpectedResistancePhenotypeRule> query;
+        var guidelineList = activeGuidelines != null && activeGuidelines.Count > 0 ? activeGuidelines.ToList() : null;
+        var abxList = !string.IsNullOrWhiteSpace(abxCode) ? new List<string> { abxCode } : null;
 
         if (organismEntity != null)
         {
-            var o = organismEntity;
-            query = query.Where(r =>
-            {
-                if (!string.IsNullOrWhiteSpace(r.EXCEPTION_ORGANISM_CODE))
-                {
-                    var exceptions = r.EXCEPTION_ORGANISM_CODE.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (exceptions.Any(ex =>
-                        ex.Equals(o.WHONET_ORG_CODE, StringComparison.OrdinalIgnoreCase) ||
-                        (!string.IsNullOrWhiteSpace(o.GENUS_CODE) && ex.Equals(o.GENUS_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                        (!string.IsNullOrWhiteSpace(o.FAMILY_CODE) && ex.Equals(o.FAMILY_CODE, StringComparison.OrdinalIgnoreCase))))
-                    {
-                        return false;
-                    }
-                }
-
-                return r.ORGANISM_CODE.Equals(o.WHONET_ORG_CODE, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrWhiteSpace(o.GENUS_CODE) && r.ORGANISM_CODE.Equals(o.GENUS_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(o.GENUS_GROUP) && r.ORGANISM_CODE.Equals(o.GENUS_GROUP, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(o.FAMILY_CODE) && r.ORGANISM_CODE.Equals(o.FAMILY_CODE, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(o.SPECIES_GROUP) && r.ORGANISM_CODE.Equals(o.SPECIES_GROUP, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(o.SEROVAR_GROUP) && r.ORGANISM_CODE.Equals(o.SEROVAR_GROUP, StringComparison.OrdinalIgnoreCase)) ||
-                    r.ORGANISM_CODE.Equals(ExpectedResistancePhenotypeRule.AllOrganisms, StringComparison.OrdinalIgnoreCase);
-            });
+            // Reuse the engine so subkingdom, anaerobe, ATC-class and antibiotic-exception rules match interpretation.
+            query = ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
+                organismEntity.WHONET_ORG_CODE, guidelineList, abxList);
         }
         else if (!string.IsNullOrWhiteSpace(orgCode))
         {
-            query = query.Where(r => r.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules
+                .Where(r => r.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            if (abxList != null)
+                query = query.Where(r => r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase));
         }
-
-        if (!string.IsNullOrWhiteSpace(abxCode))
+        else if (abxList != null)
         {
-            query = query.Where(r => r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase));
+            query = ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
+                ExpectedResistancePhenotypeRule.AllOrganisms, guidelineList, abxList);
+        }
+        else
+        {
+            query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules;
         }
 
-        if (activeGuidelines != null && activeGuidelines.Count > 0)
         {
             query = query.Where(r => activeGuidelines.Contains(r.GUIDELINE));
         }

@@ -18,9 +18,10 @@ public sealed partial class SingleInterpretationPage : Page
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
             string query = sender.Text.Trim();
+            ViewModel.OrganismSearchText = sender.Text;
+            ViewModel.SelectedOrganism = null;
             if (string.IsNullOrWhiteSpace(query))
             {
-                ViewModel.SelectedOrganism = null;
                 sender.ItemsSource = null;
                 return;
             }
@@ -71,9 +72,10 @@ public sealed partial class SingleInterpretationPage : Page
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
             string query = sender.Text.Trim();
+            ViewModel.AntibioticSearchText = sender.Text;
+            ViewModel.SelectedAntibiotic = null;
             if (string.IsNullOrWhiteSpace(query))
             {
-                ViewModel.SelectedAntibiotic = null;
                 sender.ItemsSource = null;
                 return;
             }
