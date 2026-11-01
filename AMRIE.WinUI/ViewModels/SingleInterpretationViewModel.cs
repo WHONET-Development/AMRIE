@@ -620,10 +620,8 @@ public partial class SingleInterpretationViewModel : ObservableObject
             }
         }
 
-        // Same defaults as InterpretAsync: Human breakpoints unless types are restricted.
-        var typeFilter = activeTypes != null && activeTypes.Count > 0
-            ? activeTypes
-            : new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Breakpoint.BreakpointTypes.Human };
+        // InterpretAsync uses Human breakpoints only when type restriction is disabled.
+        var typeFilter = activeTypes ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Breakpoint.BreakpointTypes.Human };
 
         IEnumerable<Breakpoint> query;
 
@@ -633,10 +631,10 @@ public partial class SingleInterpretationViewModel : ObservableObject
             query = Breakpoint.GetApplicableBreakpoints(
                 organismEntity.WHONET_ORG_CODE,
                 new List<Breakpoint>(),
-                prioritizedGuidelines: activeGuidelines != null && activeGuidelines.Count > 0 ? activeGuidelines.ToList() : null,
+                prioritizedGuidelines: activeGuidelines?.ToList(),
                 prioritizedGuidelineYears: activeYear.HasValue ? new List<int> { activeYear.Value } : null,
                 prioritizedBreakpointTypes: typeFilter.ToList(),
-                prioritizedSitesOfInfection: activeSites != null && activeSites.Count > 0 ? activeSites.ToList() : null);
+                prioritizedSitesOfInfection: activeSites?.ToList());
         }
         else
         {
@@ -666,7 +664,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
                                      b.POTENCY.Replace(" ", "").Replace("µg", "ug").Equals(cleanPotency, StringComparison.OrdinalIgnoreCase));
         }
 
-        if (activeGuidelines != null && activeGuidelines.Count > 0)
+        if (activeGuidelines != null)
         {
             query = query.Where(b => activeGuidelines.Contains(b.GUIDELINES));
         }
@@ -678,7 +676,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
         query = query.Where(b => typeFilter.Contains(b.BREAKPOINT_TYPE));
 
-        if (activeSites != null && activeSites.Count > 0)
+        if (activeSites != null)
         {
             // Breakpoints store blank sites as an empty string, while the UI uses the "(Blank)" constant.
             query = query.Where(b => b.SITES_OF_INFECTION.Any(s =>
@@ -764,7 +762,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
         }
 
         IEnumerable<ExpectedResistancePhenotypeRule> query;
-        var guidelineList = activeGuidelines != null && activeGuidelines.Count > 0 ? activeGuidelines.ToList() : null;
+        var guidelineList = activeGuidelines?.ToList();
         var abxList = !string.IsNullOrWhiteSpace(abxCode) ? new List<string> { abxCode } : null;
 
         if (organismEntity != null)
@@ -790,6 +788,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules;
         }
 
+        if (activeGuidelines != null)
         {
             query = query.Where(r => activeGuidelines.Contains(r.GUIDELINE));
         }

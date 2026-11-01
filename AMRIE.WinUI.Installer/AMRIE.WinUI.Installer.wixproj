@@ -13,9 +13,9 @@
     <Version Condition="'$(Version)' == ''">$([System.DateTime]::Now.ToString("yy.M.d"))</Version>
     <Title>AMR Interpretation Engine</Title>
     <Manufacturer>Brigham and Women's Hospital</Manufacturer>
-    <WinUIPublishDir>..\AMRIE.WinUI\bin\$(Platform)\$(Configuration)\net8.0-windows10.0.26100.0\win-$(Platform)\publish</WinUIPublishDir>
-    <CLIPublishDir Condition="Exists('..\Interpretation CLI\bin\$(Platform)\$(Configuration)\net8.0\')">..\Interpretation CLI\bin\$(Platform)\$(Configuration)\net8.0</CLIPublishDir>
-    <CLIPublishDir Condition="'$(CLIPublishDir)' == ''">..\Interpretation CLI\bin\$(Configuration)\net8.0</CLIPublishDir>
+    <WinUIRuntimeIdentifier>win-$([System.String]::Copy('$(Platform)').ToLowerInvariant())</WinUIRuntimeIdentifier>
+    <WinUIPublishDir>..\AMRIE.WinUI\bin\$(Platform)\$(Configuration)\net8.0-windows10.0.26100.0\$(WinUIRuntimeIdentifier)\publish</WinUIPublishDir>
+    <CLIPublishDir>..\Interpretation CLI\bin\$(Platform)\$(Configuration)\net8.0</CLIPublishDir>
     <DefineConstants>Title=$(Title);Version=$(Version);BuildDate=$(BuildDate);WinUIPublishDir=$(WinUIPublishDir);CLIPublishDir=$(CLIPublishDir)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -26,7 +26,7 @@
   <Target Name="PublishDependencies" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(IntermediateOutputPath)en-us" />
     <Message Importance="high" Text="Publishing AMRIE.WinUI (win-$(Platform) $(Configuration))..." />
-    <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=win-$(Platform);WindowsPackageType=None;PublishProfile=Properties\PublishProfiles\win-$(Platform).pubxml;WindowsAppSDKSelfContained=true;SelfContained=true" />
+    <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(WinUIRuntimeIdentifier);WindowsPackageType=None;WindowsAppSDKSelfContained=true;SelfContained=true" />
     <Message Importance="high" Text="Building Interpretation CLI ($(Configuration))..." />
     <MSBuild Projects="..\Interpretation CLI\Interpretation CLI.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
