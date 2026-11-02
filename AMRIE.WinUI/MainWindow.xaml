@@ -76,7 +76,7 @@
                     Tag="SingleInterpretation"
                     ToolTipService.ToolTip="Single test interpretation (ad-hoc CLSI, EUCAST, SFM)">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE95E;" />
+                        <FontIcon Glyph="&#xE8EF;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -85,7 +85,7 @@
                     Tag="BatchProcessing"
                     ToolTipService.ToolTip="Interpret entire WHONET data files">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE8B7;" />
+                        <FontIcon Glyph="&#xE9F5;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
@@ -94,7 +94,7 @@
                     Tag="ResourceExplorer"
                     ToolTipService.ToolTip="Browse published breakpoints, expert rules &amp; phenotypes">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE81E;" />
+                        <FontIcon Glyph="&#xE8F1;" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>

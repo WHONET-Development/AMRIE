@@ -1,4 +1,4 @@
-<ContentDialog
+﻿<ContentDialog
     x:Class="AMRIE.WinUI.Dialogs.ApplicableBreakpointsDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -86,8 +86,23 @@
                             </DataTemplate>
                         </tabular:TableViewTemplateColumn.CellTemplate>
                     </tabular:TableViewTemplateColumn>
-                    <tabular:TableViewTextColumn Header="Antibiotic Code" Binding="{Binding AbxCode}" Width="115" />
-                    <tabular:TableViewTemplateColumn Header="R" Width="60" SortMemberPath="R">
+                                        <tabular:TableViewTemplateColumn Header="Antibiotic" Width="170" SortMemberPath="AbxCode">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:BreakpointRow">
+                                <Grid Padding="12,4" VerticalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
+                                        <TextBlock Text="{x:Bind AbxName}"
+                                                   ToolTipService.ToolTip="{x:Bind AbxName}"
+                                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                    <tabular:TableViewTemplateColumn Header="R" Width="70" SortMemberPath="R">
                         <tabular:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:BreakpointRow">
                                 <Grid Padding="12,0" VerticalAlignment="Center">
@@ -96,9 +111,9 @@
                             </DataTemplate>
                         </tabular:TableViewTemplateColumn.CellTemplate>
                     </tabular:TableViewTemplateColumn>
-                    <tabular:TableViewTextColumn Header="I" Binding="{Binding I}" Width="50" />
+                    <tabular:TableViewTextColumn Header="I" Binding="{Binding I}" Width="72" />
                     <tabular:TableViewTextColumn Header="SDD" Binding="{Binding Sdd}" Width="55" />
-                    <tabular:TableViewTemplateColumn Header="S" Width="60" SortMemberPath="S">
+                    <tabular:TableViewTemplateColumn Header="S" Width="85" SortMemberPath="S">
                         <tabular:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:BreakpointRow">
                                 <Grid Padding="12,0" VerticalAlignment="Center">

@@ -27,8 +27,8 @@
     <MakeDir Directories="$(IntermediateOutputPath)en-us" />
     <Message Importance="high" Text="Publishing AMRIE.WinUI (win-$(Platform) $(Configuration))..." />
     <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(WinUIRuntimeIdentifier);WindowsPackageType=None;WindowsAppSDKSelfContained=true;SelfContained=true" />
-    <Message Importance="high" Text="Building Interpretation CLI ($(Configuration))..." />
-    <MSBuild Projects="..\Interpretation CLI\Interpretation CLI.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <Message Importance="high" Text="Building Interpretation CLI ($(Platform) $(Configuration))..." />
+    <MSBuild Projects="..\Interpretation CLI\Interpretation CLI.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="where signtool.exe &gt;nul 2&gt;&amp;1 &amp;&amp; (echo Attempting to sign installer package... &amp; signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE WinUI&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;) || (echo Signtool not found or signing skipped.)" ContinueOnError="true" />

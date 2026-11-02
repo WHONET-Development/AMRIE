@@ -1,4 +1,4 @@
-<ContentDialog
+﻿<ContentDialog
     x:Class="AMRIE.WinUI.Dialogs.ApplicableIntrinsicRulesDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -71,7 +71,22 @@
                             </DataTemplate>
                         </tabular:TableViewTemplateColumn.CellTemplate>
                     </tabular:TableViewTemplateColumn>
-                    <tabular:TableViewTextColumn Header="Antibiotic" Binding="{Binding AbxCode}" Width="120" />
+                                        <tabular:TableViewTemplateColumn Header="Antibiotic" Width="170" SortMemberPath="AbxCode">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                <Grid Padding="12,4" VerticalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
+                                        <TextBlock Text="{x:Bind AbxName}"
+                                                   ToolTipService.ToolTip="{x:Bind AbxName}"
+                                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
                     <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
                         <tabular:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:IntrinsicRuleRow">

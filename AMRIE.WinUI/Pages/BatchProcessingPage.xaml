@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="AMRIE.WinUI.Pages.BatchProcessingPage"
     NavigationCacheMode="Required"
     AllowDrop="True"
@@ -16,7 +16,7 @@
     </Page.DataContext>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28,20,28,28">
-        <StackPanel Spacing="20" HorizontalAlignment="Stretch">
+        <StackPanel Spacing="16" HorizontalAlignment="Stretch">
 
             <!-- Title Header -->
             <StackPanel Spacing="4">
@@ -37,132 +37,136 @@
                 </InfoBar.ActionButton>
             </InfoBar>
 
-            <!-- Configuration Card -->
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="24">
-                <StackPanel Spacing="20">
-                    <TextBlock Text="Input &amp; Configuration Settings" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+            <!-- Main 2-Column Responsive Layout -->
+            <Grid ColumnSpacing="16" RowSpacing="14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.1*" MinWidth="360" />
+                    <ColumnDefinition Width="0.9*" MinWidth="340" />
+                </Grid.ColumnDefinitions>
 
-                    <!-- Input file -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Header="Input Data File"
-                                 PlaceholderText="Path to data file..."
-                                 Text="{x:Bind ViewModel.InputFilePath, Mode=TwoWay}" />
-                        <Button Grid.Column="1"
-                                VerticalAlignment="Bottom"
-                                Content="Browse..."
-                                Command="{x:Bind ViewModel.BrowseInputFileCommand}"
-                                Padding="16,8" />
-                    </Grid>
+                <!-- LEFT COLUMN: Input & Configuration Card -->
+                <Border Grid.Column="0"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="20,16">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Input &amp; Configuration Settings" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
 
-                    <!-- Delimiter & Guideline Year -->
-                    <Grid ColumnSpacing="24">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="220" />
-                            <ColumnDefinition Width="220" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                        <!-- Input file -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Header="Input Data File"
+                                     PlaceholderText="Path to data file (or drag &amp; drop file here)..."
+                                     Text="{x:Bind ViewModel.InputFilePath, Mode=TwoWay}" />
+                            <Button Grid.Column="1" VerticalAlignment="Bottom" Height="32" Content="Browse..." Command="{x:Bind ViewModel.BrowseInputFileCommand}" Padding="16,0" />
+                        </Grid>
 
-                        <!-- Delimiter -->
-                        <ComboBox Header="Field Delimiter"
-                                  ItemsSource="{x:Bind ViewModel.Delimiters}"
-                                  SelectedItem="{x:Bind ViewModel.SelectedDelimiter, Mode=TwoWay}"
-                                  HorizontalAlignment="Stretch" />
+                        <!-- Delimiter & Guideline Year -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Guideline Year -->
-                        <NumberBox Grid.Column="1"
-                                   Value="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
-                                   SpinButtonPlacementMode="Inline"
-                                   SmallChange="1"
-                                   Minimum="1990"
-                                   Maximum="2035"
-                                   Width="180"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Bottom" />
-                    </Grid>
+                            <!-- Delimiter -->
+                            <ComboBox Header="Field Delimiter"
+                                      ItemsSource="{x:Bind ViewModel.Delimiters}"
+                                      SelectedItem="{x:Bind ViewModel.SelectedDelimiter, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch" />
 
-                    <!-- Config file -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Header="Interpretation Configuration File (.json)"
-                                 PlaceholderText="Path to SampleConfig.json or custom config..."
-                                 Text="{x:Bind ViewModel.ConfigFilePath, Mode=TwoWay}" />
-                        <Button Grid.Column="1"
-                                VerticalAlignment="Bottom"
-                                Content="Browse..."
-                                Command="{x:Bind ViewModel.BrowseConfigFileCommand}"
-                                Padding="16,8" />
-                    </Grid>
+                            <!-- Guideline Year -->
+                            <NumberBox Grid.Column="1"
+                                       Header="Guideline Year"
+                                       Value="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
+                                       SpinButtonPlacementMode="Inline"
+                                       SmallChange="1"
+                                       Minimum="1990"
+                                       Maximum="2035"
+                                       HorizontalAlignment="Stretch" />
+                        </Grid>
 
-                    <!-- Output file -->
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Header="Output Results File Destination"
-                                 PlaceholderText="Path to Results.txt..."
-                                 Text="{x:Bind ViewModel.OutputFilePath, Mode=TwoWay}" />
-                        <Button Grid.Column="1"
-                                VerticalAlignment="Bottom"
-                                Content="Browse..."
-                                Command="{x:Bind ViewModel.BrowseOutputFileCommand}"
-                                Padding="16,8" />
-                    </Grid>
+                        <!-- Config file -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Header="Interpretation Configuration File (.json)"
+                                     PlaceholderText="Path to SampleConfig.json or custom config..."
+                                     Text="{x:Bind ViewModel.ConfigFilePath, Mode=TwoWay}" />
+                            <Button Grid.Column="1" VerticalAlignment="Bottom" Height="32" Content="Browse..." Command="{x:Bind ViewModel.BrowseConfigFileCommand}" Padding="16,0" />
+                        </Grid>
 
-                </StackPanel>
-            </Border>
+                        <!-- Output file -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Header="Output Results Destination"
+                                     PlaceholderText="Path to Results.txt..."
+                                     Text="{x:Bind ViewModel.OutputFilePath, Mode=TwoWay}" />
+                            <Button Grid.Column="1" VerticalAlignment="Bottom" Height="32" Content="Browse..." Command="{x:Bind ViewModel.BrowseOutputFileCommand}" Padding="16,0" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
-            <!-- Execution & Progress Card -->
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="24">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="Execution &amp; Progress" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                <!-- RIGHT COLUMN: Execution & Progress Card -->
+                <Border Grid.Column="1"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="20,16">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Execution &amp; Progress" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
 
-                    <!-- Progress Bar -->
-                    <StackPanel Spacing="8">
-                        <ProgressBar Minimum="0"
-                                     Maximum="100"
-                                     Value="{x:Bind ViewModel.ProgressPercentage, Mode=OneWay}"
-                                     HorizontalAlignment="Stretch"
-                                     Height="8"
-                                     CornerRadius="4" />
-                        <StackPanel Orientation="Horizontal" Spacing="2">
-                            <TextBlock Text="Progress: " Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock Text="{x:Bind ViewModel.ProgressPercentage, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock Text="%" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <!-- Progress Bar & Indicator -->
+                        <StackPanel Spacing="8">
+                            <ProgressBar Minimum="0"
+                                         Maximum="100"
+                                         Value="{x:Bind ViewModel.ProgressPercentage, Mode=OneWay}"
+                                         IsIndeterminate="{x:Bind ViewModel.IsProcessing, Mode=OneWay}"
+                                         HorizontalAlignment="Stretch"
+                                         Height="8"
+                                         CornerRadius="4" />
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <TextBlock Text="Progress: " Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.ProgressPercentage, Mode=OneWay}" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="%" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                                <ProgressRing IsActive="{x:Bind ViewModel.IsProcessing, Mode=OneWay}"
+                                              Width="16" Height="16"
+                                              HorizontalAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="Interpret File"
+                                    Style="{ThemeResource AccentButtonStyle}"
+                                    Command="{x:Bind ViewModel.StartProcessingCommand}"
+                                    Height="32"
+                                    Padding="20,0" />
+                            <Button Content="Cancel Operation"
+                                    Command="{x:Bind ViewModel.CancelProcessingCommand}"
+                                    Height="32"
+                                    Padding="16,0" />
+                            <Button Content="Open Folder"
+                                    Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
+                                    Command="{x:Bind ViewModel.OpenOutputFolderCommand}"
+                                    Height="32"
+                                    Padding="16,0" />
                         </StackPanel>
                     </StackPanel>
-
-                    <!-- Action Buttons -->
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Button Content="Interpret File"
-                                Style="{ThemeResource AccentButtonStyle}"
-                                Command="{x:Bind ViewModel.StartProcessingCommand}"
-                                Padding="28,10" />
-                        <Button Content="Cancel Operation"
-                                Command="{x:Bind ViewModel.CancelProcessingCommand}"
-                                Padding="20,10" />
-                        <Button Content="Open Folder"
-                                Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
-                                Command="{x:Bind ViewModel.OpenOutputFolderCommand}"
-                                Padding="20,10" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+                </Border>
+            </Grid>
 
         </StackPanel>
     </ScrollViewer>

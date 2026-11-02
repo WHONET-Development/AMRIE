@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -32,7 +32,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
     private bool _restrictGuidelines = true;
 
     [ObservableProperty]
-    private bool _restrictBreakpointTypes = false;
+    private bool _restrictBreakpointTypes = true;
 
     [ObservableProperty]
     private bool _restrictSitesOfInfection = false;
@@ -191,9 +191,63 @@ public partial class SingleInterpretationViewModel : ObservableObject
         catch { }
     }
 
+    private int _statusVersion = 0;
+
+    public void ClearResults()
+    {
+        _statusVersion++;
+        Results.Clear();
+        HasStatusMessage = false;
+        StatusMessage = string.Empty;
+        IsStatusError = false;
+    }
+
+    private async void AutoDismissSuccessMessageAsync()
+    {
+        int version = ++_statusVersion;
+        await Task.Delay(4000);
+        if (_statusVersion == version && StatusInfoBarSeverity == InfoBarSeverity.Success)
+        {
+            HasStatusMessage = false;
+        }
+    }
+
+    partial void OnMeasurementChanged(string value)
+    {
+        ClearResults();
+    }
+
+    partial void OnOrganismSearchTextChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClearResults();
+        }
+    }
+
+    partial void OnAntibioticSearchTextChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClearResults();
+        }
+    }
+
+    partial void OnSelectedOrganismChanged(OrganismItem? value)
+    {
+        if (value == null && string.IsNullOrWhiteSpace(OrganismSearchText))
+        {
+            ClearResults();
+        }
+    }
+
     partial void OnSelectedAntibioticChanged(AntibioticItem? value)
     {
         UpdateDiskPotencies();
+        if (value == null && string.IsNullOrWhiteSpace(AntibioticSearchText))
+        {
+            ClearResults();
+        }
     }
 
 
@@ -481,6 +535,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             IsStatusError = false;
             StatusInfoBarSeverity = InfoBarSeverity.Success;
             StatusMessage = $"Calculated {Results.Count} interpretation(s).";
+            AutoDismissSuccessMessageAsync();
         }
     }
 
@@ -579,6 +634,30 @@ public partial class SingleInterpretationViewModel : ObservableObject
         return lookup;
     }
 
+    private static Dictionary<string, string>? _cachedAntibioticNames;
+
+    private static Dictionary<string, string> GetAntibioticNameLookup()
+    {
+        if (_cachedAntibioticNames != null) return _cachedAntibioticNames;
+        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var abx in Antibiotic.AllAntibiotics)
+            {
+                if (!string.IsNullOrWhiteSpace(abx.WHONET_ABX_CODE) && !string.IsNullOrWhiteSpace(abx.ANTIBIOTIC))
+                    lookup.TryAdd(abx.WHONET_ABX_CODE, abx.ANTIBIOTIC);
+            }
+        }
+        catch { }
+        _cachedAntibioticNames = lookup;
+        return lookup;
+    }
+
+    private static string ResolveAbxName(string code, Dictionary<string, string> lookup)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return string.Empty;
+        return lookup.TryGetValue(code, out var name) ? name : code;
+    }
     private static string ResolveOrgName(string code, Dictionary<string, string> lookup)
     {
         if (string.IsNullOrWhiteSpace(code)) return string.Empty;
@@ -593,6 +672,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             SelectedAntibiotic = ResolveAntibiotic(AntibioticSearchText);
 
         var lookup = GetOrganismNameLookup();
+        var abxLookup = GetAntibioticNameLookup();
         string? orgCode = SelectedOrganism?.Code;
         string? abxCode = SelectedAntibiotic?.Code;
 
@@ -695,6 +775,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
                 b.HOST,
                 b.SITE_OF_INFECTION,
                 b.WHONET_ABX_CODE,
+                ResolveAbxName(b.WHONET_ABX_CODE, abxLookup),
                 b.WHONET_TEST,
                 b.R,
                 b.I,
@@ -739,6 +820,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             SelectedAntibiotic = ResolveAntibiotic(AntibioticSearchText);
 
         var lookup = GetOrganismNameLookup();
+        var abxLookup = GetAntibioticNameLookup();
         string? orgCode = SelectedOrganism?.Code;
         string? abxCode = SelectedAntibiotic?.Code;
         var activeGuidelines = RestrictGuidelines ? Guidelines.Where(g => g.IsSelected).Select(g => g.Name).ToHashSet(StringComparer.OrdinalIgnoreCase) : null;
@@ -778,10 +860,18 @@ public partial class SingleInterpretationViewModel : ObservableObject
             if (abxList != null)
                 query = query.Where(r => r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase));
         }
-        else if (abxList != null)
+        else if (!string.IsNullOrWhiteSpace(abxCode))
         {
-            query = ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
-                ExpectedResistancePhenotypeRule.AllOrganisms, guidelineList, abxList);
+            var antibioticEntity = Antibiotic.AllAntibiotics.FirstOrDefault(a => a.WHONET_ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase));
+            string? atcCode = antibioticEntity?.ATC_CODE;
+
+            query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules
+                .Where(r =>
+                    (r.ABX_CODE_TYPE == nameof(Antibiotic.WHONET_ABX_CODE) && r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase)) ||
+                    (r.ABX_CODE_TYPE == nameof(Antibiotic.ATC_CODE) && !string.IsNullOrWhiteSpace(atcCode) && atcCode.StartsWith(r.ABX_CODE, StringComparison.OrdinalIgnoreCase)) ||
+                    (string.IsNullOrWhiteSpace(r.ABX_CODE_TYPE) && r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase))
+                )
+                .Where(r => r.ANTIBIOTIC_EXCEPTIONS == null || !r.ANTIBIOTIC_EXCEPTIONS.Contains(abxCode, StringComparer.OrdinalIgnoreCase));
         }
         else
         {
@@ -799,6 +889,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
                 r.ORGANISM_CODE,
                 ResolveOrgName(r.ORGANISM_CODE, lookup),
                 r.ABX_CODE,
+                ResolveAbxName(r.ABX_CODE, abxLookup),
                 string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>()),
                 r.COMMENTS
             ))
