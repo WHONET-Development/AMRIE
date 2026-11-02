@@ -21,6 +21,8 @@
     <Company>Brigham and Women's Hospital</Company>
     <Product>AMR Interpretation Engine</Product>
     <Description>Antimicrobial Resistance Test Interpretation Engine</Description>
+    <NoWarn>$(NoWarn);CS8305</NoWarn>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);WMC1501</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,7 +39,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3719.77" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.4-experimental" />
   </ItemGroup>
 
   <ItemGroup>

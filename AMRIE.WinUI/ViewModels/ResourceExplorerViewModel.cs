@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -53,6 +53,18 @@ public partial class ResourceExplorerViewModel : ObservableObject
         "MIC"
     };
 
+    // Breakpoint Type Filter (All Types, Human, Animal, ECOFF)
+    [ObservableProperty]
+    private string _selectedBreakpointType = "All Types";
+
+    public ObservableCollection<string> AvailableBreakpointTypes { get; } = new()
+    {
+        "All Types",
+        Breakpoint.BreakpointTypes.Human,
+        Breakpoint.BreakpointTypes.Animal,
+        Breakpoint.BreakpointTypes.ECOFF
+    };
+
     // Year Filter ("All Years" or specific year)
     [ObservableProperty]
     private string _selectedYear = Constants.BreakpointTableRevisionYear.ToString();
@@ -88,6 +100,28 @@ public partial class ResourceExplorerViewModel : ObservableObject
         return lookup;
     }
 
+    private static Dictionary<string, string> BuildAntibioticNameLookup()
+    {
+        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var abx in Antibiotic.AllAntibiotics)
+            {
+                if (!string.IsNullOrWhiteSpace(abx.WHONET_ABX_CODE) && !string.IsNullOrWhiteSpace(abx.ANTIBIOTIC))
+                {
+                    lookup.TryAdd(abx.WHONET_ABX_CODE, abx.ANTIBIOTIC);
+                }
+            }
+        }
+        catch { }
+        return lookup;
+    }
+
+    private static string ResolveAntibioticName(string? code, Dictionary<string, string> antibioticNameCache)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return string.Empty;
+        return antibioticNameCache.TryGetValue(code, out var name) ? name : string.Empty;
+    }
     private static string ResolveOrganismName(string? code, Dictionary<string, string> organismNameCache)
     {
         if (string.IsNullOrWhiteSpace(code)) return string.Empty;
@@ -150,6 +184,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
     private List<int> LoadAllResources()
     {
         var organismNameCache = BuildOrganismNameLookup();
+        var antibioticNameCache = BuildAntibioticNameLookup();
         var years = new List<int>();
 
         try
@@ -166,6 +201,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 b.HOST,
                 b.SITE_OF_INFECTION,
                 b.WHONET_ABX_CODE,
+                ResolveAntibioticName(b.WHONET_ABX_CODE, antibioticNameCache),
                 b.WHONET_TEST,
                 b.R,
                 b.I,
@@ -202,6 +238,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
                     r.ORGANISM_CODE,
                     ResolveOrganismName(r.ORGANISM_CODE, organismNameCache),
                     r.ABX_CODE,
+                    ResolveAntibioticName(r.ABX_CODE, antibioticNameCache),
                     string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>()),
                     r.COMMENTS
                 )).ToList();
@@ -235,6 +272,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
     partial void OnFilterQueryChanged(string value) => ApplyFilter();
     partial void OnSelectedGuidelineChanged(string value) => ApplyFilter();
     partial void OnSelectedTestMethodChanged(string value) => ApplyFilter();
+    partial void OnSelectedBreakpointTypeChanged(string value) => ApplyFilter();
     partial void OnSelectedYearChanged(string value) => ApplyFilter();
 
     [RelayCommand]
@@ -258,6 +296,12 @@ public partial class ResourceExplorerViewModel : ObservableObject
             {
                 queryable = queryable.Where(b => string.Equals(b.TestMethod, SelectedTestMethod, StringComparison.OrdinalIgnoreCase));
             }
+            // Breakpoint Type Filter (All Types, Human, Animal, ECOFF)
+            if (!string.IsNullOrWhiteSpace(SelectedBreakpointType) && SelectedBreakpointType != "All Types")
+            {
+                queryable = queryable.Where(b => string.Equals(b.BreakpointType, SelectedBreakpointType, StringComparison.OrdinalIgnoreCase));
+            }
+
 
             // Year Filter (direct dropdown, no checkbox needed)
             if (!string.IsNullOrWhiteSpace(SelectedYear) && SelectedYear != "All Years" && int.TryParse(SelectedYear, out int targetYear))
@@ -271,11 +315,11 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 queryable = queryable.Where(b => b.SearchKey.Contains(q));
             }
 
-            var matches = queryable.Take(500).ToList();
+            var matches = queryable.ToList();
             ResetCollection(FilteredBreakpoints, matches);
             ResultCountMessage = SelectedYear != "All Years"
-                ? $"Showing {FilteredBreakpoints.Count} breakpoints for year {SelectedYear} (capped at 500)"
-                : $"Showing {FilteredBreakpoints.Count} of {_allBreakpoints.Count} breakpoints (capped at 500)";
+                ? $"Showing {FilteredBreakpoints.Count} breakpoints for year {SelectedYear}"
+                : $"Showing {FilteredBreakpoints.Count} of {_allBreakpoints.Count} breakpoints";
         }
         else if (SelectedSectionIndex == 1)
         {

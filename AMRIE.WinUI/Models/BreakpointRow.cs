@@ -1,3 +1,5 @@
+﻿using System;
+
 namespace AMRIE.WinUI.Models;
 
 public class BreakpointRow
@@ -12,6 +14,7 @@ public class BreakpointRow
     public string Host { get; set; } = string.Empty;
     public string SiteOfInfection { get; set; } = string.Empty;
     public string AbxCode { get; set; } = string.Empty;
+    public string AbxName { get; set; } = string.Empty;
     public string WhonetTest { get; set; } = string.Empty;
     public decimal R { get; set; }
     public string I { get; set; } = string.Empty;
@@ -20,9 +23,27 @@ public class BreakpointRow
     public decimal EcvEcoff { get; set; }
     public string Comments { get; set; } = string.Empty;
 
-    public string RDisplay => R > 0 ? R.ToString("G29") : "-";
-    public string SDisplay => S > 0 ? S.ToString("G29") : "-";
-    public string EcvEcoffDisplay => EcvEcoff > 0 ? EcvEcoff.ToString("G29") : "-";
+    public string RDisplay
+    {
+        get
+        {
+            if (R <= 0) return "-";
+            bool isDisk = string.Equals(TestMethod, "DISK", StringComparison.OrdinalIgnoreCase);
+            return isDisk ? $"≤ {R:G29}" : $"≥ {R:G29}";
+        }
+    }
+
+    public string SDisplay
+    {
+        get
+        {
+            if (S <= 0) return "-";
+            bool isDisk = string.Equals(TestMethod, "DISK", StringComparison.OrdinalIgnoreCase);
+            return isDisk ? $"≥ {S:G29}" : $"≤ {S:G29}";
+        }
+    }
+
+    public string EcvEcoffDisplay => EcvEcoff > 0 ? $"≤ {EcvEcoff:G29}" : "-";
 
     /// <summary>
     /// Pre-computed, lowercased concatenation of all searchable fields.
@@ -35,12 +56,19 @@ public class BreakpointRow
     public BreakpointRow(string guidelines, int year, string testMethod, string potency, string organismCode,
         string breakpointType, string host, string siteOfInfection, string abxCode, string whonetTest,
         decimal r, string i, string sdd, decimal s, decimal ecvEcoff, string comments)
-        : this(guidelines, year, testMethod, potency, organismCode, string.Empty, breakpointType, host, siteOfInfection, abxCode, whonetTest, r, i, sdd, s, ecvEcoff, comments)
+        : this(guidelines, year, testMethod, potency, organismCode, string.Empty, breakpointType, host, siteOfInfection, abxCode, string.Empty, whonetTest, r, i, sdd, s, ecvEcoff, comments)
     {
     }
 
     public BreakpointRow(string guidelines, int year, string testMethod, string potency, string organismCode,
         string organismName, string breakpointType, string host, string siteOfInfection, string abxCode, string whonetTest,
+        decimal r, string i, string sdd, decimal s, decimal ecvEcoff, string comments)
+        : this(guidelines, year, testMethod, potency, organismCode, organismName, breakpointType, host, siteOfInfection, abxCode, string.Empty, whonetTest, r, i, sdd, s, ecvEcoff, comments)
+    {
+    }
+
+    public BreakpointRow(string guidelines, int year, string testMethod, string potency, string organismCode,
+        string organismName, string breakpointType, string host, string siteOfInfection, string abxCode, string abxName, string whonetTest,
         decimal r, string i, string sdd, decimal s, decimal ecvEcoff, string comments)
     {
         Guidelines = guidelines;
@@ -53,6 +81,7 @@ public class BreakpointRow
         Host = host;
         SiteOfInfection = siteOfInfection;
         AbxCode = abxCode;
+        AbxName = abxName;
         WhonetTest = whonetTest;
         R = r;
         I = i;
@@ -62,7 +91,7 @@ public class BreakpointRow
         Comments = comments;
 
         // Pre-compute once to avoid repeated ToLowerInvariant() per keystroke in filter.
-        SearchKey = $"{organismCode} {organismName} {abxCode} {guidelines} {whonetTest} {breakpointType} {siteOfInfection} {comments}"
+        SearchKey = $"{organismCode} {organismName} {abxCode} {abxName} {guidelines} {whonetTest} {breakpointType} {siteOfInfection} {comments}"
             .ToLowerInvariant();
     }
 }

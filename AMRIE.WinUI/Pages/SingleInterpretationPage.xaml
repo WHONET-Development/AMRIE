@@ -30,7 +30,7 @@
             </Grid>
 
             <!-- Status Alert (InfoBar) -->
-            <InfoBar IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
+            <InfoBar IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=TwoWay}"
                      Severity="{x:Bind ViewModel.StatusInfoBarSeverity, Mode=OneWay}"
                      Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
                      IsClosable="True"
@@ -54,26 +54,24 @@
                             Padding="16,14">
                         <StackPanel Spacing="10">
                             <!-- Year restriction header row -->
-                            <Grid ColumnSpacing="16">
+                            <Grid ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
 
-                                <CheckBox Content="Restrict guideline year" 
+                                <CheckBox Content="Restrict guideline year" VerticalContentAlignment="Center" 
                                           IsChecked="{x:Bind ViewModel.RestrictGuidelineYear, Mode=TwoWay}"
                                           FontWeight="SemiBold"
                                           VerticalAlignment="Center" />
 
-                                <NumberBox Grid.Column="1"
-                                           Value="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
-                                           IsEnabled="{x:Bind ViewModel.RestrictGuidelineYear, Mode=OneWay}"
-                                           SpinButtonPlacementMode="Inline"
-                                           SmallChange="1"
-                                           Minimum="1990"
-                                           Maximum="2035"
-                                           VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{x:Bind ViewModel.AvailableYears}"
+                                          SelectedItem="{x:Bind ViewModel.GuidelineYear, Mode=TwoWay}"
+                                          IsEnabled="{x:Bind ViewModel.RestrictGuidelineYear, Mode=OneWay}"
+                                          Width="105"
+                                          VerticalAlignment="Center" />
                             </Grid>
 
                             <!-- 3 Restriction Boxes: Side-by-Side with equal height -->
@@ -92,8 +90,8 @@
                                 <CheckBox Grid.Row="0" Grid.Column="0"
                                           Content="Guidelines"
                                           IsChecked="{x:Bind ViewModel.RestrictGuidelines, Mode=TwoWay}"
+                                          VerticalContentAlignment="Center"
                                           FontWeight="SemiBold"
-                                          FontSize="12"
                                           Margin="0,0,0,4" />
                                 <Border Grid.Row="1" Grid.Column="0"
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -105,9 +103,8 @@
                                                   IsEnabled="{x:Bind ViewModel.RestrictGuidelines, Mode=OneWay}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="models:SelectableItem">
-                                                <CheckBox Content="{x:Bind Name}"
+                                                <CheckBox Content="{x:Bind Name}" VerticalContentAlignment="Center"
                                                           IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                                          FontSize="12"
                                                           Margin="0,0,0,1" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -118,8 +115,8 @@
                                 <CheckBox Grid.Row="0" Grid.Column="1"
                                           Content="Types"
                                           IsChecked="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=TwoWay}"
+                                          VerticalContentAlignment="Center"
                                           FontWeight="SemiBold"
-                                          FontSize="12"
                                           Margin="0,0,0,4" />
                                 <Border Grid.Row="1" Grid.Column="1"
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -131,9 +128,8 @@
                                                   IsEnabled="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=OneWay}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="models:SelectableItem">
-                                                <CheckBox Content="{x:Bind Name}"
+                                                <CheckBox Content="{x:Bind Name}" VerticalContentAlignment="Center"
                                                           IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                                          FontSize="12"
                                                           Margin="0,0,0,1" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
@@ -144,8 +140,8 @@
                                 <CheckBox Grid.Row="0" Grid.Column="2"
                                           Content="Sites"
                                           IsChecked="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=TwoWay}"
+                                          VerticalContentAlignment="Center"
                                           FontWeight="SemiBold"
-                                          FontSize="12"
                                           Margin="0,0,0,4" />
                                 <Border Grid.Row="1" Grid.Column="2"
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -157,9 +153,8 @@
                                                       IsEnabled="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=OneWay}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="models:SelectableItem">
-                                                    <CheckBox Content="{x:Bind Name}"
+                                                    <CheckBox Content="{x:Bind Name}" VerticalContentAlignment="Center"
                                                               IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                                              FontSize="12"
                                                               Margin="0,0,0,1" />
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -265,8 +260,8 @@
                                 <StackPanel Spacing="4" VerticalAlignment="Center">
                                     <TextBlock Text="Method" Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     <StackPanel Orientation="Horizontal" Spacing="16">
-                                        <RadioButton Content="Disk" IsChecked="{x:Bind ViewModel.IsDiskMethod, Mode=TwoWay}" GroupName="TestMethodGroup" />
-                                        <RadioButton Content="MIC / Etest" IsChecked="{x:Bind ViewModel.IsMicMethod, Mode=TwoWay}" GroupName="TestMethodGroup" />
+                                        <RadioButton Content="Disk" VerticalContentAlignment="Center" IsChecked="{x:Bind ViewModel.IsDiskMethod, Mode=TwoWay}" GroupName="TestMethodGroup" />
+                                        <RadioButton Content="MIC / Etest" VerticalContentAlignment="Center" IsChecked="{x:Bind ViewModel.IsMicMethod, Mode=TwoWay}" GroupName="TestMethodGroup" />
                                     </StackPanel>
                                 </StackPanel>
 
@@ -278,6 +273,35 @@
                                           PlaceholderText="Select potency"
                                           HorizontalAlignment="Stretch"
                                           Visibility="{x:Bind ViewModel.IsDiskMethod, Mode=OneWay}" />
+                            </Grid>
+
+                            <!-- Quick Applicable Lookup Buttons -->
+                            <MenuFlyoutSeparator Margin="0,6,0,2" />
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0"
+                                        HorizontalAlignment="Stretch"
+                                        Click="GetApplicableBreakpoints_Click"
+                                        ToolTipService.ToolTip="View applicable breakpoints for current organism/antibiotic/filters">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE8F1;" FontSize="13" />
+                                        <TextBlock Text="Applicable Breakpoints" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Column="1"
+                                        HorizontalAlignment="Stretch"
+                                        Click="GetApplicableIntrinsicResistance_Click"
+                                        ToolTipService.ToolTip="View applicable intrinsic resistance phenotypes for current organism/antibiotic/filters">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xEA18;" FontSize="13" />
+                                        <TextBlock Text="Intrinsic Resistance" />
+                                    </StackPanel>
+                                </Button>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -302,21 +326,21 @@
 
                             <TextBox Header="Measurement Value"
                                      PlaceholderText="e.g. 22 (mm) or &lt;=0.5 (mg/L)"
-                                     Text="{x:Bind ViewModel.Measurement, Mode=TwoWay}"
+                                     Text="{x:Bind ViewModel.Measurement, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      KeyDown="MeasurementTextBox_KeyDown" />
 
                             <Button Grid.Column="1"
                                     VerticalAlignment="Bottom"
+                                    Height="32"
                                     Content="Interpret"
                                     Style="{ThemeResource AccentButtonStyle}"
                                     Command="{x:Bind ViewModel.InterpretCommand}"
-                                    Padding="20,8" />
+                                    Padding="20,0" />
                         </Grid>
 
                         <!-- Include comments checkbox -->
-                        <CheckBox Content="Include interpretation comments"
-                                  IsChecked="{x:Bind ViewModel.IncludeComments, Mode=TwoWay}"
-                                  FontSize="12" />
+                        <CheckBox Content="Include interpretation comments" VerticalContentAlignment="Center"
+                                  IsChecked="{x:Bind ViewModel.IncludeComments, Mode=TwoWay}" />
 
                         <!-- Interpretation Results Display -->
                         <StackPanel Spacing="8" Visibility="{x:Bind ViewModel.Results.Count, Mode=OneWay, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}">

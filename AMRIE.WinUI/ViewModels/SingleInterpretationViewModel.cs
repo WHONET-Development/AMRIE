@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -23,14 +23,16 @@ public partial class SingleInterpretationViewModel : ObservableObject
     private bool _restrictGuidelineYear = true;
 
     [ObservableProperty]
-    private double _guidelineYear = Constants.BreakpointTableRevisionYear;
+    private int _guidelineYear = Constants.BreakpointTableRevisionYear;
+
+    public ObservableCollection<int> AvailableYears { get; } = new();
 
     // Filters
     [ObservableProperty]
     private bool _restrictGuidelines = true;
 
     [ObservableProperty]
-    private bool _restrictBreakpointTypes = false;
+    private bool _restrictBreakpointTypes = true;
 
     [ObservableProperty]
     private bool _restrictSitesOfInfection = false;
@@ -122,6 +124,25 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
     private void InitializeData()
     {
+        // Available Years
+        try
+        {
+            var years = Breakpoint.Breakpoints
+                .Select(b => b.YEAR)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToList();
+
+            foreach (var y in years)
+                AvailableYears.Add(y);
+
+            if (AvailableYears.Contains(Constants.BreakpointTableRevisionYear))
+                GuidelineYear = Constants.BreakpointTableRevisionYear;
+            else if (AvailableYears.Count > 0)
+                GuidelineYear = AvailableYears[0];
+        }
+        catch { }
+
         // Guidelines
         Guidelines.Add(new SelectableItem(nameof(Antibiotic.GuidelineNames.CLSI), true));
         Guidelines.Add(new SelectableItem(nameof(Antibiotic.GuidelineNames.EUCAST), false));
@@ -170,9 +191,63 @@ public partial class SingleInterpretationViewModel : ObservableObject
         catch { }
     }
 
+    private int _statusVersion = 0;
+
+    public void ClearResults()
+    {
+        _statusVersion++;
+        Results.Clear();
+        HasStatusMessage = false;
+        StatusMessage = string.Empty;
+        IsStatusError = false;
+    }
+
+    private async void AutoDismissSuccessMessageAsync()
+    {
+        int version = ++_statusVersion;
+        await Task.Delay(4000);
+        if (_statusVersion == version && StatusInfoBarSeverity == InfoBarSeverity.Success)
+        {
+            HasStatusMessage = false;
+        }
+    }
+
+    partial void OnMeasurementChanged(string value)
+    {
+        ClearResults();
+    }
+
+    partial void OnOrganismSearchTextChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClearResults();
+        }
+    }
+
+    partial void OnAntibioticSearchTextChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClearResults();
+        }
+    }
+
+    partial void OnSelectedOrganismChanged(OrganismItem? value)
+    {
+        if (value == null && string.IsNullOrWhiteSpace(OrganismSearchText))
+        {
+            ClearResults();
+        }
+    }
+
     partial void OnSelectedAntibioticChanged(AntibioticItem? value)
     {
         UpdateDiskPotencies();
+        if (value == null && string.IsNullOrWhiteSpace(AntibioticSearchText))
+        {
+            ClearResults();
+        }
     }
 
 
@@ -212,11 +287,120 @@ public partial class SingleInterpretationViewModel : ObservableObject
         }
     }
 
+    public OrganismItem? ResolveOrganism(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        text = text.Trim();
+
+        // If format is "Name - (CODE)", extract CODE
+        int pOpen = text.LastIndexOf('(');
+        int pClose = text.LastIndexOf(')');
+        string codeCandidate = text;
+        if (pOpen >= 0 && pClose > pOpen)
+        {
+            codeCandidate = text.Substring(pOpen + 1, pClose - pOpen - 1).Trim();
+        }
+
+        // 1. Direct match on code candidate or text in AllOrganisms
+        var match = AllOrganisms.FirstOrDefault(o => o.Code.Equals(codeCandidate, StringComparison.OrdinalIgnoreCase))
+            ?? AllOrganisms.FirstOrDefault(o => o.Code.Equals(text, StringComparison.OrdinalIgnoreCase))
+            ?? AllOrganisms.FirstOrDefault(o => o.DisplayName.Equals(text, StringComparison.OrdinalIgnoreCase));
+
+        if (match != null) return match;
+
+        // 2. StartsWith match in AllOrganisms
+        match = AllOrganisms.FirstOrDefault(o => o.DisplayName.StartsWith(text, StringComparison.OrdinalIgnoreCase) ||
+                                                 o.Code.StartsWith(text, StringComparison.OrdinalIgnoreCase));
+        if (match != null) return match;
+
+        // 3. Contains match in AllOrganisms
+        match = AllOrganisms.FirstOrDefault(o => o.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase));
+        if (match != null) return match;
+
+        // 4. Fallback against engine's Organism.CurrentOrganisms / Organism.AllOrganisms
+        var engineOrg = Organism.CurrentOrganisms.Values.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(codeCandidate, StringComparison.OrdinalIgnoreCase))
+            ?? Organism.AllOrganisms.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(codeCandidate, StringComparison.OrdinalIgnoreCase) ||
+                                                         o.ORGANISM.Equals(text, StringComparison.OrdinalIgnoreCase));
+        if (engineOrg != null)
+        {
+            return new OrganismItem($"{engineOrg.ORGANISM} - ({engineOrg.WHONET_ORG_CODE})", engineOrg.WHONET_ORG_CODE);
+        }
+
+        // 5. If text is non-empty code, return raw item
+        return new OrganismItem(text, text);
+    }
+
+    public AntibioticItem? ResolveAntibiotic(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        text = text.Trim();
+
+        int pOpen = text.LastIndexOf('(');
+        int pClose = text.LastIndexOf(')');
+        string codeCandidate = text;
+        if (pOpen >= 0 && pClose > pOpen)
+        {
+            codeCandidate = text.Substring(pOpen + 1, pClose - pOpen - 1).Trim();
+        }
+
+        var match = AllAntibiotics.FirstOrDefault(a => a.Code.Equals(codeCandidate, StringComparison.OrdinalIgnoreCase))
+            ?? AllAntibiotics.FirstOrDefault(a => a.Code.Equals(text, StringComparison.OrdinalIgnoreCase))
+            ?? AllAntibiotics.FirstOrDefault(a => a.DisplayName.Equals(text, StringComparison.OrdinalIgnoreCase));
+
+        if (match != null) return match;
+
+        match = AllAntibiotics.FirstOrDefault(a => a.DisplayName.StartsWith(text, StringComparison.OrdinalIgnoreCase) ||
+                                                  a.Code.StartsWith(text, StringComparison.OrdinalIgnoreCase));
+        if (match != null) return match;
+
+        match = AllAntibiotics.FirstOrDefault(a => a.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase));
+        if (match != null) return match;
+
+        var engineAbx = Antibiotic.AllAntibiotics.FirstOrDefault(a => a.WHONET_ABX_CODE.Equals(codeCandidate, StringComparison.OrdinalIgnoreCase) ||
+                                                                      a.ANTIBIOTIC.Equals(text, StringComparison.OrdinalIgnoreCase));
+        if (engineAbx != null)
+        {
+            return new AntibioticItem($"{engineAbx.ANTIBIOTIC} - ({engineAbx.WHONET_ABX_CODE})", engineAbx.WHONET_ABX_CODE);
+        }
+
+        return new AntibioticItem(text, text);
+    }
+
+    public void SyncInputs(string? organismText, string? antibioticText)
+    {
+        if (!string.IsNullOrWhiteSpace(organismText))
+        {
+            string trimmed = organismText.Trim();
+            if (SelectedOrganism == null ||
+                (!trimmed.Equals(SelectedOrganism.Code, StringComparison.OrdinalIgnoreCase) &&
+                 !trimmed.Equals(SelectedOrganism.DisplayName, StringComparison.OrdinalIgnoreCase)))
+            {
+                SelectedOrganism = ResolveOrganism(trimmed);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(antibioticText))
+        {
+            string trimmed = antibioticText.Trim();
+            if (SelectedAntibiotic == null ||
+                (!trimmed.Equals(SelectedAntibiotic.Code, StringComparison.OrdinalIgnoreCase) &&
+                 !trimmed.Equals(SelectedAntibiotic.DisplayName, StringComparison.OrdinalIgnoreCase)))
+            {
+                SelectedAntibiotic = ResolveAntibiotic(trimmed);
+            }
+        }
+    }
+
     [RelayCommand]
     public async Task InterpretAsync()
     {
         HasStatusMessage = false;
         Results.Clear();
+
+        if (SelectedOrganism == null && !string.IsNullOrWhiteSpace(OrganismSearchText))
+            SelectedOrganism = ResolveOrganism(OrganismSearchText);
+        if (SelectedAntibiotic == null && !string.IsNullOrWhiteSpace(AntibioticSearchText))
+            SelectedAntibiotic = ResolveAntibiotic(AntibioticSearchText);
 
         if (SelectedOrganism == null)
         {
@@ -351,6 +535,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             IsStatusError = false;
             StatusInfoBarSeverity = InfoBarSeverity.Success;
             StatusMessage = $"Calculated {Results.Count} interpretation(s).";
+            AutoDismissSuccessMessageAsync();
         }
     }
 
@@ -413,5 +598,320 @@ public partial class SingleInterpretationViewModel : ObservableObject
         IsStatusError = true;
         StatusInfoBarSeverity = InfoBarSeverity.Error;
         HasStatusMessage = true;
+    }
+
+    private static Dictionary<string, string>? _cachedOrganismNames;
+    private static Dictionary<string, string> GetOrganismNameLookup()
+    {
+        if (_cachedOrganismNames != null) return _cachedOrganismNames;
+        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var org in Organism.AllOrganisms)
+            {
+                if (!string.IsNullOrWhiteSpace(org.WHONET_ORG_CODE) && !string.IsNullOrWhiteSpace(org.ORGANISM))
+                {
+                    lookup.TryAdd(org.WHONET_ORG_CODE, org.ORGANISM);
+                }
+                if (!string.IsNullOrWhiteSpace(org.FAMILY_CODE) && !string.IsNullOrWhiteSpace(org.FAMILY))
+                {
+                    lookup.TryAdd(org.FAMILY_CODE, $"{org.FAMILY} (Family)");
+                }
+                else if (!string.IsNullOrWhiteSpace(org.FAMILY_CODE) && !string.IsNullOrWhiteSpace(org.ORDER))
+                {
+                    lookup.TryAdd(org.FAMILY_CODE, $"{org.ORDER} (Order)");
+                }
+                if (!string.IsNullOrWhiteSpace(org.GENUS_CODE) && !string.IsNullOrWhiteSpace(org.GENUS))
+                {
+                    lookup.TryAdd(org.GENUS_CODE, $"{org.GENUS} (Genus)");
+                }
+            }
+            lookup.TryAdd("ANA", "Anaerobes");
+            lookup.TryAdd("ALL", "All Microorganisms");
+        }
+        catch { }
+        _cachedOrganismNames = lookup;
+        return lookup;
+    }
+
+    private static Dictionary<string, string>? _cachedAntibioticNames;
+
+    private static Dictionary<string, string> GetAntibioticNameLookup()
+    {
+        if (_cachedAntibioticNames != null) return _cachedAntibioticNames;
+        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var abx in Antibiotic.AllAntibiotics)
+            {
+                if (!string.IsNullOrWhiteSpace(abx.WHONET_ABX_CODE) && !string.IsNullOrWhiteSpace(abx.ANTIBIOTIC))
+                    lookup.TryAdd(abx.WHONET_ABX_CODE, abx.ANTIBIOTIC);
+            }
+        }
+        catch { }
+        _cachedAntibioticNames = lookup;
+        return lookup;
+    }
+
+    private static string ResolveAbxName(string code, Dictionary<string, string> lookup)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return string.Empty;
+        return lookup.TryGetValue(code, out var name) ? name : code;
+    }
+    private static string ResolveOrgName(string code, Dictionary<string, string> lookup)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return string.Empty;
+        return lookup.TryGetValue(code, out var name) ? name : code;
+    }
+
+    public (List<BreakpointRow> Rows, string Summary) GetApplicableBreakpoints()
+    {
+        if (SelectedOrganism == null && !string.IsNullOrWhiteSpace(OrganismSearchText))
+            SelectedOrganism = ResolveOrganism(OrganismSearchText);
+        if (SelectedAntibiotic == null && !string.IsNullOrWhiteSpace(AntibioticSearchText))
+            SelectedAntibiotic = ResolveAntibiotic(AntibioticSearchText);
+
+        var lookup = GetOrganismNameLookup();
+        var abxLookup = GetAntibioticNameLookup();
+        string? orgCode = SelectedOrganism?.Code;
+        string? abxCode = SelectedAntibiotic?.Code;
+
+        var activeGuidelines = RestrictGuidelines ? Guidelines.Where(g => g.IsSelected).Select(g => g.Name).ToHashSet(StringComparer.OrdinalIgnoreCase) : null;
+        int? activeYear = RestrictGuidelineYear ? Convert.ToInt32(GuidelineYear) : null;
+        var activeTypes = RestrictBreakpointTypes ? BreakpointTypes.Where(b => b.IsSelected).Select(b => b.Name).ToHashSet(StringComparer.OrdinalIgnoreCase) : null;
+        var activeSites = RestrictSitesOfInfection ? SitesOfInfection.Where(s => s.IsSelected).Select(s => s.Name).ToHashSet(StringComparer.OrdinalIgnoreCase) : null;
+        string activeMethod = IsDiskMethod ? "DISK" : "MIC";
+
+        Organism? organismEntity = null;
+        if (!string.IsNullOrWhiteSpace(orgCode))
+        {
+            if (Organism.CurrentOrganisms.TryGetValue(orgCode, out var foundOrg))
+            {
+                organismEntity = foundOrg;
+            }
+            else if (Organism.MergedOrganisms.TryGetValue(orgCode, out var mergedCode) && Organism.CurrentOrganisms.TryGetValue(mergedCode, out var mergedOrg))
+            {
+                organismEntity = mergedOrg;
+            }
+            else
+            {
+                organismEntity = Organism.CurrentOrganisms.Values.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase))
+                    ?? Organism.AllOrganisms.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        // InterpretAsync uses Human breakpoints only when type restriction is disabled.
+        var typeFilter = activeTypes ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Breakpoint.BreakpointTypes.Human };
+
+        IEnumerable<Breakpoint> query;
+
+        if (organismEntity != null)
+        {
+            // Reuse the engine so superseded parent-group breakpoints are dropped as in interpretation.
+            query = Breakpoint.GetApplicableBreakpoints(
+                organismEntity.WHONET_ORG_CODE,
+                new List<Breakpoint>(),
+                prioritizedGuidelines: activeGuidelines?.ToList(),
+                prioritizedGuidelineYears: activeYear.HasValue ? new List<int> { activeYear.Value } : null,
+                prioritizedBreakpointTypes: typeFilter.ToList(),
+                prioritizedSitesOfInfection: activeSites?.ToList());
+        }
+        else
+        {
+            query = Breakpoint.Breakpoints.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(orgCode))
+            {
+                query = query.Where(b => b.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(abxCode))
+        {
+            query = query.Where(b =>
+                b.WHONET_ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase) ||
+                b.WHONET_TEST.StartsWith(abxCode + "_", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(activeMethod))
+        {
+            query = query.Where(b => b.TEST_METHOD.Equals(activeMethod, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (IsDiskMethod && !string.IsNullOrWhiteSpace(SelectedDiskPotency) && !string.IsNullOrWhiteSpace(abxCode))
+        {
+            string cleanPotency = SelectedDiskPotency.Replace(" ", "").Replace("µg", "ug");
+            query = query.Where(b => string.IsNullOrWhiteSpace(b.POTENCY) ||
+                                     b.POTENCY.Replace(" ", "").Replace("µg", "ug").Equals(cleanPotency, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (activeGuidelines != null)
+        {
+            query = query.Where(b => activeGuidelines.Contains(b.GUIDELINES));
+        }
+
+        if (activeYear.HasValue)
+        {
+            query = query.Where(b => b.YEAR == activeYear.Value);
+        }
+
+        query = query.Where(b => typeFilter.Contains(b.BREAKPOINT_TYPE));
+
+        if (activeSites != null)
+        {
+            // Breakpoints store blank sites as an empty string, while the UI uses the "(Blank)" constant.
+            query = query.Where(b => b.SITES_OF_INFECTION.Any(s =>
+                activeSites.Contains(string.IsNullOrWhiteSpace(s) ? Constants.SitesOfInfection.Blank : s)));
+        }
+
+        var list = query
+            .Select(b => new BreakpointRow(
+                b.GUIDELINES,
+                b.YEAR,
+                b.TEST_METHOD,
+                b.POTENCY,
+                b.ORGANISM_CODE,
+                ResolveOrgName(b.ORGANISM_CODE, lookup),
+                b.BREAKPOINT_TYPE,
+                b.HOST,
+                b.SITE_OF_INFECTION,
+                b.WHONET_ABX_CODE,
+                ResolveAbxName(b.WHONET_ABX_CODE, abxLookup),
+                b.WHONET_TEST,
+                b.R,
+                b.I,
+                b.SDD,
+                b.S,
+                b.ECV_ECOFF,
+                b.COMMENTS
+            ))
+            .OrderByDescending(r => r.Year)
+            .ThenBy(r => r.Guidelines)
+            .ThenBy(r => r.AbxCode)
+            .ToList();
+
+        var summaryParts = new List<string>();
+        if (SelectedOrganism != null)
+            summaryParts.Add($"Organism: {SelectedOrganism.DisplayName}");
+        if (SelectedAntibiotic != null)
+            summaryParts.Add($"Antibiotic: {SelectedAntibiotic.DisplayName}");
+        summaryParts.Add($"Method: {activeMethod}" + (IsDiskMethod && !string.IsNullOrWhiteSpace(SelectedDiskPotency) && SelectedAntibiotic != null ? $" ({SelectedDiskPotency})" : ""));
+        if (activeGuidelines != null && activeGuidelines.Count > 0)
+            summaryParts.Add($"Guidelines: {string.Join(", ", activeGuidelines)}");
+        if (activeYear.HasValue)
+            summaryParts.Add($"Year: {activeYear.Value}");
+        summaryParts.Add($"Type: {string.Join(", ", typeFilter)}");
+        if (activeSites != null && activeSites.Count > 0)
+            summaryParts.Add($"Site: {string.Join(", ", activeSites)}");
+
+        string summary = string.Join("  •  ", summaryParts);
+        if (string.IsNullOrWhiteSpace(summary))
+            summary = "All Breakpoints";
+
+        summary += $"  •  {list.Count} records";
+
+        return (list, summary);
+    }
+
+    public (List<IntrinsicRuleRow> Rows, string Summary) GetApplicableIntrinsicRules()
+    {
+        if (SelectedOrganism == null && !string.IsNullOrWhiteSpace(OrganismSearchText))
+            SelectedOrganism = ResolveOrganism(OrganismSearchText);
+        if (SelectedAntibiotic == null && !string.IsNullOrWhiteSpace(AntibioticSearchText))
+            SelectedAntibiotic = ResolveAntibiotic(AntibioticSearchText);
+
+        var lookup = GetOrganismNameLookup();
+        var abxLookup = GetAntibioticNameLookup();
+        string? orgCode = SelectedOrganism?.Code;
+        string? abxCode = SelectedAntibiotic?.Code;
+        var activeGuidelines = RestrictGuidelines ? Guidelines.Where(g => g.IsSelected).Select(g => g.Name).ToHashSet(StringComparer.OrdinalIgnoreCase) : null;
+
+        Organism? organismEntity = null;
+        if (!string.IsNullOrWhiteSpace(orgCode))
+        {
+            if (Organism.CurrentOrganisms.TryGetValue(orgCode, out var foundOrg))
+            {
+                organismEntity = foundOrg;
+            }
+            else if (Organism.MergedOrganisms.TryGetValue(orgCode, out var mergedCode) && Organism.CurrentOrganisms.TryGetValue(mergedCode, out var mergedOrg))
+            {
+                organismEntity = mergedOrg;
+            }
+            else
+            {
+                organismEntity = Organism.CurrentOrganisms.Values.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase))
+                    ?? Organism.AllOrganisms.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        IEnumerable<ExpectedResistancePhenotypeRule> query;
+        var guidelineList = activeGuidelines?.ToList();
+        var abxList = !string.IsNullOrWhiteSpace(abxCode) ? new List<string> { abxCode } : null;
+
+        if (organismEntity != null)
+        {
+            // Reuse the engine so subkingdom, anaerobe, ATC-class and antibiotic-exception rules match interpretation.
+            query = ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
+                organismEntity.WHONET_ORG_CODE, guidelineList, abxList);
+        }
+        else if (!string.IsNullOrWhiteSpace(orgCode))
+        {
+            query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules
+                .Where(r => r.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            if (abxList != null)
+                query = query.Where(r => r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase));
+        }
+        else if (!string.IsNullOrWhiteSpace(abxCode))
+        {
+            var antibioticEntity = Antibiotic.AllAntibiotics.FirstOrDefault(a => a.WHONET_ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase));
+            string? atcCode = antibioticEntity?.ATC_CODE;
+
+            query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules
+                .Where(r =>
+                    (r.ABX_CODE_TYPE == nameof(Antibiotic.WHONET_ABX_CODE) && r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase)) ||
+                    (r.ABX_CODE_TYPE == nameof(Antibiotic.ATC_CODE) && !string.IsNullOrWhiteSpace(atcCode) && atcCode.StartsWith(r.ABX_CODE, StringComparison.OrdinalIgnoreCase)) ||
+                    (string.IsNullOrWhiteSpace(r.ABX_CODE_TYPE) && r.ABX_CODE.Equals(abxCode, StringComparison.OrdinalIgnoreCase))
+                )
+                .Where(r => r.ANTIBIOTIC_EXCEPTIONS == null || !r.ANTIBIOTIC_EXCEPTIONS.Contains(abxCode, StringComparer.OrdinalIgnoreCase));
+        }
+        else
+        {
+            query = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules;
+        }
+
+        if (activeGuidelines != null)
+        {
+            query = query.Where(r => activeGuidelines.Contains(r.GUIDELINE));
+        }
+
+        var list = query
+            .Select(r => new IntrinsicRuleRow(
+                r.GUIDELINE,
+                r.ORGANISM_CODE,
+                ResolveOrgName(r.ORGANISM_CODE, lookup),
+                r.ABX_CODE,
+                ResolveAbxName(r.ABX_CODE, abxLookup),
+                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>()),
+                r.COMMENTS
+            ))
+            .OrderBy(r => r.Guideline)
+            .ThenBy(r => r.OrganismCode)
+            .ThenBy(r => r.AbxCode)
+            .ToList();
+
+        var summaryParts = new List<string>();
+        if (SelectedOrganism != null)
+            summaryParts.Add($"Organism: {SelectedOrganism.DisplayName}");
+        if (SelectedAntibiotic != null)
+            summaryParts.Add($"Antibiotic: {SelectedAntibiotic.DisplayName}");
+        if (activeGuidelines != null && activeGuidelines.Count > 0)
+            summaryParts.Add($"Guidelines: {string.Join(", ", activeGuidelines)}");
+
+        string summary = string.Join("  •  ", summaryParts);
+        if (string.IsNullOrWhiteSpace(summary))
+            summary = "All Intrinsic Resistance Rules";
+
+        summary += $"  •  {list.Count} records";
+
+        return (list, summary);
     }
 }

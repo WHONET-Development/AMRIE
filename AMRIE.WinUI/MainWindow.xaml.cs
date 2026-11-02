@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -30,10 +30,7 @@ public sealed partial class MainWindow : Window
         try
         {
             string iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
-            if (System.IO.File.Exists(iconPath))
-            {
-                AppWindow.SetIcon(iconPath);
-            }
+            WindowHelper.SetWindowIcon(this, iconPath);
         }
         catch { }
 
@@ -106,33 +103,57 @@ public sealed partial class MainWindow : Window
         }
         _lastThemeToggle = DateTime.UtcNow;
 
-        if (RootGrid.ActualTheme == ElementTheme.Dark)
+        CurrentTheme = RootGrid.RequestedTheme switch
         {
-            CurrentTheme = ElementTheme.Light;
-        }
-        else
+            ElementTheme.Default => ElementTheme.Light,
+            ElementTheme.Light => ElementTheme.Dark,
+            ElementTheme.Dark => ElementTheme.Default,
+            _ => ElementTheme.Default
+        };
+    }
+
+    private void ThemeMenuItem_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        if (sender is Microsoft.UI.Xaml.Controls.RadioMenuFlyoutItem item && item.Tag is string tag)
         {
-            CurrentTheme = ElementTheme.Dark;
+            if (Enum.TryParse<ElementTheme>(tag, out var theme))
+            {
+                CurrentTheme = theme;
+            }
         }
     }
 
     public void UpdateThemeButtonVisuals()
     {
+        var requested = RootGrid.RequestedTheme;
+
+        switch (requested)
+        {
+            case ElementTheme.Light:
+                ThemeIcon.Glyph = "\uE706"; // Light/Sun icon
+                ThemeToggleItem.Content = "Light mode";
+                Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(ThemeToggleItem, "Theme: Light mode (click to switch to Dark)");
+                if (LightThemeMenuItem != null) LightThemeMenuItem.IsChecked = true;
+                break;
+
+            case ElementTheme.Dark:
+                ThemeIcon.Glyph = "\uE708"; // Moon icon
+                ThemeToggleItem.Content = "Dark mode";
+                Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(ThemeToggleItem, "Theme: Dark mode (click to switch to System)");
+                if (DarkThemeMenuItem != null) DarkThemeMenuItem.IsChecked = true;
+                break;
+
+            case ElementTheme.Default:
+            default:
+                ThemeIcon.Glyph = "\uE790"; // Personalize / Theme icon
+                ThemeToggleItem.Content = "System theme";
+                Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(ThemeToggleItem, "Theme: Use system setting (click to switch to Light)");
+                if (SystemThemeMenuItem != null) SystemThemeMenuItem.IsChecked = true;
+                break;
+        }
+
         bool isDark = RootGrid.RequestedTheme == ElementTheme.Dark ||
                      (RootGrid.RequestedTheme == ElementTheme.Default && RootGrid.ActualTheme == ElementTheme.Dark);
-
-        if (isDark)
-        {
-            ThemeIcon.Glyph = "\uE706"; // Light/Sun icon
-            ThemeToggleItem.Content = "Light mode";
-            ToolTipService.SetToolTip(ThemeToggleItem, "Switch to Light mode");
-        }
-        else
-        {
-            ThemeIcon.Glyph = "\uE708"; // Moon icon
-            ThemeToggleItem.Content = "Dark mode";
-            ToolTipService.SetToolTip(ThemeToggleItem, "Switch to Dark mode");
-        }
 
         UpdateTitleBarColors(isDark);
     }

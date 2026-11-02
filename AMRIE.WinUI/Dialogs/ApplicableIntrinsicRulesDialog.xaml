@@ -1,0 +1,113 @@
+﻿<ContentDialog
+    x:Class="AMRIE.WinUI.Dialogs.ApplicableIntrinsicRulesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="using:AMRIE.WinUI.Models"
+    xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular"
+    Title="Applicable Intrinsic Resistance Rules"
+    CloseButtonText="Close"
+    DefaultButton="Close">
+
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMaxWidth">1100</x:Double>
+    </ContentDialog.Resources>
+
+    <Grid Width="960" MaxHeight="580" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Context & Filter Summary -->
+        <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,8">
+            <StackPanel Spacing="2">
+                <TextBlock x:Name="SummaryTextBlock"
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           FontWeight="Medium"
+                           TextWrapping="Wrap" />
+                <TextBlock x:Name="CountTextBlock"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Search Box -->
+        <TextBox x:Name="SearchBox"
+                 Grid.Row="1"
+                 PlaceholderText="Search within fetched intrinsic resistance rules (organism, drug, comments)..."
+                 TextChanged="SearchBox_TextChanged" />
+
+        <!-- Intrinsic Rules TableView -->
+        <Border Grid.Row="2"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                MinHeight="250"
+                MaxHeight="420">
+            <tabular:TableView x:Name="RulesTable"
+                               SelectionMode="None"
+                               CanUserResizeColumns="True">
+                <tabular:TableView.Columns>
+                    <tabular:TableViewTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="100" FrozenEdge="Leading" />
+                    <tabular:TableViewTemplateColumn Header="Organism" Width="180" SortMemberPath="OrganismCode" FrozenEdge="Leading">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                <Grid Padding="12,4" VerticalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
+                                        <TextBlock Text="{x:Bind OrganismName}"
+                                                   ToolTipService.ToolTip="{x:Bind OrganismName}"
+                                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                                        <tabular:TableViewTemplateColumn Header="Antibiotic" Width="170" SortMemberPath="AbxCode">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                <Grid Padding="12,4" VerticalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
+                                        <TextBlock Text="{x:Bind AbxName}"
+                                                   ToolTipService.ToolTip="{x:Bind AbxName}"
+                                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                    <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                <Grid Padding="12,6" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                    <tabular:TableViewTemplateColumn Header="Comments" Width="*" SortMemberPath="Comments">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                <Grid Padding="12,6" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Comments}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                </tabular:TableView.Columns>
+            </tabular:TableView>
+        </Border>
+    </Grid>
+</ContentDialog>
+
