@@ -35,12 +35,22 @@ public sealed partial class ApplicableBreakpointsDialog : ContentDialog
             _filteredRows = _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t))).ToList();
         }
 
+        if (HideUndefinedCheck?.IsChecked == true)
+        {
+            _filteredRows = _filteredRows.Where(r => r.HasAnyBreakpoint).ToList();
+        }
+
         BreakpointsTable.ItemsSource = _filteredRows;
         CountTextBlock.Text = $"Found {_filteredRows.Count} breakpoint{(_filteredRows.Count == 1 ? "" : "s")}" +
                               (_filteredRows.Count != _allRows.Count ? $" (filtered from {_allRows.Count})" : string.Empty);
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ApplyFilter(SearchBox.Text);
+    }
+
+    private void HideUndefinedCheck_Changed(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         ApplyFilter(SearchBox.Text);
     }

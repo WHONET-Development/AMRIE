@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -782,7 +782,9 @@ public partial class SingleInterpretationViewModel : ObservableObject
                 b.SDD,
                 b.S,
                 b.ECV_ECOFF,
-                b.COMMENTS
+                b.COMMENTS,
+                b.ORGANISM_CODE_TYPE,
+                b.REFERENCE_TABLE
             ))
             .OrderByDescending(r => r.Year)
             .ThenBy(r => r.Guidelines)

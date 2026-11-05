@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using AMR_Engine;
 using AMRIE.WinUI.Common;
@@ -18,7 +18,6 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-        WindowHelper.SetAppUserModelId();
         InitializeComponent();
 
         UnhandledException += App_UnhandledException;
