@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -30,7 +30,10 @@ public sealed partial class MainWindow : Window
         try
         {
             string iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
-            WindowHelper.SetWindowIcon(this, iconPath);
+            if (System.IO.File.Exists(iconPath))
+            {
+                AppWindow.SetIcon(iconPath);
+            }
         }
         catch { }
 

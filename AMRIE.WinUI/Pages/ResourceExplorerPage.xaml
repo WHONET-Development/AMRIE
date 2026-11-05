@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="AMRIE.WinUI.Pages.ResourceExplorerPage"
     NavigationCacheMode="Required"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -51,61 +51,95 @@
             </SelectorBarItem>
         </SelectorBar>
 
-        <!-- Controls Bar: Search Box + Guideline Dropdown + Test Method Dropdown + Type Dropdown + Year Dropdown + Count -->
-        <Grid Grid.Row="2" ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <!-- Controls Bar: Filter Controls (Line 1) + Checkbox & Count Message (Line 2) -->
+        <Grid Grid.Row="2" RowSpacing="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <!-- Search Filter -->
-            <TextBox Grid.Column="0"
-                     PlaceholderText="Filter by organism name or code, drug, guideline, test, rule..."
-                     Text="{x:Bind ViewModel.FilterQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     HorizontalAlignment="Stretch"
-                     VerticalAlignment="Center" />
+            <!-- Line 1: Search Box + Dropdown Filters -->
+            <Grid Grid.Row="0" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-            <!-- Guideline Dropdown (CLSI, EUCAST, SFM, All) -->
-            <ComboBox Grid.Column="1"
-                      ItemsSource="{x:Bind ViewModel.AvailableGuidelines}"
-                      SelectedItem="{x:Bind ViewModel.SelectedGuideline, Mode=TwoWay}"
-                      Width="140"
-                      VerticalAlignment="Center" />
+                <!-- Search Filter -->
+                <TextBox Grid.Column="0"
+                         PlaceholderText="Filter by organism name or code, drug, guideline, test, rule..."
+                         Text="{x:Bind ViewModel.FilterQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         HorizontalAlignment="Stretch"
+                         VerticalAlignment="Center" />
 
-            <!-- Test Method Dropdown (visible for Breakpoints: All Methods, Disk, MIC) -->
-            <ComboBox Grid.Column="2"
-                      ItemsSource="{x:Bind ViewModel.AvailableTestMethods}"
-                      SelectedItem="{x:Bind ViewModel.SelectedTestMethod, Mode=TwoWay}"
-                      Width="125"
-                      Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
-                      VerticalAlignment="Center" />
+                <!-- Organism / Panel Filter ComboBox -->
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{x:Bind ViewModel.AvailableOrganisms}"
+                          SelectedItem="{x:Bind ViewModel.SelectedOrganism, Mode=TwoWay}"
+                          DisplayMemberPath="DisplayText"
+                          Width="230"
+                          VerticalAlignment="Center"
+                          Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}" />
 
-            <!-- Breakpoint Type Dropdown (visible for Breakpoints: All Types, Human, Animal, ECOFF) -->
-            <ComboBox Grid.Column="3"
-                      ItemsSource="{x:Bind ViewModel.AvailableBreakpointTypes}"
-                      SelectedItem="{x:Bind ViewModel.SelectedBreakpointType, Mode=TwoWay}"
-                      Width="120"
-                      Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
-                      VerticalAlignment="Center" />
+                <!-- Guideline Dropdown (CLSI, EUCAST, SFM, All) -->
+                <ComboBox Grid.Column="2"
+                          ItemsSource="{x:Bind ViewModel.AvailableGuidelines}"
+                          SelectedItem="{x:Bind ViewModel.SelectedGuideline, Mode=TwoWay}"
+                          Width="140"
+                          VerticalAlignment="Center" />
 
-            <!-- Year Dropdown (visible for Breakpoints, no restrict checkbox needed) -->
-            <ComboBox Grid.Column="4"
-                      ItemsSource="{x:Bind ViewModel.AvailableYears}"
-                      SelectedItem="{x:Bind ViewModel.SelectedYear, Mode=TwoWay}"
-                      Width="110"
-                      Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
-                      VerticalAlignment="Center" />
+                <!-- Test Method Dropdown (visible for Breakpoints: All Methods, Disk, MIC) -->
+                <ComboBox Grid.Column="3"
+                          ItemsSource="{x:Bind ViewModel.AvailableTestMethods}"
+                          SelectedItem="{x:Bind ViewModel.SelectedTestMethod, Mode=TwoWay}"
+                          Width="125"
+                          Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
+                          VerticalAlignment="Center" />
 
-            <!-- Count Message -->
-            <TextBlock Grid.Column="5"
-                       Text="{x:Bind ViewModel.ResultCountMessage, Mode=OneWay}"
-                       VerticalAlignment="Center"
-                       Style="{ThemeResource CaptionTextBlockStyle}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <!-- Breakpoint Type Dropdown (visible for Breakpoints: All Types, Human, Animal, ECOFF) -->
+                <ComboBox Grid.Column="4"
+                          ItemsSource="{x:Bind ViewModel.AvailableBreakpointTypes}"
+                          SelectedItem="{x:Bind ViewModel.SelectedBreakpointType, Mode=TwoWay}"
+                          Width="120"
+                          Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
+                          VerticalAlignment="Center" />
+
+                <!-- Year Dropdown (visible for Breakpoints, no restrict checkbox needed) -->
+                <ComboBox Grid.Column="5"
+                          ItemsSource="{x:Bind ViewModel.AvailableYears}"
+                          SelectedItem="{x:Bind ViewModel.SelectedYear, Mode=TwoWay}"
+                          Width="110"
+                          Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
+                          VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Line 2: Hide Undefined Breakpoints CheckBox + Result Count Message -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Hide rows without S/I/R/SDD breakpoints -->
+                <CheckBox Grid.Column="0"
+                          Content="Hide without breakpoints"
+                          IsChecked="{x:Bind ViewModel.HideUndefinedBreakpoints, Mode=TwoWay}"
+                          ToolTipService.ToolTip="Hide rows where all breakpoints (S, I, R, and SDD) are not available (shown as -)"
+                          VerticalAlignment="Center"
+                          Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}" />
+
+                <!-- Count Message (Right-aligned with ample space) -->
+                <TextBlock Grid.Column="1"
+                           Text="{x:Bind ViewModel.ResultCountMessage, Mode=OneWay}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </Grid>
         </Grid>
 
         <!-- Table View Container -->
@@ -122,11 +156,11 @@
                                    SelectionMode="None"
                                    CanUserResizeColumns="True">
                     <tabular:TableView.Columns>
-                        <tabular:TableViewTextColumn Header="Guide" Binding="{Binding Guidelines}" Width="70" FrozenEdge="Leading" />
-                        <tabular:TableViewTextColumn Header="Year" Binding="{Binding Year}" Width="60" FrozenEdge="Leading" />
-                        <tabular:TableViewTextColumn Header="Method" Binding="{Binding TestMethod}" Width="70" />
-                        <tabular:TableViewTextColumn Header="Potency" Binding="{Binding Potency}" Width="75" />
-                        <tabular:TableViewTemplateColumn Header="Organism" Width="160" SortMemberPath="OrganismCode">
+                        <tabular:TableViewTextColumn Header="Guide" Binding="{Binding Guidelines}" Width="65" FrozenEdge="Leading" />
+                        <tabular:TableViewTextColumn Header="Year" Binding="{Binding Year}" Width="55" FrozenEdge="Leading" />
+                        <tabular:TableViewTextColumn Header="Method" Binding="{Binding TestMethod}" Width="65" />
+                        <tabular:TableViewTextColumn Header="Potency" Binding="{Binding Potency}" Width="65" />
+                        <tabular:TableViewTemplateColumn Header="Organism" Width="165" SortMemberPath="OrganismCode">
                             <tabular:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,4" VerticalAlignment="Center">
@@ -137,13 +171,66 @@
                                                        Style="{ThemeResource CaptionTextBlockStyle}"
                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                        TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{x:Bind PanelAppliesNote}"
+                                                       Visibility="{x:Bind HasPanelAppliesNote, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                       ToolTipService.ToolTip="{x:Bind PanelAppliesNote}"
+                                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                       FontSize="11"
+                                                       TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
                             </tabular:TableViewTemplateColumn.CellTemplate>
                         </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTextColumn Header="Type" Binding="{Binding BreakpointType}" Width="75" />
-                        <tabular:TableViewTemplateColumn Header="Site" Width="100" SortMemberPath="SiteOfInfection">
+                        <tabular:TableViewTextColumn Header="Type" Binding="{Binding BreakpointType}" Width="65" />
+                        <tabular:TableViewTemplateColumn Header="Antibiotic" Width="150" SortMemberPath="AbxCode">
+                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="models:BreakpointRow">
+                                    <Grid Padding="12,4" VerticalAlignment="Center">
+                                        <StackPanel>
+                                            <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
+                                            <TextBlock Text="{x:Bind AbxName}"
+                                                       ToolTipService.ToolTip="{x:Bind AbxName}"
+                                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </tabular:TableViewTemplateColumn.CellTemplate>
+                        </tabular:TableViewTemplateColumn>
+                        <tabular:TableViewTemplateColumn Header="R" Width="60" SortMemberPath="R">
+                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="models:BreakpointRow">
+                                    <Grid Padding="12,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind RDisplay}" Foreground="#A80000" FontWeight="SemiBold" />
+                                    </Grid>
+                                </DataTemplate>
+                            </tabular:TableViewTemplateColumn.CellTemplate>
+                        </tabular:TableViewTemplateColumn>
+                        <tabular:TableViewTextColumn Header="I" Binding="{Binding IDisplay}" Width="55" />
+                        <tabular:TableViewTextColumn Header="SDD" Binding="{Binding SddDisplay}" Width="50" />
+                        <tabular:TableViewTemplateColumn Header="S" Width="60" SortMemberPath="S">
+                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="models:BreakpointRow">
+                                    <Grid Padding="12,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind SDisplay}" Foreground="#107C41" FontWeight="SemiBold" />
+                                    </Grid>
+                                </DataTemplate>
+                            </tabular:TableViewTemplateColumn.CellTemplate>
+                        </tabular:TableViewTemplateColumn>
+                        <tabular:TableViewTemplateColumn Header="ECV" Width="55" SortMemberPath="EcvEcoff">
+                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="models:BreakpointRow">
+                                    <Grid Padding="12,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind EcvEcoffDisplay}" FontWeight="SemiBold" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </tabular:TableViewTemplateColumn.CellTemplate>
+                        </tabular:TableViewTemplateColumn>
+                        <tabular:TableViewTextColumn Header="Scope" Binding="{Binding Scope}" SortMemberPath="SpecificityRank" Width="100" />
+                        <tabular:TableViewTemplateColumn Header="Site" Width="90" SortMemberPath="SiteOfInfection">
                             <tabular:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
@@ -154,52 +241,7 @@
                                 </DataTemplate>
                             </tabular:TableViewTemplateColumn.CellTemplate>
                         </tabular:TableViewTemplateColumn>
-                                            <tabular:TableViewTemplateColumn Header="Antibiotic" Width="170" SortMemberPath="AbxCode">
-                        <tabular:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate x:DataType="models:BreakpointRow">
-                                <Grid Padding="12,4" VerticalAlignment="Center">
-                                    <StackPanel>
-                                        <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
-                                        <TextBlock Text="{x:Bind AbxName}"
-                                                   ToolTipService.ToolTip="{x:Bind AbxName}"
-                                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </tabular:TableViewTemplateColumn.CellTemplate>
-                    </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="R" Width="70" SortMemberPath="R">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate x:DataType="models:BreakpointRow">
-                                    <Grid Padding="12,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind RDisplay}" Foreground="#A80000" FontWeight="SemiBold" />
-                                    </Grid>
-                                </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTextColumn Header="I" Binding="{Binding I}" Width="72" />
-                        <tabular:TableViewTextColumn Header="SDD" Binding="{Binding Sdd}" Width="55" />
-                        <tabular:TableViewTemplateColumn Header="S" Width="85" SortMemberPath="S">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate x:DataType="models:BreakpointRow">
-                                    <Grid Padding="12,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind SDisplay}" Foreground="#107C41" FontWeight="SemiBold" />
-                                    </Grid>
-                                </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="ECV" Width="65" SortMemberPath="EcvEcoff">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
-                                <DataTemplate x:DataType="models:BreakpointRow">
-                                    <Grid Padding="12,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind EcvEcoffDisplay}" FontWeight="SemiBold" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Comments" Width="*" SortMemberPath="Comments">
+                        <tabular:TableViewTemplateColumn Header="Comments" Width="*" MinWidth="130" SortMemberPath="Comments">
                             <tabular:TableViewTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
