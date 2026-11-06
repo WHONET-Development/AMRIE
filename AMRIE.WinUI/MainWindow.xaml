@@ -28,20 +28,7 @@
             Background="Transparent"
             Header="{x:Null}">
 
-            <NavigationView.PaneHeader>
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="14,12,14,8" VerticalAlignment="Center">
-                    <Image Width="20" Height="20" Stretch="Uniform">
-                        <Image.Source>
-                            <BitmapImage UriSource="ms-appx:///Assets/Square44x44Logo.scale-200.png" />
-                        </Image.Source>
-                    </Image>
-                    <TextBlock Text="AMRIE"
-                               VerticalAlignment="Center"
-                               Style="{ThemeResource BodyStrongTextBlockStyle}"
-                               FontSize="14"
-                               FontWeight="SemiBold" />
-                </StackPanel>
-            </NavigationView.PaneHeader>
+
 
             <NavigationView.Resources>
                 <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent" />
