@@ -24,8 +24,7 @@ public sealed partial class MainWindow : Window
             presenter.Maximize();
         }
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(AppTitleBar);
+        ExtendsContentIntoTitleBar = false;
 
         try
         {
@@ -36,6 +35,15 @@ public sealed partial class MainWindow : Window
             }
         }
         catch { }
+
+        RootGrid.ActualThemeChanged += (s, e) =>
+        {
+            if (RootGrid.RequestedTheme == ElementTheme.Default)
+            {
+                bool isDark = RootGrid.ActualTheme == ElementTheme.Dark;
+                UpdateTitleBarTheme(isDark);
+            }
+        };
 
         // Initialize theme toggle visuals
         UpdateThemeButtonVisuals();
@@ -158,39 +166,11 @@ public sealed partial class MainWindow : Window
         bool isDark = RootGrid.RequestedTheme == ElementTheme.Dark ||
                      (RootGrid.RequestedTheme == ElementTheme.Default && RootGrid.ActualTheme == ElementTheme.Dark);
 
-        UpdateTitleBarColors(isDark);
+        UpdateTitleBarTheme(isDark);
     }
 
-    private void UpdateTitleBarColors(bool isDark)
+    private void UpdateTitleBarTheme(bool isDark)
     {
-        try
-        {
-            var titleBar = AppWindow.TitleBar;
-            if (titleBar != null)
-            {
-                titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
-                titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
-
-                if (isDark)
-                {
-                    titleBar.ButtonForegroundColor = Microsoft.UI.Colors.White;
-                    titleBar.ButtonHoverForegroundColor = Microsoft.UI.Colors.White;
-                    titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 255, 255, 255);
-                    titleBar.ButtonPressedForegroundColor = Microsoft.UI.Colors.White;
-                    titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(40, 255, 255, 255);
-                    titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(120, 255, 255, 255);
-                }
-                else
-                {
-                    titleBar.ButtonForegroundColor = Windows.UI.Color.FromArgb(230, 20, 20, 20);
-                    titleBar.ButtonHoverForegroundColor = Microsoft.UI.Colors.Black;
-                    titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(25, 0, 0, 0);
-                    titleBar.ButtonPressedForegroundColor = Microsoft.UI.Colors.Black;
-                    titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(40, 0, 0, 0);
-                    titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(120, 0, 0, 0);
-                }
-            }
-        }
-        catch { }
+        WindowHelper.SetNativeTitleBarTheme(this, isDark);
     }
 }

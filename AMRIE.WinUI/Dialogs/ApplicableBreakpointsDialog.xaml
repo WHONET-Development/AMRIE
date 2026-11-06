@@ -7,15 +7,18 @@
     Title="Applicable Breakpoints"
     CloseButtonText="Close"
     DefaultButton="Close"
-    CloseButtonStyle="{StaticResource DialogCloseButtonStyle}">
+>
 
     <ContentDialog.Resources>
         <x:Double x:Key="ContentDialogMaxWidth">1320</x:Double>
-        <Style x:Key="DialogCloseButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+    </ContentDialog.Resources>
+
+    <ContentDialog.CloseButtonStyle>
+        <Style TargetType="Button">
             <Setter Property="Width" Value="110" />
             <Setter Property="HorizontalAlignment" Value="Right" />
         </Style>
-    </ContentDialog.Resources>
+    </ContentDialog.CloseButtonStyle>
 
     <Grid Width="1200" MaxHeight="620" RowSpacing="12">
         <Grid.RowDefinitions>

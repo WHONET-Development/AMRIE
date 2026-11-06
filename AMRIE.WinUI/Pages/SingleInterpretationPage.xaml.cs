@@ -135,25 +135,39 @@ public sealed partial class SingleInterpretationPage : Page
 
     private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
-        var (rows, summary) = ViewModel.GetApplicableBreakpoints();
-        var dialog = new Dialogs.ApplicableBreakpointsDialog
+        try
         {
-            XamlRoot = this.XamlRoot
-        };
-        dialog.SetData(rows, summary);
-        await dialog.ShowAsync();
+            ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
+            var (rows, summary) = ViewModel.GetApplicableBreakpoints();
+            var dialog = new Dialogs.ApplicableBreakpointsDialog
+            {
+                XamlRoot = this.XamlRoot ?? (Content as Microsoft.UI.Xaml.UIElement)?.XamlRoot
+            };
+            dialog.SetData(rows, summary);
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableBreakpointsDialog: {ex}");
+        }
     }
 
     private async void GetApplicableIntrinsicResistance_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
-        var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
-        var dialog = new Dialogs.ApplicableIntrinsicRulesDialog
+        try
         {
-            XamlRoot = this.XamlRoot
-        };
-        dialog.SetData(rows, summary);
-        await dialog.ShowAsync();
+            ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
+            var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
+            var dialog = new Dialogs.ApplicableIntrinsicRulesDialog
+            {
+                XamlRoot = this.XamlRoot ?? (Content as Microsoft.UI.Xaml.UIElement)?.XamlRoot
+            };
+            dialog.SetData(rows, summary);
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableIntrinsicRulesDialog: {ex}");
+        }
     }
 }
