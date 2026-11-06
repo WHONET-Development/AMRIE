@@ -734,41 +734,81 @@ public partial class ResourceExplorerViewModel : ObservableObject
     public void CopyTable()
     {
         var sb = new System.Text.StringBuilder();
+        var html = new System.Text.StringBuilder();
+
+        html.Append("<html><head><meta charset='utf-8'><style>table { border-collapse: collapse; } th, td { border: 1px solid #ccc; padding: 4px 8px; mso-number-format: '\\@'; } th { background-color: #f2f2f2; font-weight: bold; }</style></head><body><table>");
 
         switch (SelectedSectionIndex)
         {
             case 0: // Breakpoints
                 if (FilteredBreakpoints.Count == 0) return;
-                sb.AppendLine("Guidelines\tYear\tMethod\tPotency\tOrganismCode\tOrganismName\tType\tAbxCode\tAbxName\tR\tI\tSDD\tS\tECV\tScope\tSiteOfInfection\tComments");
+                var bpHeaders = new[] { "Guidelines", "Year", "Method", "Potency", "OrganismCode", "OrganismName", "Type", "AbxCode", "AbxName", "R", "I", "SDD", "S", "ECV", "Scope", "SiteOfInfection", "Comments" };
+                sb.AppendLine(string.Join("\t", bpHeaders));
+                html.Append("<thead><tr>");
+                foreach (var h in bpHeaders) html.Append($"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>");
+                html.Append("</tr></thead><tbody>");
+
                 foreach (var r in FilteredBreakpoints)
                 {
-                    sb.AppendLine($"{r.Guidelines}\t{r.Year}\t{r.TestMethod}\t{r.Potency}\t{r.OrganismCode}\t{r.OrganismName}\t{r.BreakpointType}\t{r.AbxCode}\t{r.AbxName}\t{r.RDisplay}\t{r.IDisplay}\t{r.SddDisplay}\t{r.SDisplay}\t{r.EcvEcoffDisplay}\t{r.Scope}\t{r.SiteOfInfection}\t{r.Comments}");
+                    var cols = new[] { r.Guidelines, r.Year.ToString(), r.TestMethod, r.Potency, r.OrganismCode, r.OrganismName, r.BreakpointType, r.AbxCode, r.AbxName, r.RDisplay, r.IDisplay, r.SddDisplay, r.SDisplay, r.EcvEcoffDisplay, r.Scope, r.SiteOfInfection, r.Comments };
+                    sb.AppendLine(string.Join("\t", cols));
+                    html.Append("<tr>");
+                    foreach (var c in cols) html.Append($"<td style=\"mso-number-format:'\\@';\">{System.Net.WebUtility.HtmlEncode(c)}</td>");
+                    html.Append("</tr>");
                 }
+                html.Append("</tbody>");
                 break;
 
             case 1: // Expert Rules
                 if (FilteredExpertRules.Count == 0) return;
-                sb.AppendLine("Guideline\tOrganismCode\tOrganismName\tAffectedDrugs\tExceptions\tDescription");
+                var erHeaders = new[] { "Guideline", "OrganismCode", "OrganismName", "AffectedDrugs", "Exceptions", "Description" };
+                sb.AppendLine(string.Join("\t", erHeaders));
+                html.Append("<thead><tr>");
+                foreach (var h in erHeaders) html.Append($"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>");
+                html.Append("</tr></thead><tbody>");
+
                 foreach (var r in FilteredExpertRules)
                 {
-                    sb.AppendLine($"{r.Guideline}\t{r.OrganismCode}\t{r.OrganismName}\t{r.AffectedAntibiotics}\t{r.Exceptions}\t{r.Description}");
+                    var cols = new[] { r.Guideline, r.OrganismCode, r.OrganismName, r.AffectedAntibiotics, r.Exceptions, r.Description };
+                    sb.AppendLine(string.Join("\t", cols));
+                    html.Append("<tr>");
+                    foreach (var c in cols) html.Append($"<td style=\"mso-number-format:'\\@';\">{System.Net.WebUtility.HtmlEncode(c)}</td>");
+                    html.Append("</tr>");
                 }
+                html.Append("</tbody>");
                 break;
 
             case 2: // Intrinsic Resistance
                 if (FilteredIntrinsicRules.Count == 0) return;
-                sb.AppendLine("Guideline\tOrganismCode\tOrganismName\tAntibioticCode\tAntibioticName\tExceptions\tComments");
+                var irHeaders = new[] { "Guideline", "OrganismCode", "OrganismName", "AntibioticCode", "AntibioticName", "Exceptions", "Comments" };
+                sb.AppendLine(string.Join("\t", irHeaders));
+                html.Append("<thead><tr>");
+                foreach (var h in irHeaders) html.Append($"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>");
+                html.Append("</tr></thead><tbody>");
+
                 foreach (var r in FilteredIntrinsicRules)
                 {
-                    sb.AppendLine($"{r.Guideline}\t{r.OrganismCode}\t{r.OrganismName}\t{r.AbxCode}\t{r.AbxName}\t{r.Exceptions}\t{r.Comments}");
+                    var cols = new[] { r.Guideline, r.OrganismCode, r.OrganismName, r.AbxCode, r.AbxName, r.Exceptions, r.Comments };
+                    sb.AppendLine(string.Join("\t", cols));
+                    html.Append("<tr>");
+                    foreach (var c in cols) html.Append($"<td style=\"mso-number-format:'\\@';\">{System.Net.WebUtility.HtmlEncode(c)}</td>");
+                    html.Append("</tr>");
                 }
+                html.Append("</tbody>");
                 break;
         }
+
+        html.Append("</table></body></html>");
 
         if (sb.Length > 0)
         {
             var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
             dataPackage.SetText(sb.ToString());
+            try
+            {
+                dataPackage.SetHtmlFormat(Windows.ApplicationModel.DataTransfer.HtmlFormatHelper.CreateHtmlFormat(html.ToString()));
+            }
+            catch { }
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
 
             int count = SelectedSectionIndex switch
@@ -778,7 +818,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 2 => FilteredIntrinsicRules.Count,
                 _ => 0
             };
-            ResultCountMessage = $"Copied {count:N0} rows to clipboard (ready to paste in Excel/Sheets).";
+            ResultCountMessage = $"Copied {count:N0} rows to clipboard (formatted for Excel/Sheets).";
         }
     }
 

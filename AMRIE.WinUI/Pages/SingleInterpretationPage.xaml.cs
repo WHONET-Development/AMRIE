@@ -11,6 +11,23 @@ public sealed partial class SingleInterpretationPage : Page
     public SingleInterpretationPage()
     {
         InitializeComponent();
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ViewModel.OrganismSearchText))
+            {
+                if (OrganismSuggestBox.Text != ViewModel.OrganismSearchText)
+                {
+                    OrganismSuggestBox.Text = ViewModel.OrganismSearchText ?? string.Empty;
+                }
+            }
+            else if (e.PropertyName == nameof(ViewModel.AntibioticSearchText))
+            {
+                if (AntibioticSuggestBox.Text != ViewModel.AntibioticSearchText)
+                {
+                    AntibioticSuggestBox.Text = ViewModel.AntibioticSearchText ?? string.Empty;
+                }
+            }
+        };
     }
 
     private void OrganismSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

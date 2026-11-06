@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace AMRIE.WinUI.Models;
 
@@ -81,8 +82,10 @@ public class BreakpointRow
         }
     }
 
-    public string IDisplay => !string.IsNullOrWhiteSpace(I) && I != "0" ? I : "-";
-    public string SddDisplay => !string.IsNullOrWhiteSpace(Sdd) && Sdd != "0" ? Sdd : "-";
+    private static readonly Regex RangeDashRegex = new(@"(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)", RegexOptions.Compiled);
+
+    public string IDisplay => !string.IsNullOrWhiteSpace(I) && I != "0" ? RangeDashRegex.Replace(I, "$1\u2013$2") : "-";
+    public string SddDisplay => !string.IsNullOrWhiteSpace(Sdd) && Sdd != "0" ? RangeDashRegex.Replace(Sdd, "$1\u2013$2") : "-";
 
     public string SDisplay
     {

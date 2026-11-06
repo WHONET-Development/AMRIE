@@ -185,6 +185,7 @@
                             <StackPanel Spacing="2">
                                 <AutoSuggestBox x:Name="OrganismSuggestBox"
                                                 Header="Microorganism"
+                                                Text="{x:Bind ViewModel.OrganismSearchText, Mode=TwoWay}"
                                                 PlaceholderText="Search name or code (e.g. Escherichia coli, ECO)..."
                                                 TextChanged="OrganismSuggestBox_TextChanged"
                                                 SuggestionChosen="OrganismSuggestBox_SuggestionChosen"
@@ -224,6 +225,7 @@
                             <StackPanel Spacing="2">
                                 <AutoSuggestBox x:Name="AntibioticSuggestBox"
                                                 Header="Antimicrobial Agent"
+                                                Text="{x:Bind ViewModel.AntibioticSearchText, Mode=TwoWay}"
                                                 PlaceholderText="Search antibiotic name or code (e.g. Amikacin, AMK)..."
                                                 TextChanged="AntibioticSuggestBox_TextChanged"
                                                 SuggestionChosen="AntibioticSuggestBox_SuggestionChosen"
