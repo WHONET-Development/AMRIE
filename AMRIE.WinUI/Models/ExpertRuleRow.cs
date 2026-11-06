@@ -3,6 +3,7 @@ namespace AMRIE.WinUI.Models;
 public class ExpertRuleRow
 {
     public string RuleCode { get; set; } = string.Empty;
+    public string Guideline { get => RuleCode; set => RuleCode = value; }
     public string Description { get; set; } = string.Empty;
     public string OrganismCode { get; set; } = string.Empty;
     public string OrganismName { get; set; } = string.Empty;

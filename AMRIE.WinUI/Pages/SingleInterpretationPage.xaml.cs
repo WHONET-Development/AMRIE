@@ -133,8 +133,12 @@ public sealed partial class SingleInterpretationPage : Page
         }
     }
 
+    private static bool _isDialogOpen = false;
+
     private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        if (_isDialogOpen) return;
+        _isDialogOpen = true;
         try
         {
             ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
@@ -150,10 +154,16 @@ public sealed partial class SingleInterpretationPage : Page
         {
             System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableBreakpointsDialog: {ex}");
         }
+        finally
+        {
+            _isDialogOpen = false;
+        }
     }
 
     private async void GetApplicableIntrinsicResistance_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
+        if (_isDialogOpen) return;
+        _isDialogOpen = true;
         try
         {
             ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
@@ -168,6 +178,10 @@ public sealed partial class SingleInterpretationPage : Page
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableIntrinsicRulesDialog: {ex}");
+        }
+        finally
+        {
+            _isDialogOpen = false;
         }
     }
 }

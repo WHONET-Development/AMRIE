@@ -730,6 +730,58 @@ public partial class ResourceExplorerViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void CopyTable()
+    {
+        var sb = new System.Text.StringBuilder();
+
+        switch (SelectedSectionIndex)
+        {
+            case 0: // Breakpoints
+                if (FilteredBreakpoints.Count == 0) return;
+                sb.AppendLine("Guidelines\tYear\tMethod\tPotency\tOrganismCode\tOrganismName\tType\tAbxCode\tAbxName\tR\tI\tSDD\tS\tECV\tScope\tSiteOfInfection\tComments");
+                foreach (var r in FilteredBreakpoints)
+                {
+                    sb.AppendLine($"{r.Guidelines}\t{r.Year}\t{r.TestMethod}\t{r.Potency}\t{r.OrganismCode}\t{r.OrganismName}\t{r.BreakpointType}\t{r.AbxCode}\t{r.AbxName}\t{r.RDisplay}\t{r.IDisplay}\t{r.SddDisplay}\t{r.SDisplay}\t{r.EcvEcoffDisplay}\t{r.Scope}\t{r.SiteOfInfection}\t{r.Comments}");
+                }
+                break;
+
+            case 1: // Expert Rules
+                if (FilteredExpertRules.Count == 0) return;
+                sb.AppendLine("Guideline\tOrganismCode\tOrganismName\tAffectedDrugs\tExceptions\tDescription");
+                foreach (var r in FilteredExpertRules)
+                {
+                    sb.AppendLine($"{r.Guideline}\t{r.OrganismCode}\t{r.OrganismName}\t{r.AffectedAntibiotics}\t{r.Exceptions}\t{r.Description}");
+                }
+                break;
+
+            case 2: // Intrinsic Resistance
+                if (FilteredIntrinsicRules.Count == 0) return;
+                sb.AppendLine("Guideline\tOrganismCode\tOrganismName\tAntibioticCode\tAntibioticName\tExceptions\tComments");
+                foreach (var r in FilteredIntrinsicRules)
+                {
+                    sb.AppendLine($"{r.Guideline}\t{r.OrganismCode}\t{r.OrganismName}\t{r.AbxCode}\t{r.AbxName}\t{r.Exceptions}\t{r.Comments}");
+                }
+                break;
+        }
+
+        if (sb.Length > 0)
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(sb.ToString());
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+
+            int count = SelectedSectionIndex switch
+            {
+                0 => FilteredBreakpoints.Count,
+                1 => FilteredExpertRules.Count,
+                2 => FilteredIntrinsicRules.Count,
+                _ => 0
+            };
+            ResultCountMessage = $"Copied {count:N0} rows to clipboard (ready to paste in Excel/Sheets).";
+        }
+    }
+
     /// <summary>
     /// Replaces an ObservableCollection's contents in bulk. Fires Clear (Reset notification),
     /// then adds new items. This is significantly faster than Clear + per-item Add when the

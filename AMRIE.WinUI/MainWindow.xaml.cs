@@ -45,6 +45,10 @@ public sealed partial class MainWindow : Window
             }
         };
 
+        // Load persisted theme
+        var savedTheme = SettingsManager.LoadTheme();
+        RootGrid.RequestedTheme = savedTheme;
+
         // Initialize theme toggle visuals
         UpdateThemeButtonVisuals();
 
@@ -87,6 +91,7 @@ public sealed partial class MainWindow : Window
         {
             RootGrid.RequestedTheme = value;
             UpdateThemeButtonVisuals();
+            SettingsManager.SaveTheme(value);
             ThemeChanged?.Invoke(value);
         }
     }

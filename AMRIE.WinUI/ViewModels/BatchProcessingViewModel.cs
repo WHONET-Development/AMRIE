@@ -397,6 +397,28 @@ public partial class BatchProcessingViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void LoadSample()
+    {
+        string sampleInput = Path.Combine(AppContext.BaseDirectory, "Resources", "SampleInputFile.txt");
+        if (File.Exists(sampleInput))
+        {
+            _ = SetInputFileAsync(sampleInput);
+        }
+
+        string sampleConfig = Path.Combine(AppContext.BaseDirectory, "Resources", "SampleConfig.json");
+        if (File.Exists(sampleConfig))
+        {
+            ConfigFilePath = sampleConfig;
+        }
+
+        StatusMessage = "Loaded sample input data and configuration parameters.";
+        HasStatusMessage = true;
+        IsSuccess = false;
+        IsError = false;
+        StatusInfoBarSeverity = InfoBarSeverity.Informational;
+    }
+
+    [RelayCommand]
     public void OpenOutputFolder()
     {
         try

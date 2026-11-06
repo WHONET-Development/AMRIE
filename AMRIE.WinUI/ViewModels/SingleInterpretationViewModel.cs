@@ -592,6 +592,64 @@ public partial class SingleInterpretationViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void LoadExample()
+    {
+        var eco = AllOrganisms.FirstOrDefault(o => o.Code.Equals("eco", StringComparison.OrdinalIgnoreCase))
+                  ?? AllOrganisms.FirstOrDefault(o => o.DisplayName.Contains("coli", StringComparison.OrdinalIgnoreCase));
+        if (eco != null)
+        {
+            SelectedOrganism = eco;
+            OrganismSearchText = eco.DisplayName;
+        }
+
+        var cip = AllAntibiotics.FirstOrDefault(a => a.Code.Equals("CIP", StringComparison.OrdinalIgnoreCase))
+                  ?? AllAntibiotics.FirstOrDefault(a => a.DisplayName.Contains("Ciprofloxacin", StringComparison.OrdinalIgnoreCase));
+        if (cip != null)
+        {
+            SelectedAntibiotic = cip;
+            AntibioticSearchText = cip.DisplayName;
+        }
+
+        IsDiskMethod = true;
+        if (DiskPotencies.Contains("5 µg"))
+            SelectedDiskPotency = "5 µg";
+        else if (DiskPotencies.Count > 0)
+            SelectedDiskPotency = DiskPotencies[0];
+
+        Measurement = "22";
+
+        _ = InterpretAsync();
+    }
+
+    [RelayCommand]
+    public void CopyResults()
+    {
+        if (Results.Count == 0) return;
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($"Organism: {SelectedOrganism?.DisplayName ?? OrganismSearchText}");
+        sb.AppendLine($"Antibiotic: {SelectedAntibiotic?.DisplayName ?? AntibioticSearchText}");
+        sb.AppendLine($"Method: {(IsDiskMethod ? $"Disk ({SelectedDiskPotency})" : "MIC")}");
+        sb.AppendLine($"Measurement: {Measurement}");
+        sb.AppendLine();
+        sb.AppendLine("Test Code\tResult\tDetails");
+        foreach (var r in Results)
+        {
+            sb.AppendLine($"{r.TestCode}\t{r.ResultBadge}\t{r.Interpretation}");
+        }
+
+        var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dataPackage.SetText(sb.ToString());
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+
+        StatusMessage = "Interpretation results copied to clipboard.";
+        HasStatusMessage = true;
+        IsStatusError = false;
+        StatusInfoBarSeverity = InfoBarSeverity.Success;
+        AutoDismissSuccessMessageAsync();
+    }
+
     private void SetError(string message)
     {
         StatusMessage = message;
