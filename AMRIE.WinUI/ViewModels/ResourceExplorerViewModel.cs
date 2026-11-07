@@ -736,7 +736,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
         var sb = new System.Text.StringBuilder();
         var html = new System.Text.StringBuilder();
 
-        html.Append("<html><head><meta charset='utf-8'><style>table { border-collapse: collapse; } th, td { border: 1px solid #ccc; padding: 4px 8px; mso-number-format: '\\@'; } th { background-color: #f2f2f2; font-weight: bold; }</style></head><body><table>");
+        html.Append("<html><head><meta charset='utf-8'><style>table { border-collapse: collapse; } th, td { border: 1px solid #ccc; padding: 4px 8px; } th { background-color: #f2f2f2; font-weight: bold; }</style></head><body><table>");
 
         switch (SelectedSectionIndex)
         {
