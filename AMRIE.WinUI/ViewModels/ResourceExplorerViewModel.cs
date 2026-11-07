@@ -730,6 +730,98 @@ public partial class ResourceExplorerViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void CopyTable()
+    {
+        var sb = new System.Text.StringBuilder();
+        var html = new System.Text.StringBuilder();
+
+        html.Append("<html><head><meta charset='utf-8'><style>table { border-collapse: collapse; } th, td { border: 1px solid #ccc; padding: 4px 8px; } th { background-color: #f2f2f2; font-weight: bold; }</style></head><body><table>");
+
+        switch (SelectedSectionIndex)
+        {
+            case 0: // Breakpoints
+                if (FilteredBreakpoints.Count == 0) return;
+                var bpHeaders = new[] { "Guidelines", "Year", "Method", "Potency", "OrganismCode", "OrganismName", "Type", "AbxCode", "AbxName", "R", "I", "SDD", "S", "ECV", "Scope", "SiteOfInfection", "Comments" };
+                sb.AppendLine(string.Join("\t", bpHeaders));
+                html.Append("<thead><tr>");
+                foreach (var h in bpHeaders) html.Append($"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>");
+                html.Append("</tr></thead><tbody>");
+
+                foreach (var r in FilteredBreakpoints)
+                {
+                    var cols = new[] { r.Guidelines, r.Year.ToString(), r.TestMethod, r.Potency, r.OrganismCode, r.OrganismName, r.BreakpointType, r.AbxCode, r.AbxName, r.RDisplay, r.IDisplay, r.SddDisplay, r.SDisplay, r.EcvEcoffDisplay, r.Scope, r.SiteOfInfection, r.Comments };
+                    sb.AppendLine(string.Join("\t", cols));
+                    html.Append("<tr>");
+                    foreach (var c in cols) html.Append($"<td style=\"mso-number-format:'\\@';\">{System.Net.WebUtility.HtmlEncode(c)}</td>");
+                    html.Append("</tr>");
+                }
+                html.Append("</tbody>");
+                break;
+
+            case 1: // Expert Rules
+                if (FilteredExpertRules.Count == 0) return;
+                var erHeaders = new[] { "Guideline", "OrganismCode", "OrganismName", "AffectedDrugs", "Exceptions", "Description" };
+                sb.AppendLine(string.Join("\t", erHeaders));
+                html.Append("<thead><tr>");
+                foreach (var h in erHeaders) html.Append($"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>");
+                html.Append("</tr></thead><tbody>");
+
+                foreach (var r in FilteredExpertRules)
+                {
+                    var cols = new[] { r.Guideline, r.OrganismCode, r.OrganismName, r.AffectedAntibiotics, r.Exceptions, r.Description };
+                    sb.AppendLine(string.Join("\t", cols));
+                    html.Append("<tr>");
+                    foreach (var c in cols) html.Append($"<td style=\"mso-number-format:'\\@';\">{System.Net.WebUtility.HtmlEncode(c)}</td>");
+                    html.Append("</tr>");
+                }
+                html.Append("</tbody>");
+                break;
+
+            case 2: // Intrinsic Resistance
+                if (FilteredIntrinsicRules.Count == 0) return;
+                var irHeaders = new[] { "Guideline", "OrganismCode", "OrganismName", "AntibioticCode", "AntibioticName", "Exceptions", "Comments" };
+                sb.AppendLine(string.Join("\t", irHeaders));
+                html.Append("<thead><tr>");
+                foreach (var h in irHeaders) html.Append($"<th>{System.Net.WebUtility.HtmlEncode(h)}</th>");
+                html.Append("</tr></thead><tbody>");
+
+                foreach (var r in FilteredIntrinsicRules)
+                {
+                    var cols = new[] { r.Guideline, r.OrganismCode, r.OrganismName, r.AbxCode, r.AbxName, r.Exceptions, r.Comments };
+                    sb.AppendLine(string.Join("\t", cols));
+                    html.Append("<tr>");
+                    foreach (var c in cols) html.Append($"<td style=\"mso-number-format:'\\@';\">{System.Net.WebUtility.HtmlEncode(c)}</td>");
+                    html.Append("</tr>");
+                }
+                html.Append("</tbody>");
+                break;
+        }
+
+        html.Append("</table></body></html>");
+
+        if (sb.Length > 0)
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(sb.ToString());
+            try
+            {
+                dataPackage.SetHtmlFormat(Windows.ApplicationModel.DataTransfer.HtmlFormatHelper.CreateHtmlFormat(html.ToString()));
+            }
+            catch { }
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+
+            int count = SelectedSectionIndex switch
+            {
+                0 => FilteredBreakpoints.Count,
+                1 => FilteredExpertRules.Count,
+                2 => FilteredIntrinsicRules.Count,
+                _ => 0
+            };
+            ResultCountMessage = $"Copied {count:N0} rows to clipboard (formatted for Excel/Sheets).";
+        }
+    }
+
     /// <summary>
     /// Replaces an ObservableCollection's contents in bulk. Fires Clear (Reset notification),
     /// then adds new items. This is significantly faster than Clear + per-item Add when the

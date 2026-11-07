@@ -52,6 +52,21 @@ public static class WindowHelper
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hWnd);
 
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    public static void SetNativeTitleBarTheme(Window window, bool isDark)
+    {
+        try
+        {
+            var hwnd = WindowNative.GetWindowHandle(window);
+            int useDark = isDark ? 1 : 0;
+            DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
+        }
+        catch { }
+    }
+
     public static void SetWindowSize(Window window, int widthDip, int heightDip)
     {
         var hwnd = WindowNative.GetWindowHandle(window);
