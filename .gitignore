@@ -9,3 +9,4 @@ AppPackages/
 *.msi
 *.msix
 *.pfx
+/artifacts/amrie-data-generator/
