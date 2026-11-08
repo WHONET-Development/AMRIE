@@ -14,6 +14,7 @@ internal sealed class DatasetGenerator
     private const int GuidelineYear = 2026;
     private const decimal ProbeStep = 0.0001M;
     private const char PipeDelimiter = '|';
+    private const long SidecarSpaceReserveBytes = 256L * 1024L * 1024L;
     private static readonly HashSet<string> IncludedGuidelines = new(StringComparer.Ordinal)
     {
         Antibiotic.GuidelineNames.CLSI,
@@ -32,7 +33,43 @@ internal sealed class DatasetGenerator
         Breakpoint.BreakpointTypes.ECOFF
     ];
 
-    public GenerationManifest Generate(string outputDirectory)
+    public GenerationManifest Generate(string outputDirectory, RequestedInputSize? targetSize = null)
+    {
+        Directory.CreateDirectory(outputDirectory);
+        string inputFile = Path.Combine(outputDirectory, "2026-clsi-eucast-boundary-input.txt");
+        bool publishAfterValidation = targetSize.HasValue;
+        if (publishAfterValidation && File.Exists(inputFile))
+            throw new IOException($"Refusing to overwrite existing generated input '{inputFile}'.");
+        if (targetSize is RequestedInputSize requestedSize)
+            EnsureFreeSpace(outputDirectory, requestedSize.ByteCount);
+
+        string workingInputFile = publishAfterValidation
+            ? inputFile + ".partial-" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)
+            : inputFile;
+
+        try
+        {
+            GenerationManifest manifest = GenerateCore(outputDirectory, inputFile, workingInputFile, targetSize);
+            if (publishAfterValidation)
+                File.Move(workingInputFile, inputFile);
+
+            File.WriteAllText(manifest.ManifestFile,
+                JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }),
+                new UTF8Encoding(false));
+            return manifest;
+        }
+        finally
+        {
+            if (publishAfterValidation && File.Exists(workingInputFile))
+                File.Delete(workingInputFile);
+        }
+    }
+
+    private GenerationManifest GenerateCore(
+        string outputDirectory,
+        string inputFile,
+        string workingInputFile,
+        RequestedInputSize? targetSize)
     {
         string resourcesDirectory = Path.Combine(Constants.SystemRootPath, "Resources");
         string sampleInputPath = Path.Combine(resourcesDirectory, "SampleInputFile.txt");
@@ -40,8 +77,6 @@ internal sealed class DatasetGenerator
 
         if (!File.Exists(sampleInputPath) || !File.Exists(breakpointResourcePath))
             throw new FileNotFoundException("The engine resources were not copied beside the generator.", resourcesDirectory);
-
-        Directory.CreateDirectory(outputDirectory);
 
         List<string> sampleHeaders = ReadHeaders(sampleInputPath, PipeDelimiter);
         if (!sampleHeaders.Contains(Constants.KeyFields.ORGANISM, StringComparer.Ordinal)
@@ -169,10 +204,14 @@ internal sealed class DatasetGenerator
             if (headerSet.Add(field))
                 headers.Add(field);
 
-        string inputFile = Path.Combine(outputDirectory, "2026-clsi-eucast-boundary-input.txt");
         string caseMapFile = Path.Combine(outputDirectory, "2026-clsi-eucast-cell-map.tsv.gz");
-        MatrixWriteResult matrixWrite = WriteBoundaryMatrix(inputFile, caseMapFile, headers, allCases);
-        OutcomeSummary outcomes = InterpretGeneratedMatrix(inputFile, headers);
+        ScenarioProfile[] scenarioProfiles = BuildScenarioProfiles(allCases, headers);
+        MatrixWriteResult matrixWrite = WriteBoundaryMatrix(workingInputFile, caseMapFile, headers, allCases);
+        OutcomeSummary outcomes = InterpretGeneratedMatrix(workingInputFile, headers);
+        long baseInputFileBytes = new FileInfo(workingInputFile).Length;
+        ScenarioExtensionSummary extension = targetSize is RequestedInputSize requestedSize
+            ? ScenarioFileExtender.Append(workingInputFile, headers, scenarioProfiles, requestedSize.ByteCount, matrixWrite.RowCount)
+            : ScenarioExtensionSummary.Empty(baseInputFileBytes, targetSize?.ByteCount ?? baseInputFileBytes);
 
         string intrinsicFile = Path.Combine(outputDirectory, "2026-intrinsic-rule-cases.txt");
         RuleCaseSummary intrinsicRules = GenerateIntrinsicRuleCases(intrinsicFile, sampleHeaders);
@@ -183,7 +222,7 @@ internal sealed class DatasetGenerator
         ValidateOutcomeCoverage(outcomes, intrinsicRules, expertRules);
         ValidateRoundingBoundaries();
 
-        long inputFileBytes = new FileInfo(inputFile).Length;
+        long inputFileBytes = new FileInfo(workingInputFile).Length;
         long caseMapFileBytes = new FileInfo(caseMapFile).Length;
         long intrinsicFileBytes = new FileInfo(intrinsicFile).Length;
         long expertFileBytes = new FileInfo(expertFile).Length;
@@ -196,7 +235,19 @@ internal sealed class DatasetGenerator
             ManifestFile = Path.Combine(outputDirectory, "2026-clsi-eucast-manifest.json"),
             InputFile = inputFile,
             InputFileBytes = inputFileBytes,
-            InputSha256 = ComputeSha256(inputFile),
+            InputSha256 = ComputeSha256(workingInputFile),
+            BaseInputFileBytes = baseInputFileBytes,
+            RequestedSize = targetSize?.DisplayText ?? string.Empty,
+            RequestedSizeBytes = targetSize?.ByteCount ?? 0,
+            InputSizeOvershootBytes = extension.BytesOverTarget,
+            SizeExpansionAlgorithm = extension.RowsAdded > 0 ? ScenarioFileExtender.AlgorithmVersion : string.Empty,
+            SizeExpansionRows = extension.RowsAdded,
+            SizeExpansionMeasurements = extension.MeasurementsAdded,
+            SizeExpansionMaximumRowBytes = extension.MaximumRowBytes,
+            SizeExpansionProbeKindCounts = extension.ProbeKindCounts,
+            SizeExpansionReferenceRowsValidated = extension.ReferenceRowsValidated,
+            SizeExpansionReferenceOutputCount = extension.ReferenceOutputCount,
+            SizeExpansionReferenceOutcomeCounts = extension.ReferenceOutcomeCounts,
             CaseMapFile = caseMapFile,
             CaseMapFileBytes = caseMapFileBytes,
             CaseMapSha256 = ComputeSha256(caseMapFile),
@@ -235,8 +286,9 @@ internal sealed class DatasetGenerator
             EtestAliasPairCount = etestAliasPairCount,
             EtestAliasFieldCount = etestFields.Count,
             EtestMeasurementCount = etestMeasurementCount,
-            TotalMeasurementCount = totalMeasurementCount,
-            IsolateRows = matrixWrite.RowCount,
+            TotalMeasurementCount = totalMeasurementCount + extension.MeasurementsAdded,
+            IsolateRows = matrixWrite.RowCount + extension.RowsAdded,
+            BaseIsolateRows = matrixWrite.RowCount,
             ColumnCount = headers.Count,
             NewTestFieldCount = headers.Count - sampleHeaders.Count,
             MatrixCellMapRows = matrixWrite.CellMapRows,
@@ -244,6 +296,7 @@ internal sealed class DatasetGenerator
             ProjectedAppendGrowthBytes = projectedAppendGrowthBytes,
             ReferenceOutputSha256 = outcomes.OutputSha256,
             ReferenceOutputCount = outcomes.ResultCount,
+            ReferenceOutputScope = "comprehensive base matrix",
             OutcomeCounts = outcomes.OutcomeCounts,
             UnmappedHistoricalOrganismCodes = directCases.Keys
                 .Select(key => key.OrganismCode)
@@ -267,10 +320,6 @@ internal sealed class DatasetGenerator
             EtestRoundingBoundaryCount = ValidateRoundingBoundaries()
         };
 
-        File.WriteAllText(manifest.ManifestFile,
-            JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }),
-            new UTF8Encoding(false));
-
         return manifest;
     }
 
@@ -282,6 +331,55 @@ internal sealed class DatasetGenerator
         };
         parser.SetDelimiters(delimiter.ToString());
         return parser.ReadFields()?.ToList() ?? throw new InvalidDataException($"No header found in '{filePath}'.");
+    }
+
+    private static ScenarioProfile[] BuildScenarioProfiles(
+        Dictionary<PairKey, ProbeSet> cases,
+        List<string> headers)
+    {
+        Dictionary<string, int> headerIndices = headers
+            .Select((header, index) => (header, index))
+            .ToDictionary(item => item.header, item => item.index, StringComparer.Ordinal);
+
+        return cases.Values
+            .GroupBy(probeSet => probeSet.Key.OrganismCode, StringComparer.Ordinal)
+            .OrderBy(group => group.Key, StringComparer.Ordinal)
+            .Select(organismGroup =>
+            {
+                ScenarioField[] fields = organismGroup
+                    .GroupBy(probeSet => probeSet.Key.TestField, StringComparer.Ordinal)
+                    .OrderBy(fieldGroup => headerIndices[fieldGroup.Key])
+                    .Select(fieldGroup =>
+                    {
+                        ScenarioProbe[] probes = fieldGroup
+                            .SelectMany(probeSet => probeSet.Probes)
+                            .GroupBy(probe => probe.Key, StringComparer.Ordinal)
+                            .Select(probeGroup => probeGroup
+                                .OrderBy(probe => NormalizeScenarioKind(probe.Value.ProbeKind), StringComparer.Ordinal)
+                                .ThenBy(probe => probe.Value.BreakpointRowIndex)
+                                .ThenBy(probe => probe.Value.CutoffName, StringComparer.Ordinal)
+                                .First())
+                            .OrderBy(probe => NormalizeScenarioKind(probe.Value.ProbeKind), StringComparer.Ordinal)
+                            .ThenBy(probe => probe.Value.BreakpointRowIndex)
+                            .ThenBy(probe => probe.Value.CutoffName, StringComparer.Ordinal)
+                            .ThenBy(probe => probe.Key, StringComparer.Ordinal)
+                            .Select(probe => new ScenarioProbe(probe.Key, probe.Value.ProbeKind))
+                            .ToArray();
+
+                        return new ScenarioField(headerIndices[fieldGroup.Key], fieldGroup.Key, probes);
+                    })
+                    .ToArray();
+                return new ScenarioProfile(organismGroup.Key, fields);
+            })
+            .ToArray();
+    }
+
+    private static string NormalizeScenarioKind(string probeKind)
+    {
+        const string etestAliasPrefix = "ETEST_ALIAS_";
+        return probeKind.StartsWith(etestAliasPrefix, StringComparison.Ordinal)
+            ? probeKind[etestAliasPrefix.Length..]
+            : probeKind;
     }
 
     private static ResolvedAgent[] ResolveAgents(
@@ -1039,8 +1137,30 @@ internal sealed class DatasetGenerator
 
     private static string ComputeSha256(string filePath)
     {
-        using FileStream stream = File.OpenRead(filePath);
+        using FileStream stream = new(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            1024 * 1024,
+            FileOptions.SequentialScan);
         return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
+    }
+
+    private static void EnsureFreeSpace(string outputDirectory, long requestedBytes)
+    {
+        string fullPath = Path.GetFullPath(outputDirectory);
+        string driveRoot = Path.GetPathRoot(fullPath)
+            ?? throw new IOException($"Cannot determine the output drive for '{fullPath}'.");
+        DriveInfo drive = new(driveRoot);
+        if (!drive.IsReady)
+            throw new IOException($"The output drive '{drive.Name}' is not ready.");
+
+        if (requestedBytes > long.MaxValue - SidecarSpaceReserveBytes)
+            throw new IOException("Requested size exceeds the generator's supported file-size range.");
+        long minimumFreeBytes = checked(requestedBytes + SidecarSpaceReserveBytes);
+        if (drive.AvailableFreeSpace < minimumFreeBytes)
+            throw new IOException($"Insufficient free space on '{drive.Name}': {minimumFreeBytes:N0} bytes required, {drive.AvailableFreeSpace:N0} available.");
     }
 
     private static string GetAntibioticCode(string testField)
@@ -1104,6 +1224,18 @@ internal sealed class GenerationManifest
     public string InputFile { get; init; } = string.Empty;
     public long InputFileBytes { get; init; }
     public string InputSha256 { get; init; } = string.Empty;
+    public long BaseInputFileBytes { get; init; }
+    public string RequestedSize { get; init; } = string.Empty;
+    public long RequestedSizeBytes { get; init; }
+    public long InputSizeOvershootBytes { get; init; }
+    public string SizeExpansionAlgorithm { get; init; } = string.Empty;
+    public long SizeExpansionRows { get; init; }
+    public long SizeExpansionMeasurements { get; init; }
+    public long SizeExpansionMaximumRowBytes { get; init; }
+    public SortedDictionary<string, long> SizeExpansionProbeKindCounts { get; init; } = new(StringComparer.Ordinal);
+    public long SizeExpansionReferenceRowsValidated { get; init; }
+    public long SizeExpansionReferenceOutputCount { get; init; }
+    public SortedDictionary<string, long> SizeExpansionReferenceOutcomeCounts { get; init; } = new(StringComparer.Ordinal);
     public string CaseMapFile { get; init; } = string.Empty;
     public long CaseMapFileBytes { get; init; }
     public string CaseMapSha256 { get; init; } = string.Empty;
@@ -1123,8 +1255,9 @@ internal sealed class GenerationManifest
     public int EtestAliasPairCount { get; init; }
     public int EtestAliasFieldCount { get; init; }
     public int EtestMeasurementCount { get; init; }
-    public int TotalMeasurementCount { get; init; }
-    public int IsolateRows { get; init; }
+    public long TotalMeasurementCount { get; init; }
+    public long IsolateRows { get; init; }
+    public long BaseIsolateRows { get; init; }
     public int ColumnCount { get; init; }
     public int NewTestFieldCount { get; init; }
     public long MatrixCellMapRows { get; init; }
@@ -1132,6 +1265,7 @@ internal sealed class GenerationManifest
     public long ProjectedAppendGrowthBytes { get; init; }
     public string ReferenceOutputSha256 { get; init; } = string.Empty;
     public long ReferenceOutputCount { get; init; }
+    public string ReferenceOutputScope { get; init; } = string.Empty;
     public SortedDictionary<string, long> OutcomeCounts { get; init; } = new(StringComparer.Ordinal);
     public string[] UnmappedHistoricalOrganismCodes { get; init; } = [];
     public string IntrinsicRuleFile { get; init; } = string.Empty;

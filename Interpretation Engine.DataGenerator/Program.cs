@@ -1,13 +1,16 @@
 ﻿using Interpretation_Engine.DataGenerator;
 
-if (args.Length > 1)
-    throw new ArgumentException("Usage: Interpretation Engine.DataGenerator [output-directory]");
+if (!GeneratorCommandLine.TryParse(args, out GeneratorOptions? options, out string error) || options is null)
+{
+    Console.Error.WriteLine(error);
+    return 2;
+}
 
-string outputDirectory = args.Length == 1
-    ? Path.GetFullPath(args[0])
-    : Path.Combine(Directory.GetCurrentDirectory(), "artifacts", "amrie-data-generator");
-
-GenerationManifest manifest = new DatasetGenerator().Generate(outputDirectory);
+GenerationManifest manifest = new DatasetGenerator().Generate(options.OutputDirectory, options.TargetSize);
 Console.WriteLine($"Generated {manifest.TotalMeasurementCount:N0} measurements in {manifest.IsolateRows:N0} rows.");
 Console.WriteLine($"Input: {manifest.InputFile} ({manifest.InputFileBytes:N0} bytes)");
 Console.WriteLine($"Manifest: {manifest.ManifestFile}");
+if (manifest.RequestedSizeBytes > 0)
+    Console.WriteLine($"Requested minimum: {manifest.RequestedSize} ({manifest.RequestedSizeBytes:N0} bytes); over target by {manifest.InputSizeOvershootBytes:N0} bytes.");
+
+return 0;

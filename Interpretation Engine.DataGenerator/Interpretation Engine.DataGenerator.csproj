@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Interpretation Engine\Interpretation Engine.csproj" />
+    <InternalsVisibleTo Include="Interpretation Engine.Tests" />
   </ItemGroup>
 
   <PropertyGroup>
