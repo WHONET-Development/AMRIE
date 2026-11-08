@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Interpretation Engine\Interpretation Engine.csproj" />
     <ProjectReference Include="..\Interpretation Engine.DataGenerator\Interpretation Engine.DataGenerator.csproj" />
+    <ProjectReference Include="..\Interpretation Engine.Performance\Interpretation Engine.Performance.csproj" />
   </ItemGroup>
 
 </Project>
