@@ -125,7 +125,7 @@ namespace AMR_InterpretationInterface
 							WorkerReportsProgress = true,
 							WorkerSupportsCancellation = true
 						};
-						Worker.DoWork += IO_Library.InterpretDataFile;
+						Worker.DoWork += IO_Library.InterpretDataFileBounded;
 						Worker.RunWorkerCompleted += HandlerInterpretationCompletion;
 						Worker.ProgressChanged += ProgressMeterEventHandler;
 					}

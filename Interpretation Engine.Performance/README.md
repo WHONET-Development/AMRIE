@@ -4,8 +4,8 @@ This opt-in .NET 8 console app measures the existing CPU interpretation engine. 
 
 ## Modes
 
-- `--mode file` calls the engine's normal `IO_Library.InterpretDataFile` entry point. This loads the whole input, so it is limited to 128 MiB by default. Use it for the approximately 40 MB comprehensive base corpus, not the 50 GiB expanded corpus.
-- `--mode stream` (default) reads rows with the same `TextFieldParser`, preheats the engine breakpoint cache from a key scan, then interprets bounded batches through the public `IsolateInterpretation` API. It can process the expanded corpus without retaining the whole file or output in memory. This is intentionally reported as a different execution path from `IO_Library.InterpretDataFile`.
+- `--mode file` calls the engine's production `IO_Library.InterpretDataFileBounded` entry point, which uses bounded owning batches, bounded exact caches and disk-staged publication. The original `InterpretDataFile` public API delegates to the same implementation for compatibility. The existing 128 MiB safety limit remains opt-in overridable with `--max-whole-file-mb`; larger jobs require sufficient temporary disk space, not whole-file memory retention.
+- `--mode stream` (default) retains its independent `TextFieldParser` path and global key scan, then interprets bounded row batches through the public `IsolateInterpretation` API. Its global key inventory is not bounded; it is a comparison path, not a production memory-plateau test.
 
 Bounded stream mode currently requires the configuration's horizontal antibiotic output setting; it reports an error for vertical-output configurations rather than silently changing the output shape.
 
@@ -19,3 +19,7 @@ dotnet run --project "Interpretation Engine.Performance\Interpretation Engine.Pe
 ```
 
 Use `--help` for all options. Reports contain per-pass timing, throughput, allocations, process peak working set, input/output metadata, run parameters, and OS/runtime/CPU information. In stream mode, key scanning, breakpoint preheat, input parsing, interpretation, and output are timed separately. The whole-file engine API does not expose those internal stages, so its report contains end-to-end timing only.
+
+For an instrumented production-path run, add `--memory-report "C:\data\memory.jsonl" --mode file --runs 1`. Samples are streamed to a new JSONL file every 250 ms, not accumulated in memory. They contain actual completed input rows, stage, retained batch size/characters, unforced managed-heap estimates, GC-committed bytes, current working set/private bytes and exact cache counts/characters/evictions. Sampling failures are propagated. The pass report adds independently observed row/measurement totals and maximum batch/cache values; ordinary file-mode totals with a manifest remain manifest-derived. No forced collections are used. Do not compare instrumented timings to uninstrumented controls as a matched timing result.
+
+Use three separate fresh processes with `--runs 1` for matched runtime/allocation/peak comparisons. To test a plateau, also sample a longer repeated and a high-cardinality workload, verify output bytes/hash independently, and inspect memory versus actual rows after the cache/startup warmup. A provisional working-set envelope is `max(96 MiB, 20% of the post-warmup median)`; choose and report a warmup that covers the workload's cache saturation. A process-lifetime peak alone is not a plateau result. Oversized individual records and wider headers require a correspondingly larger envelope.

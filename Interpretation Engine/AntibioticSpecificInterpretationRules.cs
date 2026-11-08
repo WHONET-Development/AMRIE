@@ -47,56 +47,14 @@ namespace AMR_Engine
 
             if (useIntrinsicResistanceRules)
             {
-                lock (IntrinsicResistanceRuleLookupLock)
-                {
-                    if (IntrinsicResistanceRuleLookup.ContainsKey(whonetOrganismCode)
-                    && IntrinsicResistanceRuleLookup[whonetOrganismCode].ContainsKey(thisAntibiotic.Guideline)
-                    && IntrinsicResistanceRuleLookup[whonetOrganismCode][thisAntibiotic.Guideline].ContainsKey(thisAntibiotic.Code))
-                        // We have seen this combination previously, so there no need for us to determine the applicable intrinsic resistance rules again.
-                        MostApplicableIntrinsicResistanceRule = IntrinsicResistanceRuleLookup[whonetOrganismCode][thisAntibiotic.Guideline][thisAntibiotic.Code];
-                    else
-                    {
-                        // We haven't seen this combination before, so we need to evaluate it.
-                        MostApplicableIntrinsicResistanceRule =
-                            ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
-                                whonetOrganismCode,
-                                new List<string>() { thisAntibiotic.Guideline },
-                                new List<string> { thisAntibiotic.Code }).FirstOrDefault();
-
-                        if (IntrinsicResistanceRuleLookup.ContainsKey(whonetOrganismCode))
-                        {
-                            if (IntrinsicResistanceRuleLookup[whonetOrganismCode].ContainsKey(thisAntibiotic.Guideline))
-                            {
-                                // Only missing the antibiotic part.
-                                IntrinsicResistanceRuleLookup[whonetOrganismCode][thisAntibiotic.Guideline].Add(thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule);
-                            }
-                            else
-                            {
-                                Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>
-                                {
-                                    { thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule }
-                                };
-
-                                IntrinsicResistanceRuleLookup[whonetOrganismCode].Add(thisAntibiotic.Guideline, abxSet);
-                            }
-                        }
-                        else
-                        {
-                            // The organism code missing, which means we need the whole structure.
-                            Dictionary<string, ExpectedResistancePhenotypeRule> abxSet = new Dictionary<string, ExpectedResistancePhenotypeRule>
-                            {
-                                { thisAntibiotic.Code, MostApplicableIntrinsicResistanceRule }
-                            };
-
-                            Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>> guidelineSet = new Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>>
-                            {
-                                { thisAntibiotic.Guideline, abxSet }
-                            };
-
-                            IntrinsicResistanceRuleLookup.Add(whonetOrganismCode, guidelineSet);
-                        }
-                    }
-                }
+                ArgumentNullException.ThrowIfNull(whonetOrganismCode);
+                MostApplicableIntrinsicResistanceRule = IntrinsicResistanceRuleLookup.GetOrAdd(
+                    (whonetOrganismCode, thisAntibiotic.Guideline, thisAntibiotic.Code),
+                    (long)whonetOrganismCode.Length + thisAntibiotic.Guideline.Length + thisAntibiotic.Code.Length,
+                    () => ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
+                        whonetOrganismCode,
+                        new List<string>() { thisAntibiotic.Guideline },
+                        new List<string> { thisAntibiotic.Code }).FirstOrDefault());
             }
             else
                 MostApplicableIntrinsicResistanceRule = null;
@@ -128,15 +86,20 @@ namespace AMR_Engine
 
         private readonly ExpectedResistancePhenotypeRule MostApplicableIntrinsicResistanceRule;
 
-        private static readonly Dictionary<string, Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>>> IntrinsicResistanceRuleLookup = new Dictionary<string, Dictionary<string, Dictionary<string, ExpectedResistancePhenotypeRule>>>();
-
-        private static readonly object IntrinsicResistanceRuleLookupLock = new object();
+        internal const int MaxIntrinsicCacheEntries = 131072;
+        internal const long MaxIntrinsicCacheCharacters = 4194304;
+        private static readonly BoundedCache<(string Organism, string Guideline, string Antibiotic), ExpectedResistancePhenotypeRule> IntrinsicResistanceRuleLookup =
+            new(MaxIntrinsicCacheEntries, MaxIntrinsicCacheCharacters);
 
         private readonly Breakpoint MostApplicableBreakpoint;
 
-        private static readonly Dictionary<(string Organism, string Guideline, int Year, string SelectionKey), Breakpoint> BreakpointLookup = new();
+        internal const int MaxBreakpointCacheEntries = 262144;
+        internal const long MaxBreakpointCacheCharacters = 16777216;
+        private static readonly BoundedCache<(string Organism, string Guideline, int Year, string SelectionKey), Breakpoint> BreakpointLookup =
+            new(MaxBreakpointCacheEntries, MaxBreakpointCacheCharacters);
 
-        private static readonly object BreakpointLookupModificationLock = new object();
+        internal static (BoundedCacheStatistics Breakpoints, BoundedCacheStatistics Intrinsic) CacheStatistics =>
+            (BreakpointLookup.Statistics, IntrinsicResistanceRuleLookup.Statistics);
 
         #endregion
 
@@ -144,10 +107,7 @@ namespace AMR_Engine
 
         public static void ClearBreakpoints()
         {
-            lock (BreakpointLookupModificationLock)
-            {
-                BreakpointLookup.Clear();
-            }
+            BreakpointLookup.Clear();
         }
 
         /// <summary>
@@ -164,6 +124,19 @@ namespace AMR_Engine
             List<Tuple<string, string, string>> distinctInterpretationKeys,
             BackgroundWorker worker = null)
         {
+            PreheatBreakpointCache(userDefinedBreakpoints, guidelineYear, prioritizedBreakpointTypes,
+                prioritizedSitesOfInfection, distinctInterpretationKeys, worker, reportProgress: true);
+        }
+
+        internal static void PreheatBreakpointCache(
+            List<Breakpoint> userDefinedBreakpoints,
+            int guidelineYear,
+            List<string> prioritizedBreakpointTypes,
+            List<string> prioritizedSitesOfInfection,
+            List<Tuple<string, string, string>> distinctInterpretationKeys,
+            BackgroundWorker worker,
+            bool reportProgress)
+        {
             distinctInterpretationKeys = distinctInterpretationKeys.Distinct().ToList();
 
 			object syncObject = new();
@@ -176,7 +149,10 @@ namespace AMR_Engine
                 (key, state) =>
                 {
                     if (worker != null && worker.CancellationPending)
-                        state.Break();
+                    {
+                        state.Stop();
+                        return;
+                    }
 
                     // Evaluating the breakpoint for the side effect that the cache will be populated.
                     // We don't need a reference to the breakpoint itself here.
@@ -188,10 +164,13 @@ namespace AMR_Engine
                         key.Item1, key.Item2, key.Item3);
 
                     // Update the UI's progress
-                    if (worker != null)
+                    if (worker != null && reportProgress)
                     {
                         if (worker.CancellationPending)
-                            state.Break();
+                        {
+                            state.Stop();
+                            return;
+                        }
 
                         lock (syncObject)
                         {
@@ -443,13 +422,9 @@ namespace AMR_Engine
                     prioritizedBreakpointTypes,
                     prioritizedSitesOfInfection));
 
-            lock (BreakpointLookupModificationLock)
-            {
-                if (BreakpointLookup.TryGetValue(cacheKey, out Breakpoint cachedBreakpoint))
-                    return cachedBreakpoint;
-
-                Breakpoint mostApplicableBreakpoint =
-                    Breakpoint.GetApplicableBreakpoints(
+            return BreakpointLookup.GetOrAdd(cacheKey,
+                (long)(whonetOrganismCode?.Length ?? 0) + (guideline?.Length ?? 0) + cacheKey.Item4.Length,
+                () => Breakpoint.GetApplicableBreakpoints(
                         whonetOrganismCode,
                         userDefinedBreakpoints ?? new List<Breakpoint>(),
                         prioritizedGuidelines: new List<string>() { guideline },
@@ -457,11 +432,7 @@ namespace AMR_Engine
                         prioritizedBreakpointTypes: prioritizedBreakpointTypes,
                         prioritizedSitesOfInfection: prioritizedSitesOfInfection,
                         prioritizedWhonetAbxFullDrugCodes: new List<string>() { whonetAntimicrobialFullCode },
-                        returnFirstBreakpointOnly: true).FirstOrDefault();
-
-                BreakpointLookup.Add(cacheKey, mostApplicableBreakpoint);
-                return mostApplicableBreakpoint;
-            }
+                        returnFirstBreakpointOnly: true).FirstOrDefault());
         }
 
         private static string CreateBreakpointCacheKey(

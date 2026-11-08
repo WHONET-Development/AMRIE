@@ -19,6 +19,8 @@ internal static class PerformanceRunner
     public static BaselineReport Run(PerformanceOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
+        if (options.MemoryReportFile is not null && (options.Mode != PerformanceMode.EngineFile || options.Runs != 1))
+            throw new InvalidOperationException("--memory-report requires --mode file with --runs 1.");
         if (!File.Exists(options.InputFile))
             throw new FileNotFoundException("The input data file was not found.", options.InputFile);
         if (!File.Exists(options.ConfigFile))
@@ -89,7 +91,7 @@ internal static class PerformanceRunner
             return new BaselineReport(
                 options.Mode == PerformanceMode.EngineFile ? "engine-file" : "bounded-stream",
                 options.Mode == PerformanceMode.EngineFile
-                    ? "IO_Library.InterpretDataFile"
+                    ? "IO_Library.InterpretDataFileBounded"
                     : "TextFieldParser + IO_Library public per-isolate interpretation API",
                 options.InputFile,
                 inputInfo.Length,
@@ -135,7 +137,12 @@ internal static class PerformanceRunner
             options.ConfigFile,
             outputFile,
             null);
-        IO_Library.InterpretDataFile(null, new DoWorkEventArgs(arguments));
+        using FileMemorySampler? sampler = options.MemoryReportFile is null
+            ? null : new(options.MemoryReportFile, arguments.BatchCharacterLimit);
+        if (sampler is not null)
+            arguments.ProgressObserver = sampler.Observe;
+        IO_Library.InterpretDataFileBounded(null, new DoWorkEventArgs(arguments));
+        sampler?.Dispose();
 
         totalTimer.Stop();
         long allocatedBytes = GC.GetTotalAllocatedBytes(false) - allocatedBefore;
@@ -162,7 +169,11 @@ internal static class PerformanceRunner
             outputBytes,
             outputSha256,
             null,
-            null);
+            null)
+        {
+            MemorySamplesFile = options.MemoryReportFile,
+            FileProcessing = sampler?.Report
+        };
     }
 
     private static PassReport RunBoundedStream(
@@ -507,6 +518,8 @@ internal static class PerformanceRunner
             throw new IOException($"Refusing to overwrite existing output '{options.OutputFile}'.");
         if (options.ReportFile is not null && File.Exists(options.ReportFile))
             throw new IOException($"Refusing to overwrite existing report '{options.ReportFile}'.");
+        if (options.MemoryReportFile is not null && File.Exists(options.MemoryReportFile))
+            throw new IOException($"Refusing to overwrite existing memory report '{options.MemoryReportFile}'.");
 
         StringComparer comparer = OperatingSystem.IsWindows()
             ? StringComparer.OrdinalIgnoreCase
@@ -517,7 +530,8 @@ internal static class PerformanceRunner
             options.ConfigFile,
             options.ManifestFile,
             options.OutputFile,
-            options.ReportFile
+            options.ReportFile,
+            options.MemoryReportFile
         }.Where(path => path is not null).Select(path => Path.GetFullPath(path!)).ToArray();
         if (paths.Distinct(comparer).Count() != paths.Length)
             throw new IOException("Input, output, and report paths must be different files.");
@@ -608,4 +622,8 @@ internal sealed record PassReport(
     long? OutputBytes,
     string? OutputSha256,
     int? DistinctInterpretationKeys,
-    int? KeyScanRows);
+    int? KeyScanRows)
+{
+    public string? MemorySamplesFile { get; init; }
+    public FileProcessingReport? FileProcessing { get; init; }
+}

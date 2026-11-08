@@ -302,7 +302,7 @@ public partial class BatchProcessingViewModel : ObservableObject
         {
             try
             {
-                IO_Library.InterpretDataFile(worker, doWorkArgs);
+                IO_Library.InterpretDataFileBounded(worker, doWorkArgs);
 
                 dispatcherQueue?.TryEnqueue(() =>
                 {
@@ -368,7 +368,7 @@ public partial class BatchProcessingViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanCancelProcessing))]
     public void CancelProcessing()
     {
-        if (_worker != null && _worker.IsBusy)
+        if (_worker != null && IsProcessing)
         {
             _worker.CancelAsync();
             StatusMessage = "Cancelling processing...";

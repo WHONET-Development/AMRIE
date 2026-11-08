@@ -65,6 +65,7 @@
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="34.0.0" />
     <InternalsVisibleTo Include="Interpretation Engine.Tests" />
+    <InternalsVisibleTo Include="Interpretation Engine.Performance" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,6 +15,7 @@ namespace AMR_Engine
         private const int MaxCanonicalizedAntibioticValueLength = 8;
         private const int MaxCanonicalizedAntibioticValues = 4096;
         private const int MaxCanonicalizedAntibioticCharacters = 65536;
+        private const int MaxBatchPreheatKeys = 32768;
 
         private class OutputAntibioticColumns
         {
@@ -34,11 +35,19 @@ namespace AMR_Engine
         #region Public
 
         /// <summary>
-        /// Process an entire data file, generating an output file with the interpretations.
+        /// Compatibility entry point for bounded file interpretation.
         /// </summary>
         /// <param name="s"></param>
         /// <param name="e"></param>
         public static void InterpretDataFile(object s, DoWorkEventArgs e)
+            => InterpretDataFileBounded(s, e);
+
+        /// <summary>
+        /// Interpret bounded owning batches and publish the staged output only after successful completion.
+        /// </summary>
+        /// <param name="s">The BackgroundWorker event sender, if any.</param>
+        /// <param name="e">Work arguments containing FileInterpretationParameters and cancellation state.</param>
+        public static void InterpretDataFileBounded(object s, DoWorkEventArgs e)
         {
             FileInterpretationParameters arguments = (FileInterpretationParameters)e.Argument;
             arguments.Worker?.ReportProgress(0);
@@ -46,15 +55,134 @@ namespace AMR_Engine
             InterpretationConfiguration interpretationConfig =
                 InterpretationConfiguration.ReadConfiguration(arguments.ConfigFile);
 
-            int headerLineNumber = 0;
-            List<string> inputColumnNames = new List<string>();
-            List<Dictionary<string, string>> rowValueSets = new List<Dictionary<string, string>>();
-            LoadInputFile(e, arguments, ref headerLineNumber, ref inputColumnNames, rowValueSets);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(arguments.BatchRowLimit);
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(arguments.BatchCharacterLimit);
+            string outputPath = Path.GetFullPath(arguments.OutputFile);
+            string directory = Path.GetDirectoryName(outputPath);
+            string rowsPath = Path.Combine(directory, $".amrie-{Guid.NewGuid():N}.rows.tmp");
+            string outputStagePath = Path.Combine(directory, $".amrie-{Guid.NewGuid():N}.output.tmp");
+            bool rowsCreated = false;
+            bool outputCreated = false;
+            List<string> inputColumnNames = new();
+            List<string> interpretationHeaders = new();
+            HashSet<string> seenInterpretationHeaders = new(StringComparer.Ordinal);
+            List<Dictionary<string, string>> batch = new(arguments.BatchRowLimit);
+            long batchCharacters = 0;
+            long batchMeasurements = 0;
+            long rowsProcessed = 0;
+            long measurementsProcessed = 0;
+            int lastProgress = 0;
 
-            Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults =
-                InterpretIsolates(e, arguments, interpretationConfig, inputColumnNames, rowValueSets);
+            void Observe(string stage) => arguments.ProgressObserver?.Invoke(
+                new(stage, rowsProcessed, measurementsProcessed, batch.Count, batchCharacters));
 
-            GenerateOutputFile(e, arguments, interpretationConfig, inputColumnNames, interpretationResults);  
+            void ReportProgress(int percentage)
+            {
+                if (percentage > lastProgress)
+                {
+                    lastProgress = percentage;
+                    arguments.Worker?.ReportProgress(percentage);
+                }
+            }
+
+            try
+            {
+                // Stage owning values/results, not formatted rows: the exact global header order is only known at EOF.
+                using FileStream rowsStream = new(rowsPath, FileMode.CreateNew, FileAccess.ReadWrite,
+                    FileShare.None, 65536, FileOptions.SequentialScan);
+                rowsCreated = true;
+                using (BinaryWriter rowsWriter = new(rowsStream, Encoding.UTF8, leaveOpen: true))
+                using (FileStream input = new(arguments.InputFile, FileMode.Open, FileAccess.Read,
+                    FileShare.Read, 4096, FileOptions.SequentialScan))
+                using (DelimitedFileReader parser = new(new StreamReader(input, Encoding.UTF8,
+                    detectEncodingFromByteOrderMarks: true), arguments.Delimiter))
+                {
+                    void FlushBatch()
+                    {
+                        Observe("interpreting");
+                        InterpretAndStageBatch(e, arguments, interpretationConfig, inputColumnNames, batch,
+                            rowsWriter, interpretationHeaders, seenInterpretationHeaders);
+                        if (e.Cancel)
+                            return;
+                        rowsProcessed += batch.Count;
+                        measurementsProcessed += batchMeasurements;
+                        batch.Clear();
+                        batchCharacters = 0;
+                        batchMeasurements = 0;
+                        ReportProgress((int)(input.Position * 80.0 / input.Length));
+                        Observe("interpreting");
+                    }
+
+                    foreach (InputRow row in ReadInputRows(e, arguments, parser, inputColumnNames))
+                    {
+                        if (batch.Count > 0 && batchCharacters > arguments.BatchCharacterLimit - row.Characters)
+                        {
+                            FlushBatch();
+                            if (e.Cancel)
+                                return;
+                        }
+                        batch.Add(row.Values);
+                        batchCharacters += row.Characters;
+                        batchMeasurements += row.Measurements;
+                        if (batch.Count >= arguments.BatchRowLimit || batchCharacters >= arguments.BatchCharacterLimit)
+                        {
+                            FlushBatch();
+                            if (e.Cancel)
+                                return;
+                        }
+                    }
+                    if (e.Cancel)
+                        return;
+                    if (batch.Count > 0)
+                        FlushBatch();
+                    if (IsCancelled(e, arguments))
+                        return;
+                }
+
+                ReportProgress(80);
+                rowsStream.Position = 0;
+                using (FileStream output = new(outputStagePath, FileMode.CreateNew, FileAccess.Write,
+                    FileShare.None, 65536, FileOptions.SequentialScan))
+                {
+                    outputCreated = true;
+                    using (StreamWriter writer = new(output, new UTF8Encoding(false), leaveOpen: true))
+                    using (BinaryReader rowsReader = new(rowsStream, Encoding.UTF8, leaveOpen: true))
+                    {
+                        Observe("writing");
+                        WriteOutputRows(e, arguments, interpretationConfig, inputColumnNames,
+                            ReadStagedRows(rowsReader, rowsProcessed), interpretationHeaders, writer,
+                            completed =>
+                            {
+                                ReportProgress(80 + (int)(completed * 19.0 / rowsProcessed));
+                            });
+                        if (IsCancelled(e, arguments))
+                            return;
+                    }
+                    output.Flush(flushToDisk: true);
+                }
+                rowsStream.Dispose();
+                File.Delete(rowsPath);
+                rowsCreated = false;
+                Observe("publishing");
+                if (IsCancelled(e, arguments))
+                    return;
+                File.Move(outputStagePath, outputPath, overwrite: true);
+                outputCreated = false;
+                ReportProgress(100);
+            }
+            finally
+            {
+                try
+                {
+                    if (outputCreated)
+                        File.Delete(outputStagePath);
+                }
+                finally
+                {
+                    if (rowsCreated)
+                        File.Delete(rowsPath);
+                }
+            }
         }
 
         /// <summary>
@@ -64,12 +192,7 @@ namespace AMR_Engine
         /// <returns></returns>
         public static Dictionary<string, int> GetResourceHeaders(string headerLine)
         {
-            Dictionary<string, int> headerMap = new Dictionary<string, int>();
-            string[] headerValues = SplitLine(headerLine, Constants.Delimiters.TabChar);
-            for (int i = 0; i < headerValues.Length; i++)
-                headerMap.Add(headerValues[i], i);
-
-            return headerMap;
+            return GetResourceHeaders(SplitLine(headerLine, Constants.Delimiters.TabChar));
         }
 
         /// <summary>
@@ -176,156 +299,160 @@ namespace AMR_Engine
         #region Private
 
         /// <summary>
-        /// Convert the input file into a list of dictionaries for each row to facilitate processing.
+        /// Read owning row dictionaries with the existing header, trimming and measurement-sharing behavior.
         /// </summary>
         /// <param name="e"></param>
         /// <param name="arguments"></param>
-        /// <param name="headerLineNumber"></param>
         /// <param name="inputColumnNames"></param>
-        /// <param name="rowValueSets"></param>
-        private static void LoadInputFile(
+        /// <param name="parser"></param>
+        private static IEnumerable<InputRow> ReadInputRows(
             DoWorkEventArgs e,
             FileInterpretationParameters arguments,
-            ref int headerLineNumber,
-            ref List<string> inputColumnNames,
-            List<Dictionary<string, string>> rowValueSets)
+            DelimitedFileReader parser,
+            List<string> inputColumnNames)
         {
-            using (DelimitedFileReader parser =
-                new DelimitedFileReader(arguments.InputFile, arguments.Delimiter))
+            string[] headerNames = parser.ReadFields();
+            do
             {
-                // In this context the dictionary is in the reverse order (index -> name).
-                Dictionary<int, string> headers = new Dictionary<int, string>();
-
-                // Locate the first non-blank row. Use this as the header.
-                string[] headerNames = parser.ReadFields();
-                do
+                if (headerNames.Any(h => !string.IsNullOrWhiteSpace(h)))
                 {
-                    if (headerNames.Where(h => !string.IsNullOrWhiteSpace(h)).Any())
-                    {
-                        // We found a non-blank row. Use this as the header.
-                        for (int x = 0; x < headerNames.Length; x++)
-                            headers.Add(x, headerNames[x]);
-
-                        break;
-                    }
-                    else
-                        headerLineNumber++;
-
-                    headerNames = parser.ReadFields();
-                } while (headerNames != null);
-
-                inputColumnNames = headers.Values.ToList();
-
-                int NumberOfColumns = inputColumnNames.Count;
-                bool[] antibioticColumns = new bool[NumberOfColumns];
-                for (int x = 0; x < NumberOfColumns; x++)
-                {
-                    string columnName = inputColumnNames[x];
-                    antibioticColumns[x] = !string.IsNullOrWhiteSpace(columnName)
-                        && IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(columnName);
+                    inputColumnNames.AddRange(headerNames);
+                    break;
                 }
+                headerNames = parser.ReadFields();
+            } while (headerNames != null);
 
-                Dictionary<string, string> canonicalizedAntibioticValues = new Dictionary<string, string>(StringComparer.Ordinal);
-                int canonicalizedAntibioticCharacters = 0;
+            int numberOfColumns = inputColumnNames.Count;
+            bool[] antibioticColumns = new bool[numberOfColumns];
+            for (int x = 0; x < numberOfColumns; x++)
+            {
+                string columnName = inputColumnNames[x];
+                antibioticColumns[x] = !string.IsNullOrWhiteSpace(columnName)
+                    && IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(columnName);
+            }
 
-                // Process the rest of the data file.
-                while (true)
+            Dictionary<string, string> canonicalizedAntibioticValues = new Dictionary<string, string>(StringComparer.Ordinal);
+            int canonicalizedAntibioticCharacters = 0;
+
+            while (true)
+            {
+                if (IsCancelled(e, arguments))
+                    yield break;
+
+                if (!parser.Read())
+                    break;
+                string[] values = parser.Fields;
+
+                if (values.Length >= numberOfColumns && values.Any(v => !string.IsNullOrWhiteSpace(v)))
                 {
-                    if (arguments.Worker != null && arguments.Worker.CancellationPending)
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
+                    Dictionary<string, string> rowValues = new Dictionary<string, string>(values.Count(v => !string.IsNullOrWhiteSpace(v)));
+                    long characters = 0;
+                    int measurements = 0;
 
-                    if (!parser.Read())
-                        break;
-                    string[] values = parser.Fields;
-
-                    if (values.Length >= NumberOfColumns && values.Any(v => !string.IsNullOrWhiteSpace(v)))
-                    {
-                        // Process this data row.
-                        // Transfer the lines into value dictionaries.
-                        // Don't add empty fields to the row's set.
-                        // Don't add anything for a blank line.
-
-                        // Transfer the value array into a row dictionary.
-                        Dictionary<string, string> rowValues = new Dictionary<string, string>(values.Count(v => !string.IsNullOrWhiteSpace(v)));
-
-                        for (int x = 0; x < values.Length; x++)
-                            if (!string.IsNullOrWhiteSpace(values[x]))
+                    for (int x = 0; x < values.Length; x++)
+                        if (!string.IsNullOrWhiteSpace(values[x]))
+                        {
+                            string value = values[x];
+                            if (antibioticColumns[x] && value.Length <= MaxCanonicalizedAntibioticValueLength
+                                && canonicalizedAntibioticValues.TryGetValue(value, out string canonicalizedValue))
                             {
-                                string value = values[x];
-                                if (antibioticColumns[x] && value.Length <= MaxCanonicalizedAntibioticValueLength
-                                    && canonicalizedAntibioticValues.TryGetValue(value, out string canonicalizedValue))
-                                {
-                                    value = canonicalizedValue;
-                                }
-                                else if (antibioticColumns[x] && value.Length <= MaxCanonicalizedAntibioticValueLength
-                                    && canonicalizedAntibioticValues.Count < MaxCanonicalizedAntibioticValues
-                                    && canonicalizedAntibioticCharacters <= MaxCanonicalizedAntibioticCharacters - value.Length)
-                                {
-                                    canonicalizedAntibioticValues.Add(value, value);
-                                    canonicalizedAntibioticCharacters += value.Length;
-                                }
-
-                                rowValues.Add(headers[x], value);
+                                value = canonicalizedValue;
+                            }
+                            else if (antibioticColumns[x] && value.Length <= MaxCanonicalizedAntibioticValueLength
+                                && canonicalizedAntibioticValues.Count < MaxCanonicalizedAntibioticValues
+                                && canonicalizedAntibioticCharacters <= MaxCanonicalizedAntibioticCharacters - value.Length)
+                            {
+                                canonicalizedAntibioticValues.Add(value, value);
+                                canonicalizedAntibioticCharacters += value.Length;
                             }
 
-                        rowValueSets.Add(rowValues);
-                    }
+                            rowValues.Add(inputColumnNames[x], value);
+                            characters += value.Length;
+                            if (antibioticColumns[x])
+                                measurements++;
+                        }
+
+                    yield return new(rowValues, characters, measurements);
                 }
             }
         }
 
+        private readonly record struct InputRow(Dictionary<string, string> Values, long Characters, int Measurements);
+
+        private static bool IsCancelled(DoWorkEventArgs e, FileInterpretationParameters arguments)
+        {
+            if (arguments.Worker?.CancellationPending == true)
+                e.Cancel = true;
+            return e.Cancel;
+        }
+
+        private static void WriteDictionary(BinaryWriter writer, Dictionary<string, string> values)
+        {
+            writer.Write(values.Count);
+            foreach (var value in values)
+            {
+                writer.Write(value.Key);
+                writer.Write(value.Value);
+            }
+        }
+
+        private static Dictionary<string, string> ReadDictionary(BinaryReader reader)
+        {
+            int count = reader.ReadInt32();
+            if (count < 0)
+                throw new InvalidDataException("Invalid staged row field count.");
+            Dictionary<string, string> values = new(count);
+            for (int index = 0; index < count; index++)
+                values.Add(reader.ReadString(), reader.ReadString());
+            return values;
+        }
+
+        private static IEnumerable<Tuple<Dictionary<string, string>, Dictionary<string, string>>> ReadStagedRows(
+            BinaryReader reader, long rowCount)
+        {
+            for (long row = 0; row < rowCount; row++)
+                yield return new(ReadDictionary(reader), ReadDictionary(reader));
+        }
+
         /// <summary>
-        /// Parallel interpretation for all rows in the provided data set.
+        /// Interpret and stage one bounded batch in input order.
         /// </summary>
-        /// <param name="e"></param>
-        /// <param name="arguments"></param>
-        /// <param name="interpretationConfig"></param>
-        /// <param name="inputColumnNames"></param>
-        /// <param name="rowValueSets"></param>
-        /// <returns></returns>
-        private static Tuple<Dictionary<string, string>, Dictionary<string, string>>[] InterpretIsolates(
+        private static void InterpretAndStageBatch(
             DoWorkEventArgs e,
             FileInterpretationParameters arguments,
             InterpretationConfiguration interpretationConfig,
             List<string> inputColumnNames,
-            List<Dictionary<string, string>> rowValueSets)
+            List<Dictionary<string, string>> rowValueSets,
+            BinaryWriter writer,
+            List<string> interpretationHeaders,
+            HashSet<string> seenHeaders)
         {
-            int remainingLines = rowValueSets.Count;
-            int blockSize = Math.Max(1, remainingLines / Environment.ProcessorCount);
-            int totalBlocks = (remainingLines / blockSize) + (remainingLines % blockSize == 0 ? 0 : 1);
+            int rowCount = rowValueSets.Count;
+            int blockSize = Math.Max(1, rowCount / Environment.ProcessorCount);
+            int totalBlocks = (rowCount / blockSize) + (rowCount % blockSize == 0 ? 0 : 1);
             int effectiveGuidelineYear = arguments.GuidelineYear == -1
                 ? Convert.ToInt32(interpretationConfig.GuidelineYear)
                 : arguments.GuidelineYear;
             Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults =
-                new Tuple<Dictionary<string, string>, Dictionary<string, string>>[remainingLines];
+                new Tuple<Dictionary<string, string>, Dictionary<string, string>>[rowCount];
 
-            object countSyncObject = new object();
-            int rowCount = 0;
-            int previousProgressReport = 0;
-
-			// Determine the set of breakpoints needed for the data.
-			List<Tuple<string, string, string>> distinctInterpretationKeys =
-				rowValueSets.SelectMany(row =>
-				{
-					List<Tuple<string, string, string>> combinationsForRow = new();
-
-                    IEnumerable<string> antibioticFields = row.Keys.Where(k => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(k));
-
-                    if (row.ContainsKey(Constants.KeyFields.ORGANISM) && antibioticFields.Count() > 0)
-                    {
-                        foreach (string drug in antibioticFields)
-                        {
-                            // Determine the set of drug-bug combinations for this data row.
-                            AntibioticComponents thisAntibiotic = new AntibioticComponents(drug);
-                            combinationsForRow.Add(new Tuple<string, string, string>(row[Constants.KeyFields.ORGANISM].Trim(), thisAntibiotic.Guideline, drug));
-                        }
-                    }
-
-                    return combinationsForRow;
-                }).Distinct().ToList();
+            HashSet<Tuple<string, string, string>> keys = new();
+            foreach (var row in rowValueSets)
+            {
+                if (IsCancelled(e, arguments))
+                    return;
+                if (!row.TryGetValue(Constants.KeyFields.ORGANISM, out string organism))
+                    continue;
+                foreach (string drug in row.Keys.Where(k => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(k)))
+                {
+                    if (keys.Count >= MaxBatchPreheatKeys)
+                        break;
+                    AntibioticComponents antibiotic = new(drug);
+                    keys.Add(new(organism.Trim(), antibiotic.Guideline, drug));
+                }
+                if (keys.Count >= MaxBatchPreheatKeys)
+                    break;
+            }
 
             // Preheat breakpoint cache.
             AntibioticSpecificInterpretationRules.PreheatBreakpointCache(
@@ -333,17 +460,12 @@ namespace AMR_Engine
                 effectiveGuidelineYear,
                 interpretationConfig.PrioritizedBreakpointTypes,
                 interpretationConfig.PrioritizedSitesOfInfection,
-                distinctInterpretationKeys,
-                arguments.Worker);
+                keys.ToList(),
+                arguments.Worker,
+                reportProgress: false);
 
-            arguments.Worker?.ReportProgress(0);
-
-            if (arguments.Worker != null && arguments.Worker.CancellationPending)
-            {
-                e.Cancel = true;
-                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = [];
-                return _;
-            }
+            if (IsCancelled(e, arguments))
+                return;
 
             int isCancelled = 0;
 
@@ -381,29 +503,24 @@ namespace AMR_Engine
                     // No 2 threads will have the same line number, so there is no need for a lock while saving to the results array.
                     interpretationResults[lineNumber] = new Tuple<Dictionary<string, string>, Dictionary<string, string>>(rowValueSets[lineNumber], results);
 
-                    lock (countSyncObject)
-                    {
-                        rowCount++;
-
-                        int currentProgress = rowCount * 100 / remainingLines;
-                        if (currentProgress > previousProgressReport)
-                        {
-                            // Only report whole percentage changes.
-                            previousProgressReport = currentProgress;
-                            arguments.Worker?.ReportProgress(currentProgress);
-                        }
-                    }
                 }
             });
 
             if (System.Threading.Volatile.Read(ref isCancelled) == 1)
-            {
                 e.Cancel = true;
-                Tuple<Dictionary<string, string>, Dictionary<string, string>>[] _ = [];
-                return _;
-            }                
-            else
-                return interpretationResults;
+
+            if (IsCancelled(e, arguments))
+                return;
+            foreach (var row in interpretationResults)
+            {
+                if (IsCancelled(e, arguments))
+                    return;
+                foreach (string header in row.Item2.Keys)
+                    if (seenHeaders.Add(header))
+                        interpretationHeaders.Add(header);
+                WriteDictionary(writer, row.Item1);
+                WriteDictionary(writer, row.Item2);
+            }
         }
 
         /// <summary>
@@ -412,22 +529,19 @@ namespace AMR_Engine
         /// <param name="arguments"></param>
         /// <param name="interpretationConfig"></param>
         /// <param name="interpretationResults"></param>
-        private static void GenerateOutputFile(DoWorkEventArgs e,
+        private static void WriteOutputRows(DoWorkEventArgs e,
             FileInterpretationParameters arguments,
             InterpretationConfiguration interpretationConfig,
             List<string> inputColumnNames,
-            Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults)
+            IEnumerable<Tuple<Dictionary<string, string>, Dictionary<string, string>>> interpretationResults,
+            List<string> interpretationHeaders,
+            TextWriter writer,
+            Action<long> rowWritten)
         {
-            if (arguments.Worker != null && arguments.Worker.CancellationPending)
-            {
-                e.Cancel = true;
+            if (IsCancelled(e, arguments))
                 return;
-            }
 
             const string InterpSuffix = "_INTERP";
-
-            IEnumerable<string> interpretationHeaders =
-                interpretationResults.SelectMany(v => v.Item2.Keys).Distinct();
 
             List<string> outputHeaders = inputColumnNames.ToList();
             List<string> antibioticFields = null;
@@ -452,99 +566,95 @@ namespace AMR_Engine
                 outputHeaders = outputHeaders.Except(antibioticFields).Concat(OutputAntibioticColumns.VerticalAntibioticFields).ToList();
             }
 
-            using (StreamWriter writer = new StreamWriter(arguments.OutputFile))
+            writer.WriteLine(ToLine(outputHeaders, Constants.Delimiters.TabChar));
+            long completedRows = 0;
+
+            foreach (Tuple<Dictionary<string, string>, Dictionary<string, string>> row in interpretationResults)
             {
-                writer.WriteLine(ToLine(outputHeaders, Constants.Delimiters.TabChar));
+                if (IsCancelled(e, arguments))
+                    return;
 
-				foreach (Tuple<Dictionary<string, string>, Dictionary<string, string>> row in interpretationResults)
-				{
-					if (arguments.Worker != null && arguments.Worker.CancellationPending)
-					{
-						e.Cancel = true;
-						return;
-					}
+                if (interpretationConfig.HorizontalAntibioticResults)
+                {
+                    List<string> thisRow = new List<string>();
 
-                    if (interpretationConfig.HorizontalAntibioticResults)
+                    foreach (string h in outputHeaders)
                     {
-                        List<string> thisRow = new List<string>();
+                        if (row.Item1.ContainsKey(h))
+                            thisRow.Add(row.Item1[h]);
 
-                        foreach (string h in outputHeaders)
+                        else if (h.EndsWith(InterpSuffix))
                         {
-                            if (row.Item1.ContainsKey(h))
-                                thisRow.Add(row.Item1[h]);
+                            string drugCode = h.Substring(0, h.Length - InterpSuffix.Length);
 
-                            else if (h.EndsWith(InterpSuffix))
+                            if (row.Item2.ContainsKey(drugCode))
                             {
-                                string drugCode = h.Substring(0, h.Length - InterpSuffix.Length);
+                                string thisInterp = row.Item2[drugCode];
+                                if (!interpretationConfig.IncludeInterpretationComments)
+                                    thisInterp = IsolateInterpretation.RemoveComments(thisInterp);
 
-                                if (row.Item2.ContainsKey(drugCode))
-                                {
-                                    string thisInterp = row.Item2[drugCode];
-                                    if (!interpretationConfig.IncludeInterpretationComments)
-                                        thisInterp = IsolateInterpretation.RemoveComments(thisInterp);
-
-                                    thisRow.Add(thisInterp);
-                                }
-                                else
-                                    thisRow.Add(string.Empty);
+                                thisRow.Add(thisInterp);
                             }
-
-                            else thisRow.Add(string.Empty);
+                            else
+                                thisRow.Add(string.Empty);
                         }
 
-                        writer.WriteLine(ToLine(thisRow, Constants.Delimiters.TabChar));
+                        else thisRow.Add(string.Empty);
+                    }
+
+                    writer.WriteLine(ToLine(thisRow, Constants.Delimiters.TabChar));
+                }
+                else
+                {
+                    List<string> repeatedValueList = new List<string>();
+
+                    // Repeat all but the final 3 columns, which are the variable antibiotics.
+                    foreach (string h in outputHeaders.Take(outputHeaders.Count - 3))
+                    {
+                        if (row.Item1.ContainsKey(h))
+                            repeatedValueList.Add(row.Item1[h]);
+
+                        else
+                            repeatedValueList.Add(string.Empty);
+                    }
+
+                    string repeatedOutputString = ToLine(repeatedValueList, Constants.Delimiters.TabChar);
+
+                    if (!antibioticFields.Any(a => row.Item1.ContainsKey(a)))
+                    {
+                        // This row didn't have any measurements.
+                        // We will still write 1 row to the output with blanks for the final three fields.
+                        writer.WriteLine(string.Join(Constants.Delimiters.TabChar, repeatedOutputString, ToLine([string.Empty, string.Empty, string.Empty], Constants.Delimiters.TabChar)));
                     }
                     else
                     {
-                        List<string> repeatedValueList = new List<string>();
-
-                        // Repeat all but the final 3 columns, which are the variable antibiotics.
-                        foreach (string h in outputHeaders.Take(outputHeaders.Count - 3))
+                        // We need to write one row per antibiotic measurement,
+                        // whether it has an associated interpretation or not.
+                        foreach (string antibiotic in antibioticFields)
                         {
-                            if (row.Item1.ContainsKey(h))
-                                repeatedValueList.Add(row.Item1[h]);
+                            if (row.Item1.ContainsKey(antibiotic))
+                            {
+                                List<string> antibioticRowValues = new List<string>() { antibiotic, row.Item1[antibiotic] };
 
-                            else
-                                repeatedValueList.Add(string.Empty);
-                        }
+                                if (row.Item2.ContainsKey(antibiotic))
+                                {
+                                    string thisInterp = row.Item2[antibiotic];
+                                    if (!interpretationConfig.IncludeInterpretationComments)
+                                        thisInterp = IsolateInterpretation.RemoveComments(thisInterp);
 
-                        string repeatedOutputString = ToLine(repeatedValueList, Constants.Delimiters.TabChar);
-
-						if (!antibioticFields.Any(a => row.Item1.ContainsKey(a)))
-						{
-							// This row didn't have any measurements.
-							// We will still write 1 row to the output with blanks for the final three fields.
-							writer.WriteLine(string.Join(Constants.Delimiters.TabChar, repeatedOutputString, ToLine([string.Empty, string.Empty, string.Empty], Constants.Delimiters.TabChar)));
-						}
-						else
-						{
-							// We need to write one row per antibiotic measurement,
-							// whether it has an associated interpretation or not.
-							foreach (string antibiotic in antibioticFields)
-							{
-								if (row.Item1.ContainsKey(antibiotic))
-								{
-									List<string> antibioticRowValues = new List<string>() { antibiotic, row.Item1[antibiotic] };
-
-                                    if (row.Item2.ContainsKey(antibiotic))
-                                    {
-                                        string thisInterp = row.Item2[antibiotic];
-                                        if (!interpretationConfig.IncludeInterpretationComments)
-                                            thisInterp = IsolateInterpretation.RemoveComments(thisInterp);
-
-                                        antibioticRowValues.Add(thisInterp);
-                                    }
-                                    else
-                                        antibioticRowValues.Add(string.Empty);
-
-									string outputLine = string.Join(Constants.Delimiters.TabChar, repeatedOutputString, ToLine(antibioticRowValues, Constants.Delimiters.TabChar));
-
-                                    writer.WriteLine(outputLine);
+                                    antibioticRowValues.Add(thisInterp);
                                 }
+                                else
+                                    antibioticRowValues.Add(string.Empty);
+
+                                string outputLine = string.Join(Constants.Delimiters.TabChar, repeatedOutputString, ToLine(antibioticRowValues, Constants.Delimiters.TabChar));
+
+                                writer.WriteLine(outputLine);
                             }
                         }
                     }
                 }
+                rowWritten(++completedRows);
             }
         }
 

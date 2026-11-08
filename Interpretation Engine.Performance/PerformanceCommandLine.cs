@@ -19,7 +19,8 @@ internal sealed record PerformanceOptions(
     int BatchSize,
     int? MaxRows,
     int Runs,
-    long MaxWholeFileBytes);
+    long MaxWholeFileBytes,
+    string? MemoryReportFile = null);
 
 internal static class PerformanceCommandLine
 {
@@ -35,6 +36,7 @@ internal static class PerformanceCommandLine
           --manifest <path>             Generator manifest for input hash/size metadata.
           --output <path>               Write interpreted tab-delimited output. Stream mode discards output if omitted.
           --report <path>               Write the JSON measurement report without overwriting an existing file.
+          --memory-report <path>        Stream 250-ms unforced memory/cache samples as JSONL; file mode, one pass only.
           --delimiter <char>            Input delimiter (default: |).
           --batch-size <count>          Rows retained per bounded batch (default: 1024; maximum: 10000).
           --max-rows <count>            Limit stream mode to a prefix; cannot be used with --mode file.
@@ -142,6 +144,12 @@ internal static class PerformanceCommandLine
         string? outputPath = GetOptionalFullPath(values, "--output");
         string? reportPath = GetOptionalFullPath(values, "--report");
         string? manifestPath = GetOptionalFullPath(values, "--manifest");
+        string? memoryReportPath = GetOptionalFullPath(values, "--memory-report");
+        if (memoryReportPath is not null && (mode != PerformanceMode.EngineFile || runs != 1))
+        {
+            error = "--memory-report requires --mode file with --runs 1.";
+            return false;
+        }
 
         options = new PerformanceOptions(
             inputPath,
@@ -154,7 +162,8 @@ internal static class PerformanceCommandLine
             batchSize,
             maxRows,
             runs,
-            (long)wholeFileLimitMegabytes * 1024 * 1024);
+            (long)wholeFileLimitMegabytes * 1024 * 1024,
+            memoryReportPath);
         return true;
     }
 

@@ -40,7 +40,7 @@ namespace Interpretation_CLI
 						outputFile, null);
 
 					DoWorkEventArgs e = new(fileArgs);
-					IO_Library.InterpretDataFile(null, e);
+					IO_Library.InterpretDataFileBounded(null, e);
 					return 0;
 				}
 				catch (Exception ex)

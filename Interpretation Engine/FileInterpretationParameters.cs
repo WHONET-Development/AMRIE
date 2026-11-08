@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
 namespace AMR_Engine
 {
@@ -24,5 +25,12 @@ namespace AMR_Engine
         public readonly string ConfigFile;
         public readonly string OutputFile;
         public readonly BackgroundWorker Worker;
+
+        internal int BatchRowLimit { get; set; } = 2048;
+        internal long BatchCharacterLimit { get; set; } = 4194304;
+        internal Action<FileProcessingProgress> ProgressObserver { get; set; }
     }
+
+    internal sealed record FileProcessingProgress(string Stage, long RowsProcessed,
+        long MeasurementsProcessed, int BatchRows, long BatchCharacters);
 }
