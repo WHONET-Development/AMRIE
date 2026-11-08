@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>AMRIE.WinUI</RootNamespace>
     <AssemblyName>AMRIE.WinUI</AssemblyName>
@@ -56,8 +56,7 @@
   <!-- Ensure XAML binary resources (.xbf) and .pri files are copied for unpackaged deployment -->
   <Target Name="CopyXamlResourcesForUnpackaged" AfterTargets="Publish">
     <ItemGroup>
-      <_XamlResources Include="$(OutputPath)*.xbf" />
-      <_XamlResources Include="$(OutputPath)Pages\*.xbf" />
+      <_XamlResources Include="$(OutputPath)**\*.xbf" Exclude="$(OutputPath)publish\**;$(PublishDir)**" />
       <_PriResources Include="$(OutputPath)$(AssemblyName).pri" />
     </ItemGroup>
     <Copy SourceFiles="@(_XamlResources)" DestinationFolder="$(PublishDir)%(RecursiveDir)" SkipUnchangedFiles="true" />

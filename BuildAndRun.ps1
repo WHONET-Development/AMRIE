@@ -3,6 +3,7 @@
     Build and launch the WinUI 3 desktop application using dotnet run or WinApp CLI (winapp).
 .DESCRIPTION
     By default launches in unpackaged desktop mode (requires no Developer Mode).
+    Requires the .NET 10 SDK selected by global.json.
     Pass -Packaged to launch with WinApp CLI package registration.
 .EXAMPLE
     .\BuildAndRun.ps1

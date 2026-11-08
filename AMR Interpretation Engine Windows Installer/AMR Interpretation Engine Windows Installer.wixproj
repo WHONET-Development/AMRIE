@@ -2,6 +2,9 @@
   <PropertyGroup>
     <OutputName>AMR_Interpretation_Engine</OutputName>
     <Platforms>x64;ARM64</Platforms>
+    <Version Condition="'$(Version)' == ''">$([System.DateTime]::Now.ToString("yy.M.d"))</Version>
+    <Title>AMR Interpretation Engine</Title>
+    <DefineConstants>$(DefineConstants);Title=$(Title);Version=$(Version)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Interpretation CLI\Interpretation CLI.csproj">

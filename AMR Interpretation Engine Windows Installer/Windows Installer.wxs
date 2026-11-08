@@ -6,11 +6,12 @@
 			 Manufacturer="!(loc.ManufacturerName)" UpgradeCode="1a6ff147-1163-4cc4-baa8-0719a40ceb05" InstallerVersion="200">
 
 		
-		<PropertyRef Id="WIX_IS_NETFRAMEWORK_48_OR_LATER_INSTALLED" />
+		<netfx:DotNetCompatibilityCheck Property="DOTNET_DESKTOP_COMPATIBLE" RuntimeType="desktop"
+			Platform="$(sys.BUILDARCH)" Version="10.0.0" RollForward="latestMinor" />
 
 		<Launch
-		  Message="This application requires .NET Framework 4.8 or later."
-		  Condition="Installed OR WIX_IS_NETFRAMEWORK_48_OR_LATER_INSTALLED"
+		  Message="This application requires the .NET 10 Desktop Runtime for this installation's architecture."
+		  Condition="Installed OR DOTNET_DESKTOP_COMPATIBLE = 0"
 		/>
 
 		<!-- Prevent downgrades. To downgrade, the software must be uninstalled through Add/Remove programs first. -->

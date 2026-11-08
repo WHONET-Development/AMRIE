@@ -3,6 +3,7 @@
     Build and publish AMR Interpretation Engine (AMRIE.WinUI) as a Windows Installer (MSI).
 .DESCRIPTION
     Builds the complete Windows Installer (MSI) via WiX v5 (AMRIE.WinUI.Installer).
+    Requires the .NET 10 SDK selected by global.json.
     Version is computed automatically from the build date (yy.M.d), or can be overridden via -Version.
 .EXAMPLE
     .\Publish-WinUI.ps1
@@ -81,7 +82,7 @@ if ($Type -eq "Unpackaged") {
         exit $LASTEXITCODE
     }
 
-    $pubDir = "AMRIE.WinUI\bin\$Platform\$Configuration\net8.0-windows10.0.26100.0\win-$Platform\publish\"
+    $pubDir = "AMRIE.WinUI\bin\$Platform\$Configuration\net10.0-windows10.0.26100.0\win-$Platform\publish\"
     Write-Host "`nUnpackaged binaries published successfully: $pubDir" -ForegroundColor Green
 }
 

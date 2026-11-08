@@ -12,7 +12,7 @@ There are three sets of needs that the solution aims to support:
 2. Command line use
 3. Library integration with an external system
 
-The library targets .NET 8 and uses CsvHelper 34.0.0 for delimited-file parsing. It can be integrated with software on any platform that supports .NET 8,
+The library targets .NET 10 LTS and uses CsvHelper 34.0.0 for delimited-file parsing. It can be integrated with software on any platform that supports .NET 10,
 including Windows, GNU/Linux and macOS.
 
 The interactive and command line interfaces exercise various interpretation features, demonstrating how one might incorporate the library into their systems. The user
@@ -40,7 +40,7 @@ Subsequent runs of the system will utilize the breakpoint cache, greatly improvi
 
 ## Library integration
 
-Reference `Interpretation Engine\Interpretation Engine.csproj` from a .NET 8 application. The engine loads its tab-delimited data files from the `Resources` directory beneath `AppContext.BaseDirectory`; keep those resources beside the application when deploying the library. A project reference copies the engine's configured runtime resources and CsvHelper dependency to the application's output directory. If deploying the assembly separately, include `CsvHelper.dll` (34.0.0), keep the application's generated dependency and runtime manifests, and copy the required resource files into `Resources` yourself.
+Reference `Interpretation Engine\Interpretation Engine.csproj` from a .NET 10 application. The engine loads its tab-delimited data files from the `Resources` directory beneath `AppContext.BaseDirectory`; keep those resources beside the application when deploying the library. A project reference copies the engine's configured runtime resources and CsvHelper dependency to the application's output directory. If deploying the assembly separately, include `CsvHelper.dll` (34.0.0), keep the application's generated dependency and runtime manifests, and copy the required resource files into `Resources` yourself.
 
 File parsing retains the previous delimiter, quoting, Unicode whitespace, BOM detection, multiline line endings, trimming, and variable-field-count behavior. Malformed quoted records still raise `MalformedLineException`; CsvHelper's recovery and string pooling are not enabled.
 
@@ -60,3 +60,16 @@ string result = IsolateInterpretation.GetSingleInterpretation(configuration, "sp
 ```
 
 The example returns the interpretation for a pneumococcal amoxicillin/clavulanic-acid MIC. Configure the guideline year, enabled expert rules, breakpoint types, infection sites, ETest rounding, and intrinsic-resistance handling through `InterpretationConfiguration` before calling the engine. For batch files, call `IO_Library.InterpretDataFileBounded` with a `DoWorkEventArgs` containing `FileInterpretationParameters`; it uses the same installed resources.
+
+## Building and running
+
+Install a stable .NET 10 SDK (10.0.100 or later in the 10.0 feature bands selected by `global.json`). Windows desktop and installer builds also require Visual Studio with WinUI build tools and the Windows SDK. Use a Visual Studio Developer PowerShell for Release builds so the existing code-signing tools and certificate are available.
+
+Build `Antimicrobial Interpretation System.sln` in Debug or Release using the x64 solution platform to include both MSI projects. `BuildAndRun.ps1` builds and launches WinUI; `Publish-WinUI.ps1` builds its MSI or publishes unpackaged binaries. The legacy MSI requires an architecture-matched .NET 10 Desktop Runtime on the destination machine; the WinUI MSI includes its private runtime. The release-to-winget workflow only submits existing release assets and does not install a .NET SDK.
+
+To interpret the bundled pipe-delimited sample (the generated output is tab-delimited):
+
+```powershell
+dotnet run --project "Interpretation CLI\Interpretation CLI.csproj" -- FILE "Interpretation Engine\Resources\SampleConfig.json" "|" "Interpretation Engine\Resources\SampleInputFile.txt" "$env:TEMP\AMRIE-sample-output.txt"
+dotnet test "Interpretation Engine.Tests\Interpretation Engine.Tests.csproj"
+```

@@ -1,6 +1,6 @@
 # Interpretation Engine Performance Harness
 
-This opt-in .NET 8 console app measures the existing CPU interpretation engine. It has a one-way project reference to `Interpretation Engine` and adds no packages or CUDA dependencies.
+This opt-in .NET 10 console app measures the existing CPU interpretation engine. It has a one-way project reference to `Interpretation Engine` and adds no packages or CUDA dependencies.
 
 ## Modes
 

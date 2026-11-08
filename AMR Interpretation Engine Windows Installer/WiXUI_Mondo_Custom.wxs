@@ -29,7 +29,7 @@ Patch dialog sequence:
 	 xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
 	<Fragment>
-		<UI Id="WixUI_Mondo_Custom_X86">
+		<UI Id="WixUI_Mondo_Custom_$(sys.BUILDARCHSHORT)">
 			<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
 			<TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
 			<TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
@@ -51,7 +51,7 @@ Patch dialog sequence:
 			<Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg" Condition="NOT Installed AND NOT PATCH" />
 			<Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Condition="Installed AND PATCH" />
 
-			<Publish Dialog="LicenseAgreementDlg" Control="Print" Event="DoAction" Value="WixUIPrintEula_X86" />
+			<Publish Dialog="LicenseAgreementDlg" Control="Print" Event="DoAction" Value="WixUIPrintEula_$(sys.BUILDARCHSHORT)" />
 			<Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Condition="NOT (WixUI_InstallMode = &quot;Change&quot;)" />
 			<Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg" Order="2" Condition="LicenseAccepted = &quot;1&quot;" />
 

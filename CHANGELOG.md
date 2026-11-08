@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased] - 2026-11-08
+
+### Changed - .NET 10 LTS
+
+- Retargeted the engine, CLI, both desktop applications, tests, data generator, and performance harness to .NET 10 while retaining their Windows target platform versions.
+- Selected the .NET 10 SDK with `global.json` and updated build/publish documentation, MSI payload paths, and the WinUI runtime label.
+- Updated the legacy MSI prerequisite to the architecture-matched .NET 10 Desktop Runtime and supplied its missing build metadata; project-reference payload paths follow the new target frameworks automatically.
+- Matched the legacy MSI's custom UI/actions to the build architecture and isolated the WinUI MSI's self-contained CLI build from cached framework-dependent solution assets, with matching GUI/CLI payload versions.
+- Preserved page/dialog XAML resource subdirectories during WinUI publishing, fixing the pre-existing Debug launch failure without changing interpretation behavior.
+- Kept NuGet package versions, interpretation logic, configuration, and bundled guideline resources unchanged.
+
+### Validation
+
+- The complete x64 solution, including both MSI projects, builds in Debug and Release with zero errors and zero new warnings; the 41 distinct existing MVVM toolkit warnings are unchanged.
+- All 163 tests pass in each configuration. The standalone and MSI CLI outputs for all 622 bundled sample records are byte-identical to the pre-upgrade baseline; the single-interpretation result also matches.
+- The Debug and Release MSI WinUI payloads launch successfully, navigate all four pages, and display the updated runtime label. Baseline outputs and validation logs are retained outside the repository.
+
 ## [Unreleased] – 2026-09-27
 
 ### Added — WinUI 3 Application (`AMRIE.WinUI`)
