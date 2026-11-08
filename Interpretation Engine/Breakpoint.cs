@@ -11,6 +11,8 @@ namespace AMR_Engine
     {
         #region Constants
 
+        private const string AllOrganismsCode = "ALL";
+
         public class BreakpointTypes
         {
             public const string Human = "Human";
@@ -59,6 +61,10 @@ namespace AMR_Engine
 		/// </summary>
 		public static readonly List<Breakpoint> Breakpoints = 
 			LoadBreakpoints(Path.Join(Constants.SystemRootPath, "Resources", "Breakpoints.txt"));
+
+        private static readonly Dictionary<string, List<Breakpoint>> BreakpointsByTest = Breakpoints
+            .GroupBy(breakpoint => breakpoint.WHONET_TEST)
+            .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.Ordinal);
 
         #endregion
 
@@ -188,6 +194,8 @@ namespace AMR_Engine
             List<string> prioritizedSitesOfInfection = null, List<string> prioritizedWhonetAbxFullDrugCodes = null,
             bool returnFirstBreakpointOnly = false)
         {
+            userDefinedBreakpoints ??= new List<Breakpoint>();
+
             if (prioritizedWhonetAbxFullDrugCodes != null && prioritizedWhonetAbxFullDrugCodes.Count() > 1 && returnFirstBreakpointOnly)
                 throw new ArgumentException("There must be exactly one drug specified when only the first breakpoint is requested.");
 
@@ -215,11 +223,17 @@ namespace AMR_Engine
                     Select(abx => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(abx) && abx.EndsWith("E") ? abx.Remove(abx.Length - 1) + "M" : abx).
                     Distinct().ToList();
 
+            IEnumerable<Breakpoint> breakpointCandidates = recodedDrugCodes == null
+                ? Breakpoints
+                : recodedDrugCodes.SelectMany(code => BreakpointsByTest.TryGetValue(code, out List<Breakpoint> matches)
+                    ? matches
+                    : Enumerable.Empty<Breakpoint>());
+
             // Returns an ordered list of breakpoints according to a default order (most specific first),
             // or one that the caller specified through prioritized parameters.
             // Find all matches on ORGANISM_CODE_TYPE, but sort them by specificity.
             IEnumerable<Breakpoint> relevantBreakpoints =
-                from Breakpoint thisBreakpoint in Breakpoints.Concat(userDefinedBreakpoints)
+                from Breakpoint thisBreakpoint in breakpointCandidates.Concat(userDefinedBreakpoints)
                 where prioritizedGuidelineYears is null || prioritizedGuidelineYears.Contains(thisBreakpoint.YEAR) || thisBreakpoint.GUIDELINES == Antibiotic.GuidelineNames.UserDefined
                 where prioritizedGuidelines is null || prioritizedGuidelines.Contains(thisBreakpoint.GUIDELINES) || thisBreakpoint.GUIDELINES == Antibiotic.GuidelineNames.UserDefined
                 where prioritizedBreakpointTypes is null || prioritizedBreakpointTypes.Contains(thisBreakpoint.BREAKPOINT_TYPE)
@@ -245,6 +259,7 @@ namespace AMR_Engine
                                 )
                             )
                         || (o.ANAEROBE && thisBreakpoint.ORGANISM_CODE_TYPE == nameof(o.ANAEROBE) && thisBreakpoint.ORGANISM_CODE == Constants.OrganismGroups.Anaerobes)
+                        || (thisBreakpoint.ORGANISM_CODE_TYPE == AllOrganismsCode && thisBreakpoint.ORGANISM_CODE == AllOrganismsCode)
                     )
                 orderby (
                         // The sorting order implemented here ensures that the most specific breakpoint will appear higher on the list per set of (Drug, Method, Guideline, Year, Type, Host).
@@ -459,9 +474,14 @@ namespace AMR_Engine
                         if (userDefined)
                             values[headerMap[nameof(GUIDELINES)]] = Antibiotic.GuidelineNames.UserDefined;
 
+                        string organismCode = values[headerMap[nameof(ORGANISM_CODE)]];
+                        string organismCodeType = values[headerMap[nameof(ORGANISM_CODE_TYPE)]];
+                        if (!userDefined)
+                            organismCodeType = ResolveOrganismCodeType(organismCode, organismCodeType);
+
                         Breakpoint newBreakpoint = new Breakpoint(values[headerMap[nameof(GUIDELINES)]], int.Parse(values[headerMap[nameof(YEAR)]], System.Globalization.CultureInfo.InvariantCulture),
-                            values[headerMap[nameof(TEST_METHOD)]], values[headerMap[nameof(POTENCY)]], values[headerMap[nameof(ORGANISM_CODE)]],
-                            values[headerMap[nameof(ORGANISM_CODE_TYPE)]], values[headerMap[nameof(BREAKPOINT_TYPE)]], values[headerMap[nameof(HOST)]],
+                            values[headerMap[nameof(TEST_METHOD)]], values[headerMap[nameof(POTENCY)]], organismCode,
+                            organismCodeType, values[headerMap[nameof(BREAKPOINT_TYPE)]], values[headerMap[nameof(HOST)]],
                             values[headerMap[nameof(SITE_OF_INFECTION)]], values[headerMap[nameof(REFERENCE_TABLE)]], values[headerMap[nameof(REFERENCE_SEQUENCE)]],
                             values[headerMap[nameof(WHONET_ABX_CODE)]],
                             values[headerMap[nameof(WHONET_TEST)]], tempR, values[headerMap[nameof(I)]],
@@ -480,6 +500,53 @@ namespace AMR_Engine
         #endregion
 
         #region Private
+
+        private static string ResolveOrganismCodeType(string organismCode, string declaredCodeType)
+        {
+            if (Organism.CurrentOrganisms.Values.Any(organism => MatchesOrganismCodeType(organism, declaredCodeType, organismCode)))
+                return declaredCodeType;
+
+            string[] supportedTypes =
+            [
+                nameof(Organism.WHONET_ORG_CODE),
+                nameof(Organism.SEROVAR_GROUP),
+                nameof(Organism.SPECIES_GROUP),
+                nameof(Organism.GENUS_CODE),
+                nameof(Organism.GENUS_GROUP),
+                nameof(Organism.FAMILY_CODE),
+                nameof(Organism.SUBKINGDOM_CODE),
+                nameof(Organism.ANAEROBE),
+                Constants.OrganismGroups.AnaerobePlusSubkingdomCode
+            ];
+            string[] matchingTypes = supportedTypes
+                .Where(type => Organism.CurrentOrganisms.Values.Any(organism =>
+                    MatchesOrganismCodeType(organism, type, organismCode)))
+                .ToArray();
+
+            return matchingTypes.Length == 1 ? matchingTypes[0] : declaredCodeType;
+        }
+
+        private static bool MatchesOrganismCodeType(Organism organism, string type, string code)
+        {
+            if (type == Constants.OrganismGroups.AnaerobePlusSubkingdomCode)
+                return organism.ANAEROBE
+                    && code == (organism.SUBKINGDOM_CODE == Constants.TestResultCodes.Positive
+                        ? Constants.OrganismGroups.GramPositiveAnaerobes
+                        : Constants.OrganismGroups.GramNegativeAnaerobes);
+
+            return type switch
+            {
+                nameof(Organism.WHONET_ORG_CODE) => organism.WHONET_ORG_CODE == code,
+                nameof(Organism.SEROVAR_GROUP) => organism.SEROVAR_GROUP == code,
+                nameof(Organism.SPECIES_GROUP) => organism.SPECIES_GROUP == code,
+                nameof(Organism.GENUS_CODE) => organism.GENUS_CODE == code,
+                nameof(Organism.GENUS_GROUP) => organism.GENUS_GROUP == code,
+                nameof(Organism.FAMILY_CODE) => organism.FAMILY_CODE == code,
+                nameof(Organism.SUBKINGDOM_CODE) => organism.SUBKINGDOM_CODE == code,
+                nameof(Organism.ANAEROBE) => organism.ANAEROBE && code == Constants.OrganismGroups.Anaerobes,
+                _ => false
+            };
+        }
 
         /// <summary>
         /// We need to scan the list of breakpoint sites of infection to find the lowest sorting term on the prioritized list.

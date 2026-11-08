@@ -12,8 +12,8 @@ There are three sets of needs that the solution aims to support:
 2. Command line use
 3. Library integration with an external system
 
-The library code is written in .NET 8 with no additional dependencies. It can be built for and integrated with software on any platform that supports .NET 8,
-which includes Windows, GNU/Linux and Mac.
+The library targets .NET 8 and has no third-party runtime dependencies. It can be integrated with software on any platform that supports .NET 8,
+including Windows, GNU/Linux and macOS.
 
 The interactive and command line interfaces exercise various interpretation features, demonstrating how one might incorporate the library into their systems. The user
 interfaces can be used to generate interpretations as an end goal, but we expect that most groups will have a greater need for library integration to provide the interpretations for
@@ -37,3 +37,18 @@ and includes a way to "preheat" the cache to maximize interpretation performance
 To observe the caching behavior's effect, notice the difference in processing speed between the first and second times you press the "Interpret data file" button on the graphical user interface.
 Subsequent runs of the system will utilize the breakpoint cache, greatly improving processing performance. The same behavior will automatically be present when the library is integrated in a
 3rd party system.
+
+## Library integration
+
+Reference `Interpretation Engine\Interpretation Engine.csproj` from a .NET 8 application. The engine loads its tab-delimited data files from the `Resources` directory beneath `AppContext.BaseDirectory`; keep those resources beside the application when deploying the library. A project reference copies the engine's configured runtime resources to the application's output directory. If deploying the assembly separately, copy the required resource files into `Resources` yourself.
+
+For a single result, use the public configuration and interpretation APIs:
+
+```csharp
+using AMR_Engine;
+
+InterpretationConfiguration configuration = InterpretationConfiguration.DefaultConfiguration();
+string result = IsolateInterpretation.GetSingleInterpretation(configuration, "spn", "AMC_NM", "2");
+```
+
+The example returns the interpretation for a pneumococcal amoxicillin/clavulanic-acid MIC. Configure the guideline year, enabled expert rules, breakpoint types, infection sites, ETest rounding, and intrinsic-resistance handling through `InterpretationConfiguration` before calling the engine. For batch files, `IO_Library.InterpretDataFile` accepts `FileInterpretationParameters` and uses the same installed resources.

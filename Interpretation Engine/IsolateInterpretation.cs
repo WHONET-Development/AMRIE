@@ -58,7 +58,8 @@ namespace AMR_Engine
         /// <param name="prioritizedSitesOfInfection"></param>
         public IsolateInterpretation(Dictionary<string, string> dataRowValues_, List<string> columnNames_, List<string> enabledExpertInterpretationRules_,
             List<Breakpoint> userDefinedBreakpoints,
-            int guidelineYear = -1, List<string> prioritizedBreakpointTypes = null, List<string> prioritizedSitesOfInfection = null)
+            int guidelineYear = -1, List<string> prioritizedBreakpointTypes = null, List<string> prioritizedSitesOfInfection = null,
+            bool roundHalfDilutions = true, bool useIntrinsicResistanceRules = true)
         {
             DataRowValues = dataRowValues_;
             ColumnNames = columnNames_;
@@ -78,8 +79,10 @@ namespace AMR_Engine
                     new AntibioticSpecificInterpretationRules(OrganismCode, fieldName, antibioticResult,
                     userDefinedBreakpoints,
                     guidelineYear: guidelineYear,
+                    roundHalfDilutions: roundHalfDilutions,
                     prioritizedBreakpointTypes: prioritizedBreakpointTypes,
-                    prioritizedSitesOfInfection: prioritizedSitesOfInfection);
+                    prioritizedSitesOfInfection: prioritizedSitesOfInfection,
+                    useIntrinsicResistanceRules: useIntrinsicResistanceRules);
 
                 ApplicableAntibioticSpecificRules.Add(fieldName, thisAbxSpecificRuleSet);
             }
@@ -136,7 +139,9 @@ namespace AMR_Engine
                 interpretationConfig.UserDefinedBreakpoints,
                 Convert.ToInt32(interpretationConfig.GuidelineYear),
                  interpretationConfig.PrioritizedBreakpointTypes,
-                interpretationConfig.PrioritizedSitesOfInfection);
+                interpretationConfig.PrioritizedSitesOfInfection,
+                interpretationConfig.RoundHalfDilutions,
+                interpretationConfig.UseIntrinsicResistanceRules);
 
             return thisInterp.GetSingleInterpretation(antibioticCode);
         }

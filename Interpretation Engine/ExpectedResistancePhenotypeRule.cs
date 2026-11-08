@@ -302,9 +302,14 @@ namespace AMR_Engine
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(DATE_MODIFIED)]]))
                             tempModified = DateTime.Parse(values[headerMap[nameof(DATE_MODIFIED)]], System.Globalization.CultureInfo.InvariantCulture);
 
+                        string antibioticCode = values[headerMap[nameof(ABX_CODE)]];
+                        string antibioticCodeType = ResolveAntibioticCodeType(
+                            antibioticCode,
+                            values[headerMap[nameof(ABX_CODE_TYPE)]]);
+
                         ExpectedResistancePhenotypeRule newRule = new ExpectedResistancePhenotypeRule(values[headerMap[nameof(GUIDELINE)]], values[headerMap[nameof(REFERENCE_TABLE)]],
                             values[headerMap[nameof(ORGANISM_CODE)]], values[headerMap[nameof(ORGANISM_CODE_TYPE)]], values[headerMap[nameof(EXCEPTION_ORGANISM_CODE)]],
-                            values[headerMap[nameof(EXCEPTION_ORGANISM_CODE_TYPE)]], values[headerMap[nameof(ABX_CODE)]], values[headerMap[nameof(ABX_CODE_TYPE)]],
+                            values[headerMap[nameof(EXCEPTION_ORGANISM_CODE_TYPE)]], antibioticCode, antibioticCodeType,
                             antibioticExceptions, tempEntered, tempModified, values[headerMap[nameof(COMMENTS)]]);
 
                         expectedResistanceRules.Add(newRule);
@@ -314,6 +319,26 @@ namespace AMR_Engine
                 return expectedResistanceRules;
             }
             else throw new FileNotFoundException(expectedResistancePhenotypesTableFile);
+        }
+
+        private static string ResolveAntibioticCodeType(string antibioticCode, string declaredCodeType)
+        {
+            bool matchesWhonetCode = Antibiotic.AllAntibiotics.Any(antibiotic =>
+                antibiotic.WHONET_ABX_CODE == antibioticCode);
+            bool matchesAtcCode = Antibiotic.AllAntibiotics.Any(antibiotic =>
+                antibiotic.ATC_CODE.StartsWith(antibioticCode, System.StringComparison.Ordinal));
+
+            if (declaredCodeType == nameof(Antibiotic.WHONET_ABX_CODE) && matchesWhonetCode
+                || declaredCodeType == nameof(Antibiotic.ATC_CODE) && matchesAtcCode)
+                return declaredCodeType;
+
+            if (matchesWhonetCode == matchesAtcCode)
+                throw new InvalidDataException(
+                    $"The antibiotic key '{antibioticCode}' with type '{declaredCodeType}' cannot be resolved uniquely.");
+
+            return matchesWhonetCode
+                ? nameof(Antibiotic.WHONET_ABX_CODE)
+                : nameof(Antibiotic.ATC_CODE);
         }
 
         #endregion

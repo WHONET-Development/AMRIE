@@ -219,7 +219,7 @@ namespace AMR_Engine
             BSAC = BSAC_;
             DIN = DIN_;
             NEO = NEO_;
-            NEO = AFA_;
+            AFA = AFA_;
             ABX_NUMBER = ABX_NUMBER_;
             POTENCY = POTENCY_;
             ATC_CODE = ATC_CODE_;

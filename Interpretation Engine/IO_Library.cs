@@ -86,80 +86,74 @@ namespace AMR_Engine
 
 		public static string[] SplitLine(string record, char delimiter)
 		{
-			if (string.IsNullOrEmpty(record) || !record.Contains(delimiter))
+            if (string.IsNullOrEmpty(record) || (!record.Contains(delimiter) && !record.Contains(Constants.Quote)))
 				return [record];
 
             List<string> results = new List<string>();
-            StringBuilder result = new StringBuilder();
+            StringBuilder field = new StringBuilder();
             bool inQualifier = false;
-            bool inField = false;
+            bool fieldWasQuoted = false;
+            bool afterClosingQuote = false;
 
-            string row = $"{record}{delimiter}";
-
-            for (int idx = 0; idx < row.Length; idx++)
+            void AddField()
             {
-                if (row[idx] == delimiter)
-                {
-                    if (!inQualifier)
-                    {
-                        results.Add(result.ToString().Trim());
-                        result.Clear();
-                        inField = false;
-                    }
-                    else
-                    {
-                        result.Append(row[idx]);
-                    }
-                }
-                else
-                {
-                    if (row[idx] != ' ')
-                    {
-                        if (row[idx] == Constants.Quote)
-                        {
-                            if (inQualifier && row[IndexOfNextNonWhiteSpaceChar(row, idx + 1)] == delimiter)
-                            {
-                                inQualifier = false;
-                                continue;
-                            }
+                string value = field.ToString();
+                results.Add(fieldWasQuoted ? value : value.Trim());
+                field.Clear();
+                fieldWasQuoted = false;
+                afterClosingQuote = false;
+            }
 
-                            else
-                            {
-                                if (!inQualifier)
-                                {
-                                    inQualifier = true;
-                                }
-                                else
-                                {
-                                    inField = true;
-                                    result.Append(row[idx]);
-                                }
-                            }
+            for (int idx = 0; idx < record.Length; idx++)
+            {
+                char current = record[idx];
+
+                if (inQualifier)
+                {
+                    if (current == Constants.Quote)
+                    {
+                        if (idx + 1 < record.Length && record[idx + 1] == Constants.Quote)
+                        {
+                            field.Append(Constants.Quote);
+                            idx++;
                         }
                         else
                         {
-                            result.Append(row[idx]);
-                            inField = true;
+                            inQualifier = false;
+                            afterClosingQuote = true;
                         }
                     }
                     else
-                    {
-                        if (inQualifier || inField)
-                        {
-                            result.Append(row[idx]);
-                        }
-                    }
+                        field.Append(current);
+                }
+                else if (current == delimiter)
+                    AddField();
+                else if (afterClosingQuote && char.IsWhiteSpace(current))
+                    continue;
+                else if (current == Constants.Quote && field.ToString().Trim().Length == 0)
+                {
+                    field.Clear();
+                    fieldWasQuoted = true;
+                    inQualifier = true;
+                }
+                else
+                {
+                    afterClosingQuote = false;
+                    field.Append(current);
                 }
             }
 
-            return results.ToArray<string>();
+            AddField();
+            return results.ToArray();
         }
 
 		public static string ToLine(IEnumerable<string> values, char delimiter)
 		{
 			return string.Join(delimiter, values.Select(v =>
 			{
-				if (string.IsNullOrEmpty(v) || (!v.Contains(delimiter) && !v.Contains(Constants.Quote)))
+                if (string.IsNullOrEmpty(v) ||
+                    (!v.Contains(delimiter) && !v.Contains(Constants.Quote) && !v.Contains('\r') && !v.Contains('\n')
+                    && !char.IsWhiteSpace(v[0]) && !char.IsWhiteSpace(v[^1])))
 					// This string doesn't need to be quoted.
 					return v;
 
@@ -274,6 +268,9 @@ namespace AMR_Engine
             int remainingLines = rowValueSets.Count;
             int blockSize = Math.Max(1, remainingLines / Environment.ProcessorCount);
             int totalBlocks = (remainingLines / blockSize) + (remainingLines % blockSize == 0 ? 0 : 1);
+            int effectiveGuidelineYear = arguments.GuidelineYear == -1
+                ? Convert.ToInt32(interpretationConfig.GuidelineYear)
+                : arguments.GuidelineYear;
             Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults =
                 new Tuple<Dictionary<string, string>, Dictionary<string, string>>[remainingLines];
 
@@ -305,7 +302,7 @@ namespace AMR_Engine
             // Preheat breakpoint cache.
             AntibioticSpecificInterpretationRules.PreheatBreakpointCache(
                 interpretationConfig.UserDefinedBreakpoints,
-                arguments.GuidelineYear,
+                effectiveGuidelineYear,
                 interpretationConfig.PrioritizedBreakpointTypes,
                 interpretationConfig.PrioritizedSitesOfInfection,
                 distinctInterpretationKeys,
@@ -345,9 +342,11 @@ namespace AMR_Engine
                     inputColumnNames,
                     interpretationConfig.EnabledExpertInterpretationRules,
                     interpretationConfig.UserDefinedBreakpoints,
-                    guidelineYear: arguments.GuidelineYear == -1 ? Convert.ToInt32(interpretationConfig.GuidelineYear) : arguments.GuidelineYear,
+                    guidelineYear: effectiveGuidelineYear,
                     prioritizedBreakpointTypes: interpretationConfig.PrioritizedBreakpointTypes,
-                    prioritizedSitesOfInfection: interpretationConfig.PrioritizedSitesOfInfection).
+                    prioritizedSitesOfInfection: interpretationConfig.PrioritizedSitesOfInfection,
+                    roundHalfDilutions: interpretationConfig.RoundHalfDilutions,
+                    useIntrinsicResistanceRules: interpretationConfig.UseIntrinsicResistanceRules).
                     GetAllInterpretations();
 
                     // Put each original value and result set into the corresponding array position.
@@ -520,25 +519,6 @@ namespace AMR_Engine
                 }
             }
         }
-
-        static readonly Func<string, int, int> IndexOfNextNonWhiteSpaceChar = delegate (string source, int startIndex)
-        {
-            if (startIndex >= 0)
-            {
-                if (source != null)
-                {
-                    for (int i = startIndex; i < source.Length; i++)
-                    {
-                        if (!char.IsWhiteSpace(source[i]))
-                        {
-                            return i;
-                        }
-                    }
-                }
-            }
-
-            return -1;
-        };
 
         #endregion
 

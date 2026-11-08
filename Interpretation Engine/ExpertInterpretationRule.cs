@@ -86,7 +86,8 @@ namespace AMR_Engine
                                 && abx.StartsWith(criterion.TestName)
                             ) || (
                                 criterion.TestName == PROF_CLASS.CEPH3
-                                && Antibiotic.CEPH3_AntibioticCodes.Exists(ceph3Code => ceph3Code == abx.Substring(0, 3))
+                                && IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(abx)
+                                && Antibiotic.CEPH3_AntibioticCodes.Contains(Antibiotic.ShortCode(abx))
                             )
                         );
 
