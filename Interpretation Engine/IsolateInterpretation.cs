@@ -87,6 +87,8 @@ namespace AMR_Engine
                 ApplicableAntibioticSpecificRules.Add(fieldName, thisAbxSpecificRuleSet);
             }
 
+            ResultInterpretations.EnsureCapacity(ApplicableAntibioticSpecificRules.Count);
+
             // The application of these rules will evaluate the precondition antibiotics,
             // as well as overriding the interpretation of any affected antibiotics.
             GetExpertInterpretations();

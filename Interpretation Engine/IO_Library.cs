@@ -13,6 +13,10 @@ namespace AMR_Engine
     {
         #region Constants
 
+        private const int MaxCanonicalizedAntibioticValueLength = 8;
+        private const int MaxCanonicalizedAntibioticValues = 4096;
+        private const int MaxCanonicalizedAntibioticCharacters = 65536;
+
         private class OutputAntibioticColumns
         {
             public const string AntibioticCode = "ANTIBIOTIC_CODE";
@@ -217,6 +221,16 @@ namespace AMR_Engine
                 inputColumnNames = headers.Values.ToList();
 
                 int NumberOfColumns = inputColumnNames.Count;
+                bool[] antibioticColumns = new bool[NumberOfColumns];
+                for (int x = 0; x < NumberOfColumns; x++)
+                {
+                    string columnName = inputColumnNames[x];
+                    antibioticColumns[x] = !string.IsNullOrWhiteSpace(columnName)
+                        && IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(columnName);
+                }
+
+                Dictionary<string, string> canonicalizedAntibioticValues = new Dictionary<string, string>(StringComparer.Ordinal);
+                int canonicalizedAntibioticCharacters = 0;
 
                 // Process the rest of the data file.
                 while (!parser.EndOfData)
@@ -237,11 +251,27 @@ namespace AMR_Engine
                         // Don't add anything for a blank line.
 
                         // Transfer the value array into a row dictionary.
-                        Dictionary<string, string> rowValues = new Dictionary<string, string>();
+                        Dictionary<string, string> rowValues = new Dictionary<string, string>(values.Count(v => !string.IsNullOrWhiteSpace(v)));
 
                         for (int x = 0; x < values.Length; x++)
                             if (!string.IsNullOrWhiteSpace(values[x]))
-                                rowValues.Add(headers[x], values[x]);
+                            {
+                                string value = values[x];
+                                if (antibioticColumns[x] && value.Length <= MaxCanonicalizedAntibioticValueLength
+                                    && canonicalizedAntibioticValues.TryGetValue(value, out string canonicalizedValue))
+                                {
+                                    value = canonicalizedValue;
+                                }
+                                else if (antibioticColumns[x] && value.Length <= MaxCanonicalizedAntibioticValueLength
+                                    && canonicalizedAntibioticValues.Count < MaxCanonicalizedAntibioticValues
+                                    && canonicalizedAntibioticCharacters <= MaxCanonicalizedAntibioticCharacters - value.Length)
+                                {
+                                    canonicalizedAntibioticValues.Add(value, value);
+                                    canonicalizedAntibioticCharacters += value.Length;
+                                }
+
+                                rowValues.Add(headers[x], value);
+                            }
 
                         rowValueSets.Add(rowValues);
                     }

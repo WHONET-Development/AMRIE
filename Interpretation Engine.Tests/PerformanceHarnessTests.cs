@@ -111,6 +111,171 @@ public sealed class PerformanceHarnessTests
         Assert.Equal(new FileInfo(streamOutput).Length, pass.OutputBytes);
     }
 
+    [Fact]
+    public void WholeFileApiPreservesQuotedAndRepeatedMeasurementValues()
+    {
+        using TemporaryDirectory directory = new();
+        string inputFile = Path.Combine(directory.Path, "input.txt");
+        string configFile = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
+        string outputFile = Path.Combine(directory.Path, "output.txt");
+        File.WriteAllText(inputFile,
+            "ROW_IDX|ORGANISM|AMC_NM\r\n0|spn|4\r\n1|spn|\"4\"\r\n2|spn|2\r\n3|spn|8\r\n",
+            new UTF8Encoding(false));
+
+        FileInterpretationParameters arguments = new(inputFile, '|', -1, configFile, outputFile, null);
+        IO_Library.InterpretDataFile(null, new DoWorkEventArgs(arguments));
+
+        string expectedOutput = string.Join(Environment.NewLine,
+        [
+            "ROW_IDX\tORGANISM\tAMC_NM\tAMC_NM_INTERP",
+            "0\tspn\t4\tI",
+            "1\tspn\t4\tI",
+            "2\tspn\t2\tS",
+            "3\tspn\t8\tR"
+        ]) + Environment.NewLine;
+        Assert.Equal(expectedOutput, File.ReadAllText(outputFile));
+    }
+
+    [Fact]
+    public void WholeFileApiPreservesMeasurementsLongerThanCanonicalizationLimit()
+    {
+        using TemporaryDirectory directory = new();
+        string inputFile = Path.Combine(directory.Path, "input.txt");
+        string configFile = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
+        string outputFile = Path.Combine(directory.Path, "output.txt");
+        File.WriteAllText(inputFile,
+            "ROW_IDX|ORGANISM|AMC_NM\r\n0|spn|123456789\r\n",
+            new UTF8Encoding(false));
+
+        FileInterpretationParameters arguments = new(inputFile, '|', -1, configFile, outputFile, null);
+        IO_Library.InterpretDataFile(null, new DoWorkEventArgs(arguments));
+
+        Assert.Contains("0\tspn\t123456789\t", File.ReadAllText(outputFile), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void WholeFileApiPreservesSparseRowsAndExpertComments(bool horizontal, bool comments)
+    {
+        using TemporaryDirectory directory = new();
+        string inputFile = Path.Combine(directory.Path, "input.txt");
+        string configFile = Path.Combine(directory.Path, "config.json");
+        string outputFile = Path.Combine(directory.Path, "output.txt");
+        string multilineNote = "two" + Environment.NewLine + "lines";
+        File.WriteAllText(inputFile, string.Join(Environment.NewLine,
+        [
+            "ROW_IDX|ORGANISM|AMC_NM|FOX_ND30|PEN_NM|X_01_NM|NOTE",
+            "0|spn|4||2|4|\" leading|note \"",
+            "1|sau|4|10|1||\"two\"\"quotes\"",
+            "2||||||",
+            "3||4||||\"" + multilineNote + "\"",
+            "4|spn|\"   \"||||empty measurements"
+        ]) + Environment.NewLine, new UTF8Encoding(false));
+        File.WriteAllText(configFile, System.Text.Json.JsonSerializer.Serialize(new
+        {
+            GuidelineYear = 2026,
+            HorizontalAntibioticResults = horizontal,
+            IncludeInterpretationComments = comments,
+            EnabledExpertInterpretationRules = new[] { "MRS" }
+        }));
+
+        IO_Library.InterpretDataFile(null, new DoWorkEventArgs(
+            new FileInterpretationParameters(inputFile, '|', -1, configFile, outputFile, null)));
+
+        string resistant = comments ? "R!" : "R";
+        string[][] expectedRows = horizontal
+            ? [
+                ["ROW_IDX", "ORGANISM", "AMC_NM", "AMC_NM_INTERP", "FOX_ND30", "FOX_ND30_INTERP", "PEN_NM", "PEN_NM_INTERP", "X_01_NM", "X_01_NM_INTERP", "NOTE"],
+                ["0", "spn", "4", "I", "", "", "2", "S", "4", "", "leading|note"],
+                ["1", "sau", "4", resistant, "10", resistant, "1", resistant, "", "", "two\"quotes"],
+                ["2", "", "", "", "", "", "", "", "", "", ""],
+                ["3", "", "4", "", "", "", "", "", "", "", multilineNote],
+                ["4", "spn", "", "", "", "", "", "", "", "", "empty measurements"]
+            ]
+            : [
+                ["ROW_IDX", "ORGANISM", "NOTE", "ANTIBIOTIC_CODE", "ANTIBIOTIC_MEASUREMENT", "ANTIBIOTIC_INTERPRETATION"],
+                ["0", "spn", "leading|note", "AMC_NM", "4", "I"],
+                ["0", "spn", "leading|note", "PEN_NM", "2", "S"],
+                ["0", "spn", "leading|note", "X_01_NM", "4", ""],
+                ["1", "sau", "two\"quotes", "AMC_NM", "4", resistant],
+                ["1", "sau", "two\"quotes", "FOX_ND30", "10", resistant],
+                ["1", "sau", "two\"quotes", "PEN_NM", "1", resistant],
+                ["2", "", "", "", "", ""],
+                ["3", "", multilineNote, "AMC_NM", "4", ""],
+                ["4", "spn", "empty measurements", "", "", ""]
+            ];
+        string expectedOutput = string.Join(Environment.NewLine,
+            expectedRows.Select(row => IO_Library.ToLine(row, '\t'))) + Environment.NewLine;
+        Assert.Equal(expectedOutput, File.ReadAllText(outputFile));
+    }
+
+    [Fact]
+    public void WholeFileApiPreservesRowsAcrossDictionaryGrowthBoundaries()
+    {
+        using TemporaryDirectory directory = new();
+        string inputFile = Path.Combine(directory.Path, "input.txt");
+        string configFile = Path.Combine(directory.Path, "config.json");
+        string outputFile = Path.Combine(directory.Path, "output.txt");
+        int[] fieldCounts = [3, 7, 17, 37, 89, 197, 431];
+        string[] antibiotics = Enumerable.Range(1, fieldCounts.Max() - 2).Select(i => $"X_{i}_NM").ToArray();
+        string[] headers = ["ROW_IDX", "ORGANISM", .. antibiotics];
+        List<string> inputLines = [IO_Library.ToLine(headers, '|')];
+        List<string> expectedLines = [IO_Library.ToLine(
+            headers.Take(2).Concat(antibiotics.SelectMany(a => new[] { a, a + "_INTERP" })), '\t')];
+        for (int rowIndex = 0; rowIndex < fieldCounts.Length; rowIndex++)
+        {
+            int measurements = fieldCounts[rowIndex] - 2;
+            string[] values = [rowIndex.ToString(System.Globalization.CultureInfo.InvariantCulture), "unknown",
+                .. antibiotics.Select((_, i) => i < measurements ? "1" : "")];
+            inputLines.Add(IO_Library.ToLine(values, '|'));
+            expectedLines.Add(IO_Library.ToLine(values.Take(2).Concat(
+                antibiotics.SelectMany((_, i) => new[] { i < measurements ? "1" : "", "" })), '\t'));
+        }
+        File.WriteAllText(inputFile, string.Join(Environment.NewLine, inputLines) + Environment.NewLine, new UTF8Encoding(false));
+        File.WriteAllText(configFile, "{\"GuidelineYear\":2026,\"UseIntrinsicResistanceRules\":false,\"EnabledExpertInterpretationRules\":[]}");
+
+        IO_Library.InterpretDataFile(null, new DoWorkEventArgs(
+            new FileInterpretationParameters(inputFile, '|', -1, configFile, outputFile, null)));
+
+        Assert.Equal(string.Join(Environment.NewLine, expectedLines) + Environment.NewLine, File.ReadAllText(outputFile));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(17)]
+    [InlineData(37)]
+    [InlineData(89)]
+    [InlineData(197)]
+    [InlineData(431)]
+    public void ResultDictionaryPreservesContentsAndIdentityAcrossRepeatedCalls(int measurementCount)
+    {
+        Dictionary<string, string> row = new() { [Constants.KeyFields.ORGANISM] = "unknown" };
+        for (int i = 0; i < measurementCount; i++)
+            row.Add($"X_{i}_NM", "1");
+        KeyValuePair<string, string>[] originalValues = row.ToArray();
+        IsolateInterpretation interpretation = new(row, row.Keys.ToList(), [], [],
+            guidelineYear: 2026, useIntrinsicResistanceRules: false);
+
+        Dictionary<string, string> results = interpretation.GetAllInterpretations();
+
+        Assert.Equal(measurementCount, results.Count);
+        Assert.All(row.Keys.Where(k => k != Constants.KeyFields.ORGANISM), field =>
+        {
+            Assert.True(results.ContainsKey(field));
+            Assert.Equal(string.Empty, results[field]);
+        });
+        results.Add("CALLER_VALUE", "kept");
+        Assert.Same(results, interpretation.GetAllInterpretations());
+        Assert.Equal("kept", results["CALLER_VALUE"]);
+        Assert.Equal(measurementCount + 1, results.Count);
+        Assert.Equal(originalValues, row.ToArray());
+    }
+
     private sealed class TemporaryDirectory : IDisposable
     {
         public TemporaryDirectory()
