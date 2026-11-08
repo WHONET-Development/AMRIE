@@ -11,6 +11,23 @@ public sealed partial class SingleInterpretationPage : Page
     public SingleInterpretationPage()
     {
         InitializeComponent();
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ViewModel.OrganismSearchText))
+            {
+                if (OrganismSuggestBox.Text != ViewModel.OrganismSearchText)
+                {
+                    OrganismSuggestBox.Text = ViewModel.OrganismSearchText ?? string.Empty;
+                }
+            }
+            else if (e.PropertyName == nameof(ViewModel.AntibioticSearchText))
+            {
+                if (AntibioticSuggestBox.Text != ViewModel.AntibioticSearchText)
+                {
+                    AntibioticSuggestBox.Text = ViewModel.AntibioticSearchText ?? string.Empty;
+                }
+            }
+        };
     }
 
     private void OrganismSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -133,27 +150,55 @@ public sealed partial class SingleInterpretationPage : Page
         }
     }
 
+    private static bool _isDialogOpen = false;
+
     private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
-        var (rows, summary) = ViewModel.GetApplicableBreakpoints();
-        var dialog = new Dialogs.ApplicableBreakpointsDialog
+        if (_isDialogOpen) return;
+        _isDialogOpen = true;
+        try
         {
-            XamlRoot = this.XamlRoot
-        };
-        dialog.SetData(rows, summary);
-        await dialog.ShowAsync();
+            ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
+            var (rows, summary) = ViewModel.GetApplicableBreakpoints();
+            var dialog = new Dialogs.ApplicableBreakpointsDialog
+            {
+                XamlRoot = this.XamlRoot ?? (Content as Microsoft.UI.Xaml.UIElement)?.XamlRoot
+            };
+            dialog.SetData(rows, summary);
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableBreakpointsDialog: {ex}");
+        }
+        finally
+        {
+            _isDialogOpen = false;
+        }
     }
 
     private async void GetApplicableIntrinsicResistance_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
-        var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
-        var dialog = new Dialogs.ApplicableIntrinsicRulesDialog
+        if (_isDialogOpen) return;
+        _isDialogOpen = true;
+        try
         {
-            XamlRoot = this.XamlRoot
-        };
-        dialog.SetData(rows, summary);
-        await dialog.ShowAsync();
+            ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
+            var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
+            var dialog = new Dialogs.ApplicableIntrinsicRulesDialog
+            {
+                XamlRoot = this.XamlRoot ?? (Content as Microsoft.UI.Xaml.UIElement)?.XamlRoot
+            };
+            dialog.SetData(rows, summary);
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableIntrinsicRulesDialog: {ex}");
+        }
+        finally
+        {
+            _isDialogOpen = false;
+        }
     }
 }

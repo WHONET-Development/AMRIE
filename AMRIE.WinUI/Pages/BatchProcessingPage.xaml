@@ -19,11 +19,26 @@
         <StackPanel Spacing="16" HorizontalAlignment="Stretch">
 
             <!-- Title Header -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="Whole-Database Batch Interpretation" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
-                <TextBlock Text="Process entire WHONET data files and export interpreted results."
-                           Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </StackPanel>
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Whole-Database Batch Interpretation" Style="{ThemeResource TitleTextBlockStyle}" FontWeight="SemiBold" />
+                    <TextBlock Text="Process entire WHONET data files and export interpreted results."
+                               Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        ToolTipService.ToolTip="Load sample input file and sample configuration"
+                        Command="{x:Bind ViewModel.LoadSampleCommand}"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8B9;" FontSize="12" />
+                        <TextBlock Text="Load Sample" />
+                    </StackPanel>
+                </Button>
+            </Grid>
 
             <!-- Status Alerts (InfoBar) -->
             <InfoBar IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
@@ -156,6 +171,11 @@
                                     Padding="20,0" />
                             <Button Content="Cancel Operation"
                                     Command="{x:Bind ViewModel.CancelProcessingCommand}"
+                                    Height="32"
+                                    Padding="16,0" />
+                            <Button Content="Open File"
+                                    Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
+                                    Command="{x:Bind ViewModel.OpenOutputFileCommand}"
                                     Height="32"
                                     Padding="16,0" />
                             <Button Content="Open Folder"

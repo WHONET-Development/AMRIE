@@ -27,6 +27,15 @@
                     <TextBlock Text="Perform ad-hoc interpretation of antimicrobial measurements against published CLSI, EUCAST, and SFM rules."
                                Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
+                <Button Grid.Column="1"
+                        ToolTipService.ToolTip="Load a standard test case (E. coli + Ciprofloxacin 22 mm)"
+                        Command="{x:Bind ViewModel.LoadExampleCommand}"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE8B9;" FontSize="12" />
+                        <TextBlock Text="Try an Example" />
+                    </StackPanel>
+                </Button>
             </Grid>
 
             <!-- Status Alert (InfoBar) -->
@@ -176,6 +185,7 @@
                             <StackPanel Spacing="2">
                                 <AutoSuggestBox x:Name="OrganismSuggestBox"
                                                 Header="Microorganism"
+                                                Text="{x:Bind ViewModel.OrganismSearchText, Mode=TwoWay}"
                                                 PlaceholderText="Search name or code (e.g. Escherichia coli, ECO)..."
                                                 TextChanged="OrganismSuggestBox_TextChanged"
                                                 SuggestionChosen="OrganismSuggestBox_SuggestionChosen"
@@ -215,6 +225,7 @@
                             <StackPanel Spacing="2">
                                 <AutoSuggestBox x:Name="AntibioticSuggestBox"
                                                 Header="Antimicrobial Agent"
+                                                Text="{x:Bind ViewModel.AntibioticSearchText, Mode=TwoWay}"
                                                 PlaceholderText="Search antibiotic name or code (e.g. Amikacin, AMK)..."
                                                 TextChanged="AntibioticSuggestBox_TextChanged"
                                                 SuggestionChosen="AntibioticSuggestBox_SuggestionChosen"
@@ -345,7 +356,18 @@
                         <!-- Interpretation Results Display -->
                         <StackPanel Spacing="8" Visibility="{x:Bind ViewModel.Results.Count, Mode=OneWay, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}">
                             <MenuFlyoutSeparator />
-                            <TextBlock Text="Results" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                            <Grid>
+                                <TextBlock Text="Results" Style="{ThemeResource BodyStrongTextBlockStyle}" VerticalAlignment="Center" />
+                                <Button Command="{x:Bind ViewModel.CopyResultsCommand}"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Copy interpretation results to clipboard">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                        <TextBlock Text="Copy Results" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
 
                             <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{x:Bind ViewModel.Results}">
@@ -377,8 +399,8 @@
 
                                                     <!-- Details -->
                                                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                                        <TextBlock Text="{x:Bind TestCode}" FontWeight="SemiBold" Style="{ThemeResource BodyStrongTextBlockStyle}" />
-                                                        <TextBlock Text="{x:Bind Interpretation}" Style="{ThemeResource CaptionTextBlockStyle}" TextWrapping="Wrap" />
+                                                        <TextBlock Text="{x:Bind TestCode}" FontWeight="SemiBold" Style="{ThemeResource BodyStrongTextBlockStyle}" IsTextSelectionEnabled="True" />
+                                                        <TextBlock Text="{x:Bind Interpretation}" Style="{ThemeResource CaptionTextBlockStyle}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>
