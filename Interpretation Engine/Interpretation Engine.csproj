@@ -63,6 +63,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="34.0.0" />
+    <InternalsVisibleTo Include="Interpretation Engine.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Translations\Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>

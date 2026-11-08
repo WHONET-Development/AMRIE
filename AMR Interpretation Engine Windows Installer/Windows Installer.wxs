@@ -97,6 +97,16 @@
 					  Source="$(var.Interpretation_Interface.TargetDir)Interpretation Engine.dll" KeyPath="yes" />
 			</Component>
 
+			<Component Id="CsvHelper" Guid="C02965F1-74F5-4B27-9D93-92CB33A17F1D">
+				<File Id="CsvHelper.dll" Name="CsvHelper.dll"
+					  Source="$(var.Interpretation_Interface.TargetDir)CsvHelper.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="InterpretationInterfaceDependencies" Guid="D37D8406-6E28-4B8F-869A-D93C10899157">
+				<File Id="InterpretationInterface.deps.json" Name="Interpretation Interface.deps.json"
+					  Source="$(var.Interpretation_Interface.TargetDir)Interpretation Interface.deps.json" KeyPath="yes" />
+			</Component>
+
 			<Component Id="InterpretationInterfaceConfig" Guid="21E6781F-D585-42A7-8AA2-1257CBDBD014">
 				<File Id="InterpretationInterfaceRuntimeconfig.json" Name="Interpretation Interface.runtimeconfig.json"
 					  Source="$(var.Interpretation_Interface.TargetDir)Interpretation Interface.runtimeconfig.json" KeyPath="yes" />
@@ -109,12 +119,22 @@
 			<!-- CLI components. -->
 			<Component Id="InterpretationCLI.exe" Guid="220A63D9-027E-4134-93A9-E8245002DDA6">
 				<File Id="InterpretationCLI.exe" Name="AMRIE.exe"
-					  Source="$(var.Interpretation_CLI.TargetPath)" KeyPath="yes" />
+					  Source="$(var.Interpretation_CLI.TargetDir)AMRIE.exe" KeyPath="yes" />
 			</Component>
 
 			<Component Id="InterpretationCLIdll" Guid="ECAC5873-9C2A-4C03-8127-64A388BC624F">
 				<File Id="InterpretationCLIdll" Name="AMRIE.dll"
 					  Source="$(var.Interpretation_CLI.TargetDir)AMRIE.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="InterpretationCLIDependencies" Guid="672D289A-F41D-4DD2-8BF0-46B4C06CBC81">
+				<File Id="AMRIE.deps.json" Name="AMRIE.deps.json"
+					  Source="$(var.Interpretation_CLI.TargetDir)AMRIE.deps.json" KeyPath="yes" />
+			</Component>
+
+			<Component Id="InterpretationCLIConfig" Guid="FD7D352B-8646-47FA-BA69-CE5D08E83E82">
+				<File Id="AMRIE.runtimeconfig.json" Name="AMRIE.runtimeconfig.json"
+					  Source="$(var.Interpretation_CLI.TargetDir)AMRIE.runtimeconfig.json" KeyPath="yes" />
 			</Component>
 		</ComponentGroup>
 

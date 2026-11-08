@@ -12,7 +12,7 @@ There are three sets of needs that the solution aims to support:
 2. Command line use
 3. Library integration with an external system
 
-The library targets .NET 8 and has no third-party runtime dependencies. It can be integrated with software on any platform that supports .NET 8,
+The library targets .NET 8 and uses CsvHelper 34.0.0 for delimited-file parsing. It can be integrated with software on any platform that supports .NET 8,
 including Windows, GNU/Linux and macOS.
 
 The interactive and command line interfaces exercise various interpretation features, demonstrating how one might incorporate the library into their systems. The user
@@ -40,7 +40,11 @@ Subsequent runs of the system will utilize the breakpoint cache, greatly improvi
 
 ## Library integration
 
-Reference `Interpretation Engine\Interpretation Engine.csproj` from a .NET 8 application. The engine loads its tab-delimited data files from the `Resources` directory beneath `AppContext.BaseDirectory`; keep those resources beside the application when deploying the library. A project reference copies the engine's configured runtime resources to the application's output directory. If deploying the assembly separately, copy the required resource files into `Resources` yourself.
+Reference `Interpretation Engine\Interpretation Engine.csproj` from a .NET 8 application. The engine loads its tab-delimited data files from the `Resources` directory beneath `AppContext.BaseDirectory`; keep those resources beside the application when deploying the library. A project reference copies the engine's configured runtime resources and CsvHelper dependency to the application's output directory. If deploying the assembly separately, include `CsvHelper.dll` (34.0.0), keep the application's generated dependency and runtime manifests, and copy the required resource files into `Resources` yourself.
+
+File parsing retains the previous delimiter, quoting, Unicode whitespace, BOM detection, multiline line endings, trimming, and variable-field-count behavior. Malformed quoted records still raise `MalformedLineException`; CsvHelper's recovery and string pooling are not enabled. `IO_Library.InterpretDataFile` still retains the complete input and interpretation results in memory; the parser migration does not introduce bounded processing.
+
+The WinUI MSI bundles a self-contained CLI for the same runtime identifier as the GUI; both use the GUI's published private .NET runtime and CsvHelper DLL. Standalone CLI and legacy desktop builds remain framework-dependent.
 
 For a single result, use the public configuration and interpretation APIs:
 

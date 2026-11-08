@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -147,17 +146,14 @@ namespace AMR_Engine
             {
                 List<Organism> allOrgs = new List<Organism>();
 
-                using (TextFieldParser parser = new TextFieldParser(organismsTableFile, System.Text.Encoding.UTF8))
+                using (DelimitedFileReader parser = new DelimitedFileReader(organismsTableFile, Constants.Delimiters.TabChar))
                 {
-                    parser.SetDelimiters(Constants.Delimiters.TabChar.ToString());
-                    parser.HasFieldsEnclosedInQuotes = true;
-
                     string[] headers = parser.ReadFields();
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
-                    while (!parser.EndOfData)
+                    while (parser.Read())
                     {
-                        string[] values = parser.ReadFields();
+                        string[] values = parser.Fields;
 
                         string taxonomicStatus = values[headerMap[nameof(TAXONOMIC_STATUS)]];
 
@@ -232,17 +228,14 @@ namespace AMR_Engine
             {
                 Dictionary<string, string> mergedOrganismMap = new Dictionary<string, string>();
 
-                using (TextFieldParser parser = new TextFieldParser(organismsTableFile, System.Text.Encoding.UTF8))
+                using (DelimitedFileReader parser = new DelimitedFileReader(organismsTableFile, Constants.Delimiters.TabChar))
                 {
-                    parser.SetDelimiters(Constants.Delimiters.TabChar.ToString());
-                    parser.HasFieldsEnclosedInQuotes = true;
-
                     string[] headers = parser.ReadFields();
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
-                    while (!parser.EndOfData)
+                    while (parser.Read())
                     {
-                        string[] values = parser.ReadFields();
+                        string[] values = parser.Fields;
 
                         string taxonomicStatus = values[headerMap[nameof(TAXONOMIC_STATUS)]];
 

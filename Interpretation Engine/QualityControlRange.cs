@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -186,17 +185,14 @@ namespace AMR_Engine
             {
                 List<QualityControlRange> qcRanges = new List<QualityControlRange>();
 
-                using (TextFieldParser parser = new TextFieldParser(qualityControlTableFile, System.Text.Encoding.UTF8))
+                using (DelimitedFileReader parser = new DelimitedFileReader(qualityControlTableFile, Constants.Delimiters.TabChar))
                 {
-                    parser.SetDelimiters(Constants.Delimiters.TabChar.ToString());
-                    parser.HasFieldsEnclosedInQuotes = true;
-
                     string[] headers = parser.ReadFields();
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
-                    while (!parser.EndOfData)
+                    while (parser.Read())
                     {
-                        string[] values = parser.ReadFields();
+                        string[] values = parser.Fields;
 
                         int tempYear = 0;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(YEAR)]]))

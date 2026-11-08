@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -438,17 +437,14 @@ namespace AMR_Engine
             {
                 List<Breakpoint> breakpoints = new List<Breakpoint>();
 
-                using (TextFieldParser parser = new TextFieldParser(breakpointsTableFile, System.Text.Encoding.UTF8))
+                using (DelimitedFileReader parser = new DelimitedFileReader(breakpointsTableFile, Constants.Delimiters.TabChar))
                 {
-                    parser.SetDelimiters(Constants.Delimiters.TabChar.ToString());
-                    parser.HasFieldsEnclosedInQuotes = true;
-
                     string[] headers = parser.ReadFields();
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
-                    while (!parser.EndOfData)
+                    while (parser.Read())
                     {
-                        string[] values = parser.ReadFields();
+                        string[] values = parser.Fields;
 
                         decimal tempR = decimal.Zero;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(R)]]))

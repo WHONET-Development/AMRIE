@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -323,17 +322,14 @@ namespace AMR_Engine
             if (File.Exists(antibioticsTableFile))
             {
                 List<Antibiotic> antibiotics = new List<Antibiotic>();
-                using (TextFieldParser parser = new TextFieldParser(antibioticsTableFile, System.Text.Encoding.UTF8))
+                using (DelimitedFileReader parser = new DelimitedFileReader(antibioticsTableFile, Constants.Delimiters.TabChar))
                 {
-                    parser.SetDelimiters(Constants.Delimiters.TabChar.ToString());
-                    parser.HasFieldsEnclosedInQuotes = true;
-
                     string[] headers = parser.ReadFields();
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
-                    while (!parser.EndOfData)
+                    while (parser.Read())
                     {
-                        string[] values = parser.ReadFields();
+                        string[] values = parser.Fields;
 
                         DateTime tempEntered = DateTime.MinValue;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(DATE_ENTERED)]]))

@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -292,17 +291,14 @@ namespace AMR_Engine
                 List<ExpertInterpretationRule> allRules =
                     new List<ExpertInterpretationRule>();
 
-                using (TextFieldParser parser = new TextFieldParser(expertRulesTableFile, System.Text.Encoding.UTF8))
+                using (DelimitedFileReader parser = new DelimitedFileReader(expertRulesTableFile, Constants.Delimiters.TabChar))
                 {
-                    parser.SetDelimiters(Constants.Delimiters.TabChar.ToString());
-                    parser.HasFieldsEnclosedInQuotes = true;
-
                     string[] headers = parser.ReadFields();
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
-                    while (!parser.EndOfData)
+                    while (parser.Read())
                     {
-                        string[] values = parser.ReadFields();
+                        string[] values = parser.Fields;
 
                         List<ExpertRuleCriterion> ruleCriteria = new List<ExpertRuleCriterion>();
 

@@ -101,6 +101,9 @@
       <Component Id="CLIDllComponent" Guid="8A01C2F3-2B4D-5E6F-A2F3-B4C5D6E7F8A9">
         <File Id="AMRIE.dll" Source="$(var.CLIPublishDir)\AMRIE.dll" KeyPath="yes" />
       </Component>
+      <Component Id="CLIDepsComponent" Guid="845359F9-993D-41E2-B780-4EC4876D8648">
+        <File Id="AMRIE.deps.json" Source="$(var.CLIPublishDir)\AMRIE.deps.json" KeyPath="yes" />
+      </Component>
       <Component Id="CLIRuntimeConfigComponent" Guid="9B12D3E4-3C5E-6F7A-B3A4-C5D6E7F8A9B0">
         <File Id="AMRIE.runtimeconfig.json" Source="$(var.CLIPublishDir)\AMRIE.runtimeconfig.json" KeyPath="yes" />
       </Component>

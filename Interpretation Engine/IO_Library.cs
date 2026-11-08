@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -191,20 +190,16 @@ namespace AMR_Engine
             ref List<string> inputColumnNames,
             List<Dictionary<string, string>> rowValueSets)
         {
-            using (TextFieldParser parser =
-                new TextFieldParser(arguments.InputFile))
+            using (DelimitedFileReader parser =
+                new DelimitedFileReader(arguments.InputFile, arguments.Delimiter))
             {
-                parser.SetDelimiters(arguments.Delimiter.ToString());
-                parser.HasFieldsEnclosedInQuotes = true;
-
                 // In this context the dictionary is in the reverse order (index -> name).
                 Dictionary<int, string> headers = new Dictionary<int, string>();
 
                 // Locate the first non-blank row. Use this as the header.
+                string[] headerNames = parser.ReadFields();
                 do
                 {
-                    string[] headerNames = parser.ReadFields();
-
                     if (headerNames.Where(h => !string.IsNullOrWhiteSpace(h)).Any())
                     {
                         // We found a non-blank row. Use this as the header.
@@ -216,7 +211,8 @@ namespace AMR_Engine
                     else
                         headerLineNumber++;
 
-                } while (!parser.EndOfData);
+                    headerNames = parser.ReadFields();
+                } while (headerNames != null);
 
                 inputColumnNames = headers.Values.ToList();
 
@@ -233,7 +229,7 @@ namespace AMR_Engine
                 int canonicalizedAntibioticCharacters = 0;
 
                 // Process the rest of the data file.
-                while (!parser.EndOfData)
+                while (true)
                 {
                     if (arguments.Worker != null && arguments.Worker.CancellationPending)
                     {
@@ -241,7 +237,9 @@ namespace AMR_Engine
                         return;
                     }
 
-                    string[] values = parser.ReadFields();
+                    if (!parser.Read())
+                        break;
+                    string[] values = parser.Fields;
 
                     if (values.Length >= NumberOfColumns && values.Any(v => !string.IsNullOrWhiteSpace(v)))
                     {

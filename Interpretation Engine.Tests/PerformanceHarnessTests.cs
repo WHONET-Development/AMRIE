@@ -292,4 +292,57 @@ public sealed class PerformanceHarnessTests
                 Directory.Delete(Path, recursive: true);
         }
     }
+
+    [Fact]
+    public void WholeFileApiPreservesHeaderSearchShortRowsAndBlankExtraFields()
+    {
+        using TemporaryDirectory directory = new();
+        string input = Path.Combine(directory.Path, "input.txt");
+        string output = Path.Combine(directory.Path, "output.txt");
+        string config = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
+        File.WriteAllText(input, "\r\n|||\r\nROW_IDX|ORGANISM|AMC_NM\r\n0|spn|4\r\nshort|spn\r\n1|spn|2||\r\n|||\r\n");
+        IO_Library.InterpretDataFile(null, new DoWorkEventArgs(new FileInterpretationParameters(input, '|', -1, config, output, null)));
+        Assert.Equal("ROW_IDX\tORGANISM\tAMC_NM\tAMC_NM_INTERP" + Environment.NewLine
+            + "0\tspn\t4\tI" + Environment.NewLine + "1\tspn\t2\tS" + Environment.NewLine, File.ReadAllText(output));
+    }
+
+    [Fact]
+    public void WholeFileApiStillRejectsNonblankExtraFields()
+    {
+        using TemporaryDirectory directory = new();
+        string input = Path.Combine(directory.Path, "input.txt");
+        string config = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
+        File.WriteAllText(input, "ROW_IDX|ORGANISM|AMC_NM\r\n0|spn|4|extra\r\n");
+        Assert.Throws<IndexOutOfRangeException>(() => IO_Library.InterpretDataFile(null, new DoWorkEventArgs(
+            new FileInterpretationParameters(input, '|', -1, config, Path.Combine(directory.Path, "output.txt"), null))));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" \r\n\t\r\n")]
+    public void WholeFileApiStillRejectsInputWithoutAnyRecords(string text)
+    {
+        using TemporaryDirectory directory = new();
+        string input = Path.Combine(directory.Path, "input.txt");
+        string config = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
+        File.WriteAllText(input, text);
+        Assert.Throws<ArgumentNullException>(() => IO_Library.InterpretDataFile(null, new DoWorkEventArgs(
+            new FileInterpretationParameters(input, '|', -1, config, Path.Combine(directory.Path, "output.txt"), null))));
+    }
+
+    [Fact]
+    public void WholeFileApiChecksCancellationBeforeReadingMalformedData()
+    {
+        using TemporaryDirectory directory = new();
+        string input = Path.Combine(directory.Path, "input.txt");
+        string output = Path.Combine(directory.Path, "output.txt");
+        string config = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
+        File.WriteAllText(input, "ROW_IDX|ORGANISM|AMC_NM\r\n\"unterminated\r\n");
+        using BackgroundWorker worker = new() { WorkerSupportsCancellation = true, WorkerReportsProgress = true };
+        worker.CancelAsync();
+        DoWorkEventArgs arguments = new(new FileInterpretationParameters(input, '|', -1, config, output, worker));
+        IO_Library.InterpretDataFile(null, arguments);
+        Assert.True(arguments.Cancel);
+        Assert.False(File.Exists(output));
+    }
 }
