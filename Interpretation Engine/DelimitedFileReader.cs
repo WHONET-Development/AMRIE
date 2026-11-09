@@ -123,7 +123,11 @@ namespace AMR_Engine
                 return Read(buffer.AsSpan(index, count));
             }
 
+#if NETFRAMEWORK
+            public int Read(Span<char> buffer)
+#else
             public override int Read(Span<char> buffer)
+#endif
             {
                 int written = 0;
                 while (written < buffer.Length)

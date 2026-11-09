@@ -55,11 +55,15 @@ namespace AMR_Engine
 
         #region Static properties
 
+        /// <summary>Path to the bundled breakpoint table.</summary>
+        public static readonly string BreakpointFilePath =
+            Path.Join(Constants.SystemRootPath, "Resources", "Breakpoints.txt");
+
 		/// <summary>
 		/// List of breakpoints loaded from the text file resource.
 		/// </summary>
 		public static readonly List<Breakpoint> Breakpoints = 
-			LoadBreakpoints(Path.Join(Constants.SystemRootPath, "Resources", "Breakpoints.txt"));
+            LoadBreakpoints(BreakpointFilePath);
 
         private static readonly Dictionary<string, List<Breakpoint>> BreakpointsByTest = Breakpoints
             .GroupBy(breakpoint => breakpoint.WHONET_TEST)

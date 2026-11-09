@@ -1,4 +1,5 @@
 using AMR_Engine;
+using System.Globalization;
 using System.IO;
 
 namespace Interpretation_Engine.Tests;
@@ -25,9 +26,20 @@ public class ResourceCoverageTests
         foreach (string file in requiredFiles)
             Assert.True(File.Exists(Path.Combine(resources, file)), $"Missing copied resource: {file}");
 
+        Assert.Equal(Path.Combine(resources, "Breakpoints.txt"), Breakpoint.BreakpointFilePath);
         Assert.NotEmpty(Antibiotic.AllAntibiotics);
         Assert.NotEmpty(Organism.CurrentOrganisms);
         Assert.NotEmpty(Breakpoint.Breakpoints);
+    }
+
+    [Theory]
+    [InlineData("es", "Todos los archivos")]
+    [InlineData("fr", "Tous les fichiers")]
+    [InlineData("zh-Hans", "\u6240\u6709\u6587\u4ef6")]
+    [InlineData("de", "All files")]
+    public void EngineTranslationsUseTheRequestedCultureOrFallback(string culture, string expected)
+    {
+        Assert.Equal(expected, Translations.Resources.ResourceManager.GetString("AllFiles", new CultureInfo(culture)));
     }
 
     [Fact]

@@ -1,11 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net48</TargetFrameworks>
     <RootNamespace>AMR_Engine</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>
     <ApplicationIcon>AMRIE_Square_No_Text.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <LangVersion>14.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="Microsoft.VisualBasic" />
+    <PackageReference Include="PolyfillLib" Version="11.4.5" />
+    <PackageReference Include="System.Text.Json" Version="10.0.14" />
+    <Using Include="Polyfills" />
+    <None Remove="Documentation\AMR Interpretation Algorithm and Resources.docx" />
+    <Content Include="Documentation\AMR Interpretation Algorithm and Resources.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Resources\Antibiotics.txt" />
@@ -83,5 +98,10 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Target Name="SignFrameworkEngine" AfterTargets="Build"
+          Condition="'$(TargetFramework)' == 'net48' and '$(Configuration)' == 'Release' and '$(OS)' == 'Windows_NT' and '$(RunPostBuildEvent)' != 'Never'">
+    <Exec Command="signtool.exe sign /a /tr http://timestamp.sectigo.com /td sha256 /fd sha256 &quot;$(TargetPath)&quot;" />
+  </Target>
 
 </Project>

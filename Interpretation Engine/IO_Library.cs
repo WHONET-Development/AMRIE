@@ -145,7 +145,7 @@ namespace AMR_Engine
                     FileShare.None, 65536, FileOptions.SequentialScan))
                 {
                     outputCreated = true;
-                    using (StreamWriter writer = new(output, new UTF8Encoding(false), leaveOpen: true))
+                    using (StreamWriter writer = new(output, new UTF8Encoding(false), bufferSize: 1024, leaveOpen: true))
                     using (BinaryReader rowsReader = new(rowsStream, Encoding.UTF8, leaveOpen: true))
                     {
                         Observe("writing");
