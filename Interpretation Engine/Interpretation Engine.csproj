@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net48</TargetFrameworks>
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
     <RootNamespace>AMR_Engine</RootNamespace>
     <Version>$(VersionPrefix)26.3.26</Version>
     <ApplicationIcon>AMRIE_Square_No_Text.ico</ApplicationIcon>
