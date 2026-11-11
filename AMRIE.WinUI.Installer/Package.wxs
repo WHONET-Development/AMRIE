@@ -56,10 +56,13 @@
       <ComponentRef Id="AppShortcutsComponent" />
       <ComponentGroupRef Id="WinUIPublishedFiles" />
       <ComponentGroupRef Id="CLIComponents" />
+      <ComponentGroupRef Id="LicenseComponents" />
     </Feature>
 
     <StandardDirectory Id="ProgramFiles6432Folder">
-      <Directory Id="INSTALLFOLDER" Name="$(var.Title)" />
+      <Directory Id="INSTALLFOLDER" Name="$(var.Title)">
+        <Directory Id="LICENSESFOLDER" Name="licenses" />
+      </Directory>
     </StandardDirectory>
 
     <StandardDirectory Id="ProgramMenuFolder">
@@ -89,29 +92,65 @@
 
     <!-- Published WinUI Files -->
     <ComponentGroup Id="WinUIPublishedFiles" Directory="INSTALLFOLDER">
-      <Files Include="$(var.WinUIPublishDir)\**" />
+      <Files Include="$(var.WinUIPublishDir)\**">
+        <Exclude Files="$(var.WinUIPublishDir)\licenses\**" />
+      </Files>
     </ComponentGroup>
 
-    <!-- Interpretation CLI Components (AMRIE.exe) -->
+    <!-- Interpretation CLI Components (AMRIE.CLI.exe) -->
     <ComponentGroup Id="CLIComponents" Directory="INSTALLFOLDER">
       <Component Id="CLIExeComponent" Guid="7F90B1E2-1A3C-4E5D-91E2-A3B4C5D6E7F8">
-        <File Id="AMRIE.exe" Source="$(var.CLIPublishDir)\AMRIE.exe" KeyPath="yes" />
+        <File Id="AMRIE.CLI.exe" Source="$(var.CLIPublishDir)\AMRIE.CLI.exe" KeyPath="yes" />
         <Environment Id="AMRIEPATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="yes" />
       </Component>
       <Component Id="CLIDllComponent" Guid="8A01C2F3-2B4D-5E6F-A2F3-B4C5D6E7F8A9">
-        <File Id="AMRIE.dll" Source="$(var.CLIPublishDir)\AMRIE.dll" KeyPath="yes" />
+        <File Id="AMRIE.CLI.dll" Source="$(var.CLIPublishDir)\AMRIE.CLI.dll" KeyPath="yes" />
       </Component>
       <Component Id="CLIDepsComponent" Guid="845359F9-993D-41E2-B780-4EC4876D8648">
-        <File Id="AMRIE.deps.json" Source="$(var.CLIPublishDir)\AMRIE.deps.json" KeyPath="yes" />
+        <File Id="AMRIE.CLI.deps.json" Source="$(var.CLIPublishDir)\AMRIE.CLI.deps.json" KeyPath="yes" />
       </Component>
       <Component Id="CLIRuntimeConfigComponent" Guid="9B12D3E4-3C5E-6F7A-B3A4-C5D6E7F8A9B0">
-        <File Id="AMRIE.runtimeconfig.json" Source="$(var.CLIPublishDir)\AMRIE.runtimeconfig.json" KeyPath="yes" />
+        <File Id="AMRIE.CLI.runtimeconfig.json" Source="$(var.CLIPublishDir)\AMRIE.CLI.runtimeconfig.json" KeyPath="yes" />
       </Component>
       <Component Id="AmrieAppPathsComponent" Guid="E3F4A5B6-C7D8-4E9F-0A1B-2C3D4E5F6A7B">
-        <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AMRIE.exe">
-          <RegistryValue Type="string" Value="[INSTALLFOLDER]AMRIE.exe" KeyPath="yes" />
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\AMRIE.CLI.exe">
+          <RegistryValue Type="string" Value="[INSTALLFOLDER]AMRIE.CLI.exe" KeyPath="yes" />
           <RegistryValue Type="string" Name="Path" Value="[INSTALLFOLDER]" />
         </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <!-- License & Third-Party Attribution Components -->
+    <ComponentGroup Id="LicenseComponents" Directory="LICENSESFOLDER">
+      <Component Id="License_Readme" Guid="F1A2B3C4-0001-4000-8000-A1B2C3D4E501">
+        <File Id="Licenses_README.md" Source="..\licenses\README.md" Name="README.md" KeyPath="yes" />
+      </Component>
+      <Component Id="License_MGB" Guid="F1A2B3C4-0002-4000-8000-A1B2C3D4E502">
+        <File Id="LICENSE_MGB.txt" Source="..\licenses\LICENSE-MGB.txt" Name="LICENSE-MGB.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_ThirdPartyNotices" Guid="F1A2B3C4-0003-4000-8000-A1B2C3D4E503">
+        <File Id="THIRD_PARTY_NOTICES.md" Source="..\licenses\THIRD-PARTY-NOTICES.md" Name="THIRD-PARTY-NOTICES.md" KeyPath="yes" />
+      </Component>
+      <Component Id="License_CsvHelper" Guid="F1A2B3C4-0004-4000-8000-A1B2C3D4E504">
+        <File Id="LICENSE_CsvHelper.txt" Source="..\licenses\LICENSE-CsvHelper.txt" Name="LICENSE-CsvHelper.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_CommunityToolkit" Guid="F1A2B3C4-0005-4000-8000-A1B2C3D4E505">
+        <File Id="LICENSE_CommunityToolkit.txt" Source="..\licenses\LICENSE-CommunityToolkit.txt" Name="LICENSE-CommunityToolkit.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_WindowsAppSDK" Guid="F1A2B3C4-0006-4000-8000-A1B2C3D4E506">
+        <File Id="LICENSE_WindowsAppSDK.txt" Source="..\licenses\LICENSE-WindowsAppSDK.txt" Name="LICENSE-WindowsAppSDK.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_WebView2" Guid="F1A2B3C4-0007-4000-8000-A1B2C3D4E507">
+        <File Id="LICENSE_WebView2.txt" Source="..\licenses\LICENSE-WebView2.txt" Name="LICENSE-WebView2.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_PolyfillLib" Guid="F1A2B3C4-0008-4000-8000-A1B2C3D4E508">
+        <File Id="LICENSE_PolyfillLib.txt" Source="..\licenses\LICENSE-PolyfillLib.txt" Name="LICENSE-PolyfillLib.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_DotNetRuntime" Guid="F1A2B3C4-0009-4000-8000-A1B2C3D4E509">
+        <File Id="LICENSE_DotNetRuntime.txt" Source="..\licenses\LICENSE-DotNetRuntime.txt" Name="LICENSE-DotNetRuntime.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="License_ClinicalData" Guid="F1A2B3C4-0010-4000-8000-A1B2C3D4E510">
+        <File Id="CLINICAL_DATA_ATTRIBUTION.md" Source="..\licenses\CLINICAL-DATA-ATTRIBUTION.md" Name="CLINICAL-DATA-ATTRIBUTION.md" KeyPath="yes" />
       </Component>
     </ComponentGroup>
 

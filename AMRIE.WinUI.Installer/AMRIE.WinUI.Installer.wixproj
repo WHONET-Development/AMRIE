@@ -15,7 +15,7 @@
     <Manufacturer>Brigham and Women's Hospital</Manufacturer>
     <WinUIRuntimeIdentifier>win-$([System.String]::Copy('$(Platform)').ToLowerInvariant())</WinUIRuntimeIdentifier>
     <WinUIPublishDir>..\AMRIE.WinUI\bin\$(Platform)\$(Configuration)\net10.0-windows10.0.26100.0\$(WinUIRuntimeIdentifier)\publish</WinUIPublishDir>
-    <CLIPublishDir>..\Interpretation CLI\bin\$(Platform)\$(Configuration)\net10.0\$(WinUIRuntimeIdentifier)</CLIPublishDir>
+    <CLIPublishDir>..\AMRIE.CLI\bin\$(Platform)\$(Configuration)\net10.0\$(WinUIRuntimeIdentifier)</CLIPublishDir>
     <DefineConstants>Title=$(Title);Version=$(Version);BuildDate=$(BuildDate);WinUIPublishDir=$(WinUIPublishDir);CLIPublishDir=$(CLIPublishDir)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -28,9 +28,9 @@
     <Message Importance="high" Text="Publishing AMRIE.WinUI (win-$(Platform) $(Configuration))..." />
     <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj" Targets="Restore" Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(WinUIRuntimeIdentifier);WindowsPackageType=None;WindowsAppSDKSelfContained=true;SelfContained=true;Version=$(Version)" />
     <MSBuild Projects="..\AMRIE.WinUI\AMRIE.WinUI.csproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=$(Platform);RuntimeIdentifier=$(WinUIRuntimeIdentifier);WindowsPackageType=None;WindowsAppSDKSelfContained=true;SelfContained=true;Version=$(Version)" />
-    <Message Importance="high" Text="Building self-contained Interpretation CLI ($(Platform) $(Configuration))..." />
+    <Message Importance="high" Text="Building self-contained AMRIE.CLI ($(Platform) $(Configuration))..." />
     <!-- A fresh build process avoids reusing framework-dependent assets cached by the solution build. -->
-    <Exec Command="dotnet build &quot;..\Interpretation CLI\Interpretation CLI.csproj&quot; --configuration $(Configuration) --runtime $(WinUIRuntimeIdentifier) --self-contained true -p:Platform=$(Platform) -p:Version=$(Version) -nr:false" />
+    <Exec Command="dotnet build &quot;..\AMRIE.CLI\AMRIE.CLI.csproj&quot; --configuration $(Configuration) --runtime $(WinUIRuntimeIdentifier) --self-contained true -p:Platform=$(Platform) -p:Version=$(Version) -nr:false" />
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="where signtool.exe &gt;nul 2&gt;&amp;1 &amp;&amp; (echo Attempting to sign installer package... &amp; signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE WinUI&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;) || (echo Signtool not found or signing skipped.)" ContinueOnError="true" />

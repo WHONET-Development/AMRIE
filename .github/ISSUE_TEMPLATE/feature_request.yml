@@ -1,0 +1,42 @@
+name: Feature Request
+description: Suggest an enhancement for the interpretation engine, CLI, or desktop applications.
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Target Component
+      options:
+        - AMRIE.Library (Core Engine & API)
+        - AMRIE.WinUI (Desktop GUI)
+        - AMRIE.CLI (Command-Line Tool)
+        - Clinical Resources & Rules
+        - Build / Installer / Packaging
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What clinical, laboratory, or integration workflow are you trying to solve?
+      placeholder: "As a laboratory data integrator, I need..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the behavior, API signature, CLI flag, or UI workflow you would like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any workarounds or alternative approaches you have considered.
+

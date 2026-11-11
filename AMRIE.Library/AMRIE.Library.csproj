@@ -16,10 +16,6 @@
     <PackageReference Include="PolyfillLib" Version="11.4.5" />
     <PackageReference Include="System.Text.Json" Version="10.0.14" />
     <Using Include="Polyfills" />
-    <None Remove="Documentation\AMR Interpretation Algorithm and Resources.docx" />
-    <Content Include="Documentation\AMR Interpretation Algorithm and Resources.docx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -79,6 +75,7 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="34.0.0" />
+    <InternalsVisibleTo Include="AMRIE.Library.Tests" />
     <InternalsVisibleTo Include="Interpretation Engine.Tests" />
     <InternalsVisibleTo Include="Interpretation Engine.Performance" />
   </ItemGroup>

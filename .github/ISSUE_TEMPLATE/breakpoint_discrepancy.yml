@@ -1,0 +1,89 @@
+name: Clinical Breakpoint / Rule Discrepancy
+description: Report a discrepancy between an AMRIE AST interpretation and published CLSI, EUCAST, or SFM guidelines.
+title: "[Clinical Discrepancy]: "
+labels: ["clinical-rules", "breakpoints", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when AMRIE produces an antimicrobial susceptibility interpretation (`S`, `I`, `SDD`, `R`, `NS`, `WT`, `NWT`) that does not match published clinical guidelines or expected resistance phenotypes.
+        **Privacy Notice:** Do **not** include any real patient identifiers (PHI/PII).
+
+  - type: dropdown
+    id: guideline
+    attributes:
+      label: Guideline Authority
+      options:
+        - CLSI (Clinical and Laboratory Standards Institute)
+        - EUCAST (European Committee on Antimicrobial Susceptibility Testing)
+        - SFM (Société Française de Microbiologie)
+        - Other / User-Defined
+    validations:
+      required: true
+
+  - type: input
+    id: guideline_year
+    attributes:
+      label: Guideline Year & Edition / Table Reference
+      placeholder: "e.g., CLSI M100 36th Edition (2026), Table 2A"
+    validations:
+      required: true
+
+  - type: input
+    id: organism
+    attributes:
+      label: Organism Name & WHONET Code
+      placeholder: "e.g., Streptococcus pneumoniae (spn) or Escherichia coli (eco)"
+    validations:
+      required: true
+
+  - type: input
+    id: antibiotic_test
+    attributes:
+      label: Antibiotic & WHONET Test Code
+      placeholder: "e.g., Ceftriaxone MIC (CRO_NM) or Cefoxitin 30ug Disk (FOX_ND30)"
+    validations:
+      required: true
+
+  - type: input
+    id: measurement
+    attributes:
+      label: Quantitative Measurement Tested
+      placeholder: "e.g., 2, <=0.5, >32, or 18 (mm)"
+    validations:
+      required: true
+
+  - type: input
+    id: actual_result
+    attributes:
+      label: Actual AMRIE Output
+      placeholder: "e.g., I (Intermediate)"
+    validations:
+      required: true
+
+  - type: input
+    id: expected_result
+    attributes:
+      label: Expected Clinical Interpretation
+      placeholder: "e.g., S (Susceptible) for Non-meningitis"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Configuration & Additional Context
+      description: Specify Breakpoint Type (Human/Animal/ECOFF), Site of Infection, enabled Expert Rules (MRS, BLNAR-HFLU, ICR, ESBL), or relevant co-tested drugs.
+      placeholder: |
+        - PrioritizedBreakpointTypes: ["Human"]
+        - PrioritizedSitesOfInfection: ["Non-meningitis", "Meningitis"]
+        - EnabledExpertInterpretationRules: ["MRS", "BLNAR-HFLU", "ICR"]
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Data Privacy Confirmation
+      options:
+        - label: I confirm that this report contains NO patient health information (PHI) or personally identifiable information (PII).
+          required: true
+

@@ -1,0 +1,77 @@
+name: Software Bug Report
+description: Report a crash, CLI error, file parsing defect, or desktop UI issue in AMRIE.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug in **AMRIE**!
+        **Privacy Notice:** Do **not** include any real patient health information (PHI) or personally identifiable information (PII) in this issue or attached files.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the AMRIE solution is affected?
+      options:
+        - AMRIE.WinUI (Modern WinUI 3 Desktop App)
+        - AMRIE.CLI (Command-Line Interface)
+        - AMRIE.Library (.NET 10 / .NET Framework 4.8 Engine)
+        - AMRIE.WinForms (Legacy Desktop App)
+        - WiX MSI Installer / WinGet Package
+        - Documentation
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: AMRIE Version & Target Runtime
+      description: Specify the release version (e.g., 26.9.27) or commit SHA, and OS / .NET version.
+      placeholder: "e.g., v26.9.27 on Windows 11 x64 (.NET 10.0)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps, CLI command, or C# snippet to reproduce the behavior.
+      placeholder: |
+        1. Run `AMRIE.CLI.exe FILE ...`
+        2. Observe exception...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Stack Trace / Console Output
+      description: Paste any relevant error messages or stack traces here.
+      render: shell
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Data Privacy Confirmation
+      options:
+        - label: I confirm that this report and any attached data contain NO patient health information (PHI) or personally identifiable information (PII).
+          required: true
+
