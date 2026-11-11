@@ -344,18 +344,19 @@ namespace AMR_Engine
             CsvReader parser,
             List<string> inputColumnNames)
         {
-            string[]? headerNames = parser.Read() ? GetFields(parser) : null;
-            do
+            bool hasHeader = false;
+            while (parser.Read())
             {
-                if (headerNames != null && headerNames.Any(h => !string.IsNullOrWhiteSpace(h)))
-                {
-                    inputColumnNames.AddRange(headerNames);
-                    break;
-                }
-                headerNames = parser.Read() ? GetFields(parser) : null;
-            } while (headerNames != null);
+                string[] headerNames = GetFields(parser);
+                if (!headerNames.Any(h => !string.IsNullOrWhiteSpace(h)))
+                    continue;
 
-            if (headerNames == null)
+                inputColumnNames.AddRange(headerNames);
+                hasHeader = true;
+                break;
+            }
+
+            if (!hasHeader)
                 throw new InvalidDataException("The input file does not contain a non-empty header record.");
 
             int numberOfColumns = inputColumnNames.Count;
