@@ -8,11 +8,11 @@ description: "Build, run, and diagnose WinUI 3 applications with WinApp CLI (win
 ## Daily Commands
 - **Run project**:
   ```powershell
-  winapp run "Interpretation Desktop\InterpretationDesktop.csproj" --debug-output
+  winapp run "AMRIE.WinUI\AMRIE.WinUI.csproj" --debug-output
   ```
 - **Detach run**:
   ```powershell
-  winapp run "Interpretation Desktop\InterpretationDesktop.csproj" --detach
+  winapp run "AMRIE.WinUI\AMRIE.WinUI.csproj" --detach
   ```
 - **Helper script**:
   ```powershell
@@ -20,7 +20,7 @@ description: "Build, run, and diagnose WinUI 3 applications with WinApp CLI (win
   ```
 - **Build with dotnet**:
   ```powershell
-  dotnet build "Interpretation Desktop\InterpretationDesktop.csproj" -nr:false
+  dotnet build "AMRIE.WinUI\AMRIE.WinUI.csproj" -nr:false
   ```
 
 ## Gotchas & Rules

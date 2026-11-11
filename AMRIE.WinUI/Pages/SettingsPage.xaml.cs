@@ -99,4 +99,27 @@ public sealed partial class SettingsPage : Page
             }
         }
     }
+
+    private async void OpenThirdPartyNotices(object sender, RoutedEventArgs e)
+    {
+        var path = System.IO.Path.Combine(AppContext.BaseDirectory, @"licenses\THIRD-PARTY-NOTICES.md");
+        try
+        {
+            if (!System.IO.File.Exists(path))
+                throw new System.IO.FileNotFoundException("Third-party notices file not found.", path);
+
+            Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+        }
+        catch (System.IO.FileNotFoundException)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "File Not Found",
+                Content = "Third-party notices file not found. Please reinstall the application.",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
+    }
 }
