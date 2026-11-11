@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
+using CsvHelper;
 
 namespace AMR_Engine
 {
@@ -441,14 +443,18 @@ namespace AMR_Engine
             {
                 List<Breakpoint> breakpoints = new List<Breakpoint>();
 
-                using (DelimitedFileReader parser = new DelimitedFileReader(breakpointsTableFile, Constants.Delimiters.TabChar))
+                using (CsvReader parser = CsvReader.Create(
+                    new StreamReader(breakpointsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
                 {
-                    string[] headers = parser.ReadFields();
+                    if (!parser.Read())
+                        throw new InvalidDataException("The breakpoint resource is empty.");
+                    string[] headers = IO_Library.GetFields(parser);
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
                     while (parser.Read())
                     {
-                        string[] values = parser.Fields;
+                        string[] values = IO_Library.GetFields(parser);
 
                         decimal tempR = decimal.Zero;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(R)]]))

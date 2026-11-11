@@ -1,5 +1,5 @@
 using AMR_Engine;
-using Microsoft.VisualBasic.FileIO;
+using CsvHelper;
 using System.ComponentModel;
 using System.Text;
 
@@ -192,7 +192,7 @@ public sealed class BoundedFileProcessingTests
         var arguments = Arguments(directory, input);
         arguments.BatchRowLimit = 1;
         File.WriteAllText(arguments.OutputFile, "previous output");
-        var error = Assert.Throws<MalformedLineException>(() => IO_Library.InterpretDataFileBounded(null, new DoWorkEventArgs(arguments)));
+        var error = Assert.Throws<CsvFormatException>(() => IO_Library.InterpretDataFileBounded(null, new DoWorkEventArgs(arguments)));
         Assert.Equal(4, error.LineNumber);
         Assert.Equal("previous output", File.ReadAllText(arguments.OutputFile));
         AssertNoStagingFiles(directory);

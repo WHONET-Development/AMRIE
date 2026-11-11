@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using CsvHelper;
 
 namespace AMR_Engine
 {
@@ -322,14 +324,18 @@ namespace AMR_Engine
             if (File.Exists(antibioticsTableFile))
             {
                 List<Antibiotic> antibiotics = new List<Antibiotic>();
-                using (DelimitedFileReader parser = new DelimitedFileReader(antibioticsTableFile, Constants.Delimiters.TabChar))
+                using (CsvReader parser = CsvReader.Create(
+                    new StreamReader(antibioticsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
                 {
-                    string[] headers = parser.ReadFields();
+                    if (!parser.Read())
+                        throw new InvalidDataException("The antibiotics resource is empty.");
+                    string[] headers = IO_Library.GetFields(parser);
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
                     while (parser.Read())
                     {
-                        string[] values = parser.Fields;
+                        string[] values = IO_Library.GetFields(parser);
 
                         DateTime tempEntered = DateTime.MinValue;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(DATE_ENTERED)]]))

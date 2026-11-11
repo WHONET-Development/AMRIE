@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using CsvHelper;
 
 namespace AMR_Engine
 {
@@ -146,14 +148,18 @@ namespace AMR_Engine
             {
                 List<Organism> allOrgs = new List<Organism>();
 
-                using (DelimitedFileReader parser = new DelimitedFileReader(organismsTableFile, Constants.Delimiters.TabChar))
+                using (CsvReader parser = CsvReader.Create(
+                    new StreamReader(organismsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
                 {
-                    string[] headers = parser.ReadFields();
+                    if (!parser.Read())
+                        throw new InvalidDataException("The organisms resource is empty.");
+                    string[] headers = IO_Library.GetFields(parser);
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
                     while (parser.Read())
                     {
-                        string[] values = parser.Fields;
+                        string[] values = IO_Library.GetFields(parser);
 
                         string taxonomicStatus = values[headerMap[nameof(TAXONOMIC_STATUS)]];
 
@@ -228,14 +234,18 @@ namespace AMR_Engine
             {
                 Dictionary<string, string> mergedOrganismMap = new Dictionary<string, string>();
 
-                using (DelimitedFileReader parser = new DelimitedFileReader(organismsTableFile, Constants.Delimiters.TabChar))
+                using (CsvReader parser = CsvReader.Create(
+                    new StreamReader(organismsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
                 {
-                    string[] headers = parser.ReadFields();
+                    if (!parser.Read())
+                        throw new InvalidDataException("The organisms resource is empty.");
+                    string[] headers = IO_Library.GetFields(parser);
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
                     while (parser.Read())
                     {
-                        string[] values = parser.Fields;
+                        string[] values = IO_Library.GetFields(parser);
 
                         string taxonomicStatus = values[headerMap[nameof(TAXONOMIC_STATUS)]];
 

@@ -11,6 +11,7 @@ namespace AMR_Engine
         public FileInterpretationParameters(string inputFile_, char delimiter_, int guidelineYear_,
             string configFile_, string outputFile_, BackgroundWorker worker_)
         {
+            Constants.Delimiters.ValidateFileDelimiter(delimiter_, nameof(delimiter_));
             InputFile = inputFile_;
             Delimiter = delimiter_;
             GuidelineYear = guidelineYear_;

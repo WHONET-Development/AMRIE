@@ -2,6 +2,8 @@
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Text;
+using CsvHelper;
 
 namespace AMR_Engine
 {
@@ -291,14 +293,18 @@ namespace AMR_Engine
                 List<ExpertInterpretationRule> allRules =
                     new List<ExpertInterpretationRule>();
 
-                using (DelimitedFileReader parser = new DelimitedFileReader(expertRulesTableFile, Constants.Delimiters.TabChar))
+                using (CsvReader parser = CsvReader.Create(
+                    new StreamReader(expertRulesTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
                 {
-                    string[] headers = parser.ReadFields();
+                    if (!parser.Read())
+                        throw new InvalidDataException("The expert interpretation rules resource is empty.");
+                    string[] headers = IO_Library.GetFields(parser);
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
                     while (parser.Read())
                     {
-                        string[] values = parser.Fields;
+                        string[] values = IO_Library.GetFields(parser);
 
                         List<ExpertRuleCriterion> ruleCriteria = new List<ExpertRuleCriterion>();
 

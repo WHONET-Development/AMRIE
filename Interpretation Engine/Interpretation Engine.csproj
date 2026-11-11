@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
-    <Reference Include="Microsoft.VisualBasic" />
     <PackageReference Include="PolyfillLib" Version="11.4.5" />
     <PackageReference Include="System.Text.Json" Version="10.0.14" />
     <Using Include="Polyfills" />

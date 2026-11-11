@@ -29,11 +29,7 @@ namespace Interpretation_CLI
 					string inputFile = args[3];
 					string outputFile = args[4];
 
-					char delimiter;
-					if (delimiterArg == Constants.Delimiters.TabPlaceholder)
-						delimiter = Constants.Delimiters.TabChar;
-					else
-						delimiter = delimiterArg[0];
+					char delimiter = Constants.Delimiters.ParseFileDelimiterToken(delimiterArg);
 
 					AMR_Engine.FileInterpretationParameters fileArgs =
 						new(inputFile, delimiter, -1, configFile,
@@ -95,7 +91,7 @@ namespace Interpretation_CLI
 			string processName = Path.GetFileName(Environment.ProcessPath ?? "AMRIE.exe");
 			Console.WriteLine();
 			Console.WriteLine(Translations.Resources.WholeFileMode);
-			Console.WriteLine($"\"{processName}\" FILE {{Config file}} {{Delimiter character (use 'TAB' or the delimiter character}} {{Input file}} {{Output file}}");
+			Console.WriteLine($"\"{processName}\" FILE {{Config file}} {{Delimiter: TAB, ',', ';', or '|'}} {{Input file}} {{Output file}}");
 			Console.WriteLine();
 			Console.WriteLine(Translations.Resources.SingleInterpretationMode);
 			Console.WriteLine($"\"{processName}\" SINGLE_INTERPRETATION {{Config file}} {{Organism code}} {{Antibiotic code}} {{Measurement}} {{Output file}}");

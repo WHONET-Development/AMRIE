@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using CsvHelper;
 
 namespace AMR_Engine
 {
@@ -185,14 +187,18 @@ namespace AMR_Engine
             {
                 List<QualityControlRange> qcRanges = new List<QualityControlRange>();
 
-                using (DelimitedFileReader parser = new DelimitedFileReader(qualityControlTableFile, Constants.Delimiters.TabChar))
+                using (CsvReader parser = CsvReader.Create(
+                    new StreamReader(qualityControlTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
                 {
-                    string[] headers = parser.ReadFields();
+                    if (!parser.Read())
+                        throw new InvalidDataException("The QC ranges resource is empty.");
+                    string[] headers = IO_Library.GetFields(parser);
                     Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
 
                     while (parser.Read())
                     {
-                        string[] values = parser.Fields;
+                        string[] values = IO_Library.GetFields(parser);
 
                         int tempYear = 0;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(YEAR)]]))

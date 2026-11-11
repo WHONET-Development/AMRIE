@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CsvHelper;
 
 namespace AMR_Engine
 {
@@ -94,8 +95,8 @@ namespace AMR_Engine
                 using (BinaryWriter rowsWriter = new(rowsStream, Encoding.UTF8, leaveOpen: true))
                 using (FileStream input = new(arguments.InputFile, FileMode.Open, FileAccess.Read,
                     FileShare.Read, 4096, FileOptions.SequentialScan))
-                using (DelimitedFileReader parser = new(new StreamReader(input, Encoding.UTF8,
-                    detectEncodingFromByteOrderMarks: true), arguments.Delimiter))
+                using (CsvReader parser = CsvReader.Create(new StreamReader(input, Encoding.UTF8,
+                    detectEncodingFromByteOrderMarks: true), CreateCsvReaderOptions(arguments.Delimiter)))
                 {
                     void FlushBatch()
                     {
@@ -209,6 +210,38 @@ namespace AMR_Engine
             return headerMap;
         }
 
+        internal static CsvReaderOptions CreateCsvReaderOptions(char delimiter)
+        {
+            Constants.Delimiters.ValidateFileDelimiter(delimiter, nameof(delimiter));
+            return new CsvReaderOptions
+            {
+                Separator = delimiter,
+                HasHeader = false,
+                Mode = CsvMode.Rfc4180,
+                Quote = '"',
+                Escape = '\\',
+                TrimWhitespace = true,
+                TrimInsideQuotes = false,
+                WhitespaceCharacters = " \t\v\f".Replace(delimiter.ToString(), string.Empty),
+                SkipEmptyLines = true,
+                AllowLineBreaksInQuotes = true,
+                MalformedData = CsvMalformedDataHandling.Throw,
+                FieldCountMismatch = CsvFieldCountHandling.Allow,
+                MissingField = CsvMissingFieldHandling.Throw,
+                TrackLineNumbers = true,
+                DetectSeparatorHint = false,
+                PoolStrings = false
+            };
+        }
+
+        internal static string[] GetFields(CsvReader parser)
+        {
+            string[] fields = new string[parser.FieldCount];
+            for (int index = 0; index < fields.Length; index++)
+                fields[index] = parser.GetString(index).Trim();
+            return fields;
+        }
+
 
 		public static string[] SplitLine(string record, char delimiter)
 		{
@@ -308,19 +341,22 @@ namespace AMR_Engine
         private static IEnumerable<InputRow> ReadInputRows(
             DoWorkEventArgs e,
             FileInterpretationParameters arguments,
-            DelimitedFileReader parser,
+            CsvReader parser,
             List<string> inputColumnNames)
         {
-            string[] headerNames = parser.ReadFields();
+            string[]? headerNames = parser.Read() ? GetFields(parser) : null;
             do
             {
-                if (headerNames.Any(h => !string.IsNullOrWhiteSpace(h)))
+                if (headerNames != null && headerNames.Any(h => !string.IsNullOrWhiteSpace(h)))
                 {
                     inputColumnNames.AddRange(headerNames);
                     break;
                 }
-                headerNames = parser.ReadFields();
+                headerNames = parser.Read() ? GetFields(parser) : null;
             } while (headerNames != null);
+
+            if (headerNames == null)
+                throw new InvalidDataException("The input file does not contain a non-empty header record.");
 
             int numberOfColumns = inputColumnNames.Count;
             bool[] antibioticColumns = new bool[numberOfColumns];
@@ -341,7 +377,7 @@ namespace AMR_Engine
 
                 if (!parser.Read())
                     break;
-                string[] values = parser.Fields;
+                string[] values = GetFields(parser);
 
                 if (values.Length >= numberOfColumns && values.Any(v => !string.IsNullOrWhiteSpace(v)))
                 {

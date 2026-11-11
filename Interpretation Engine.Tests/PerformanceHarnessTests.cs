@@ -326,8 +326,9 @@ public sealed class PerformanceHarnessTests
         string input = Path.Combine(directory.Path, "input.txt");
         string config = Path.Combine(Constants.SystemRootPath, "Resources", "SampleConfig.json");
         File.WriteAllText(input, text);
-        Assert.Throws<ArgumentNullException>(() => IO_Library.InterpretDataFile(null, new DoWorkEventArgs(
+        InvalidDataException error = Assert.Throws<InvalidDataException>(() => IO_Library.InterpretDataFile(null, new DoWorkEventArgs(
             new FileInterpretationParameters(input, '|', -1, config, Path.Combine(directory.Path, "output.txt"), null))));
+        Assert.Contains("non-empty header", error.Message);
     }
 
     [Fact]

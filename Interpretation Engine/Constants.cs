@@ -55,9 +55,40 @@ namespace AMR_Engine
             public static readonly string TabPlaceholder = "TAB";
             public static readonly char TabChar = '\t';
             public static readonly char CommaChar = ',';
+            public static readonly char SemicolonChar = ';';
+            public static readonly char PipeChar = '|';
             public static readonly char Underscore = '_';
             public static readonly char Space = ' ';
             public static readonly char EqualsSign = '=';
+
+            internal static void ValidateFileDelimiter(char delimiter, string parameterName)
+            {
+                if (delimiter != TabChar && delimiter != CommaChar
+                    && delimiter != SemicolonChar && delimiter != PipeChar)
+                {
+                    string requested = char.IsControl(delimiter)
+                        ? $"U+{(int)delimiter:X4}"
+                        : $"'{delimiter}' (U+{(int)delimiter:X4})";
+                    throw new ArgumentException(
+                        $"Unsupported file delimiter {requested}. Supported delimiters are TAB, comma (,), semicolon (;), and pipe (|).",
+                        parameterName);
+                }
+            }
+
+            public static char ParseFileDelimiterToken(string delimiterToken)
+            {
+                if (delimiterToken == null)
+                    throw new ArgumentNullException(nameof(delimiterToken));
+                if (delimiterToken == TabPlaceholder)
+                    return TabChar;
+                if (delimiterToken.Length != 1)
+                    throw new ArgumentException(
+                        "Unsupported delimiter token. Supported delimiters are TAB, comma (,), semicolon (;), and pipe (|); provide TAB or exactly one character.",
+                        nameof(delimiterToken));
+
+                ValidateFileDelimiter(delimiterToken[0], nameof(delimiterToken));
+                return delimiterToken[0];
+            }
         }
 
         public class CommandLineModes
