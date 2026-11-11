@@ -1,4 +1,5 @@
 {
+	"$schema": "../docs/reference/amrie-config.schema.json",
 	"RoundHalfDilutions": true,
 	"IncludeInterpretationComments": false,
 	"EnabledExpertInterpretationRules": [

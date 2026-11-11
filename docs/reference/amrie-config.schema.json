@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "amrie-config.schema.json",
+  "title": "AMRIE Interpretation Configuration",
+  "description": "Schema for the AMRIE antimicrobial resistance interpretation engine configuration file. All properties are optional; omitted properties use their documented defaults.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URI reference to this JSON Schema."
+    },
+    "RoundHalfDilutions": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true, ETest half-dilution MIC values (e.g., 1.5) are rounded to the nearest standard doubling dilution before breakpoint lookup. Matches EUCAST and CLSI ETest rounding guidance."
+    },
+    "IncludeInterpretationComments": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, interpretation codes include modifier characters: '!' for expert-rule overrides, '*' for intrinsic resistance, '?' for out-of-range measurements."
+    },
+    "UseIntrinsicResistanceRules": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true, the engine applies species-level intrinsic resistance rules (from ExpectedResistancePhenotypes.txt) before breakpoint lookup. Intrinsically resistant combinations are reported as 'R' regardless of the measured value."
+    },
+    "EnabledExpertInterpretationRules": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "examples": [
+              "ESBL-CONFIRMED",
+              "ESBL-AMPC-PROBABLE",
+              "BLNAR-HFLU",
+              "MRS",
+              "ICR"
+            ]
+          },
+          "description": "Array of expert rule codes to enable. An empty array disables all expert rules. A non-empty array enables only the listed rules."
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Expert interpretation rule codes to activate. null or omitted = all default rules active. Empty array [] = all expert rules disabled. Non-empty array = only the listed rules are active."
+    },
+    "GuidelineYear": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Publication year of the breakpoint guideline edition to use (e.g., 2026). The engine selects the most recent breakpoints with YEAR <= GuidelineYear. 0 or omitted resolves to the current bundled breakpoint revision year at runtime."
+    },
+    "PrioritizedBreakpointTypes": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Human", "Animal", "ECOFF"]
+          },
+          "description": "Ordered preference list for BREAKPOINT_TYPE selection. The engine uses the first type in this list that has an applicable breakpoint."
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ordered preference list for breakpoint type selection. null or omitted = all types eligible with no preference. Empty array [] is normalized to null. Recognized values: 'Human', 'Animal', 'ECOFF'."
+    },
+    "PrioritizedSitesOfInfection": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "examples": [
+              "Non-meningitis",
+              "Non-endocarditis",
+              "Parenteral",
+              "(Blank)",
+              "Uncomplicated urinary tract infection",
+              "Infections originating from the urinary tract",
+              "Meningitis",
+              "Endocarditis",
+              "Endocarditis with combination treatment",
+              "Intravenous",
+              "Oral",
+              "Inhaled",
+              "Investigational agent",
+              "Extraintestinal",
+              "Abscesses",
+              "Genital",
+              "Intestinal",
+              "Liposomal",
+              "Mammary gland",
+              "Mastitis",
+              "Metritis",
+              "Non-pneumonia",
+              "Other infections",
+              "Other indications",
+              "Pneumonia",
+              "Prophylaxis",
+              "Respiratory",
+              "Screen",
+              "Skin",
+              "Soft tissue",
+              "Wounds"
+            ]
+          },
+          "description": "Ordered preference list for site-of-infection breakpoint selection. Sites not listed are appended automatically in the default engine order. Sites in DisabledSitesOfInfection are excluded."
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Ordered preference list for site-of-infection breakpoint selection. null or empty array = default engine order applies. Sites in DisabledSitesOfInfection are excluded from the effective order."
+    },
+    "DisabledSitesOfInfection": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Site-of-infection values to exclude from breakpoint lookup. These sites will not appear in the effective PrioritizedSitesOfInfection list."
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Sites of infection to exclude entirely from breakpoint selection. null or empty array = no sites disabled."
+    },
+    "HorizontalAntibioticResults": {
+      "type": "boolean",
+      "default": true,
+      "description": "Output layout for FILE mode. true = wide/horizontal: one row per isolate with <FIELD>_INTERP columns. false = tall/vertical: one row per antibiotic measurement with ANTIBIOTIC_CODE, ANTIBIOTIC_MEASUREMENT, ANTIBIOTIC_INTERPRETATION columns."
+    },
+    "UserDefinedBreakpointsFile": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Relative path from AppContext.BaseDirectory to a user-defined breakpoints file in Breakpoints.txt tab-delimited schema format."
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Path (relative to the AMRIE executable directory) to a user-defined breakpoints file. The file must use the same tab-delimited schema as the built-in Breakpoints.txt. User-defined entries take precedence over built-in entries for matching organism/drug/guideline/year/method/site combinations."
+    }
+  },
+  "additionalProperties": true
+}
