@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Interpretation CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "SINGLE_INTERPRETATION \"Resources\\SampleConfig.json\" spn PEN_NM \"<=2\" out.json"
+    }
+  }
+}

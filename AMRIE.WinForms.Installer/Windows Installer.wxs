@@ -1,0 +1,204 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+	 xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+	 xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
+
+	<Package Name="!(loc.ApplicationTitle)" Language="!(loc.LCID)" Version="$(var.Version)"
+			 Manufacturer="!(loc.ManufacturerName)" UpgradeCode="1a6ff147-1163-4cc4-baa8-0719a40ceb05" InstallerVersion="200">
+
+		
+		<netfx:DotNetCompatibilityCheck Property="DOTNET_DESKTOP_COMPATIBLE" RuntimeType="desktop"
+			Platform="$(sys.BUILDARCH)" Version="10.0.0" RollForward="latestMinor" />
+
+		<Launch
+		  Message="This application requires the .NET 10 Desktop Runtime for this installation's architecture."
+		  Condition="Installed OR DOTNET_DESKTOP_COMPATIBLE = 0"
+		/>
+
+		<!-- Prevent downgrades. To downgrade, the software must be uninstalled through Add/Remove programs first. -->
+		<MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="!(loc.DowngradeError)" />
+
+		<!-- Embed all resources into the installer package. -->
+		<MediaTemplate EmbedCab="yes" />
+
+		<!-- Perform an upgrade for new releases. -->
+		<Upgrade Id="1a6ff147-1163-4cc4-baa8-0719a40ceb05">
+			<UpgradeVersion Minimum="0.0.0" Property="PREVIOUSFOUND" IncludeMinimum="yes" OnlyDetect="no" Maximum="$(var.Version)" IncludeMaximum="no" />
+		</Upgrade>
+
+		<!-- Custom dialog ordering. -->
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+		<ui:WixUI Id="WixUI_Mondo_Custom" />
+		<UIRef Id="WixUI_ErrorProgressText" />
+
+		<Icon Id="AMRIE.ico" SourceFile="$(var.AMRIE.WinForms.TargetDir)Icons\AMRIE_Square_No_Text.ico" />
+
+		<!-- Replaces the default EULA text and background images -->
+		<WixVariable Id="WixUILicenseRtf" Value="eula.rtf" />
+		<WixVariable Id="WixUIDialogBmp" Value="Dialog.bmp" />
+		<WixVariable Id="WixUIBannerBmp" Value="Banner.bmp" />
+
+		<!-- Configure installation features. -->
+		<Feature Id="AMR_Engine" Title="!(loc.ApplicationTitle)" Level="1" Display="collapse" ConfigurableDirectory="INSTALLFOLDER"
+				 Description="!(loc.AMR_EngineFeatureDescription)" AllowAbsent="no">
+
+			<ComponentRef Id="ProgramMenuDir" />
+			<ComponentGroupRef Id="RootDirectoryComponents" />
+			<ComponentGroupRef Id="ResourceComponents" />
+			<ComponentGroupRef Id="CLI_Components" />
+		</Feature>
+	</Package>
+
+	<!-- Define AMR Engine components. -->
+	<Fragment>
+			<StandardDirectory Id="ProgramFiles6432Folder">
+				<Directory Id="INSTALLFOLDER" Name="$(var.Title)">
+					<!-- Language folders are disabled until we have support for them. -->
+					<!-- 
+					<Directory Id="ES_LANGUAGEFOLDER" Name="es" />
+					<Directory Id="FR_LANGUAGEFOLDER" Name="fr" />
+					<Directory Id="ZH_HANS_LANGUAGEFOLDER" Name="zh-Hans" />
+					-->
+
+					<Directory Id="RESOURCESFOLDER" Name="Resources" />
+				</Directory>
+			</StandardDirectory>
+
+			<!-- Adds a program menu shortcut -->
+			<StandardDirectory Id="ProgramMenuFolder">
+				<Directory Id="ProgramMenuDir" Name="$(var.Title)">
+					<Component Id="ProgramMenuDir" Guid="EEF3E328-7F17-414A-A308-3BA5E7806766">
+						<RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+						<RegistryValue Root="HKCU" Key="Software\$(var.Title)" Type="string" Value="" KeyPath="yes" />
+					</Component>
+				</Directory>
+			</StandardDirectory>
+
+			<StandardDirectory Id="DesktopFolder" />
+		</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="RootDirectoryComponents" Directory="INSTALLFOLDER">
+
+			<!-- Main executable and libraries. -->
+			<Component Id="AMRIE.WinForms.exe" Guid="E4C90ED0-25B2-4C01-97A0-ACD5C83553CA">
+				<File Id="AMRIE.WinForms.exe" Name="AMRIE.WinForms.exe" Source="$(var.AMRIE.WinForms.TargetDir)AMRIE.WinForms.exe" KeyPath="yes">
+
+					<Shortcut Id="StartMenuShortcut" Directory="ProgramMenuDir" Name="$(var.Title)" Icon="AMRIE.ico" IconIndex="0" Advertise="yes" />
+					<Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="$(var.Title)" Icon="AMRIE.ico" IconIndex="0" Advertise="yes" />
+				</File>
+			</Component>
+
+			<Component Id="AMRIE.WinForms.dll" Guid="DBD65948-0FE9-4588-BD0A-131B4FEB64A6">
+				<File Id="AMRIE.WinForms.dll" Name="AMRIE.WinForms.dll"
+					  Source="$(var.AMRIE.WinForms.TargetDir)AMRIE.WinForms.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="AMRIE.Library.dll" Guid="2F0220D4-6FC5-4328-9D99-1F41C72D8560">
+				<File Id="AMRIE.Library.dll" Name="AMRIE.Library.dll"
+					  Source="$(var.AMRIE.WinForms.TargetDir)AMRIE.Library.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="CsvHelper" Guid="C02965F1-74F5-4B27-9D93-92CB33A17F1D">
+				<File Id="CsvHelper.dll" Name="CsvHelper.dll"
+					  Source="$(var.AMRIE.WinForms.TargetDir)CsvHelper.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="AMRIE.WinForms.Dependencies" Guid="D37D8406-6E28-4B8F-869A-D93C10899157">
+				<File Id="AMRIE.WinForms.deps.json" Name="AMRIE.WinForms.deps.json"
+					  Source="$(var.AMRIE.WinForms.TargetDir)AMRIE.WinForms.deps.json" KeyPath="yes" />
+			</Component>
+
+			<Component Id="AMRIE.WinForms.Config" Guid="21E6781F-D585-42A7-8AA2-1257CBDBD014">
+				<File Id="AMRIE.WinForms.runtimeconfig.json" Name="AMRIE.WinForms.runtimeconfig.json"
+					  Source="$(var.AMRIE.WinForms.TargetDir)AMRIE.WinForms.runtimeconfig.json" KeyPath="yes" />
+			</Component>
+			
+		</ComponentGroup>
+
+		<ComponentGroup Id="CLI_Components" Directory="INSTALLFOLDER">
+			<!-- CLI components. -->
+			<Component Id="AMRIE.CLI.exe" Guid="220A63D9-027E-4134-93A9-E8245002DDA6">
+				<File Id="AMRIE.CLI.exe" Name="AMRIE.CLI.exe"
+					  Source="$(var.AMRIE.CLI.TargetDir)AMRIE.CLI.exe" KeyPath="yes" />
+			</Component>
+
+			<Component Id="AMRIE.CLI.dll" Guid="ECAC5873-9C2A-4C03-8127-64A388BC624F">
+				<File Id="AMRIE.CLI.dll" Name="AMRIE.CLI.dll"
+					  Source="$(var.AMRIE.CLI.TargetDir)AMRIE.CLI.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="AMRIE.CLI.Dependencies" Guid="672D289A-F41D-4DD2-8BF0-46B4C06CBC81">
+				<File Id="AMRIE.CLI.deps.json" Name="AMRIE.CLI.deps.json"
+					  Source="$(var.AMRIE.CLI.TargetDir)AMRIE.CLI.deps.json" KeyPath="yes" />
+			</Component>
+
+			<Component Id="AMRIE.CLI.Config" Guid="FD7D352B-8646-47FA-BA69-CE5D08E83E82">
+				<File Id="AMRIE.CLI.runtimeconfig.json" Name="AMRIE.CLI.runtimeconfig.json"
+					  Source="$(var.AMRIE.CLI.TargetDir)AMRIE.CLI.runtimeconfig.json" KeyPath="yes" />
+			</Component>
+		</ComponentGroup>
+
+		<!-- Resource files. -->
+		<ComponentGroup Id="ResourceComponents" Directory="RESOURCESFOLDER">
+			<Component Id="Antibiotics.txt" Guid="8F3E7CCA-CEF5-410B-B3A3-CEBB1E721BE5">
+				<File Id="Antibiotics.txt" Name="Antibiotics.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\Antibiotics.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="Breakpoints.sql" Guid="7FE3B04D-97C8-4231-BF5F-A757D35DB273">
+				<File Id="Breakpoints.sql" Name="Breakpoints.sql"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\Breakpoints.sql" KeyPath="yes" />
+			</Component>
+
+			<Component Id="Breakpoints.txt" Guid="416619B2-4D18-4013-ACB8-206B5BE3791B">
+				<File Id="Breakpoints.txt" Name="Breakpoints.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\Breakpoints.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="ExpectedResistancePhenotypes.sql" Guid="EADE66E0-2037-4650-95BF-D63011E03C21">
+				<File Id="ExpectedResistancePhenotypes.sql" Name="ExpectedResistancePhenotypes.sql"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\ExpectedResistancePhenotypes.sql" KeyPath="yes" />
+			</Component>
+
+			<Component Id="ExpectedResistancePhenotypes.txt" Guid="21372A31-E6C4-4D9E-96B0-382CA236323C">
+				<File Id="ExpectedResistancePhenotypes.txt" Name="ExpectedResistancePhenotypes.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\ExpectedResistancePhenotypes.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="ExpertInterpretationRules.txt" Guid="8230B967-35E7-4620-9E3D-3AE9E63EAEA9">
+				<File Id="ExpertInterpretationRules.txt" Name="ExpertInterpretationRules.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\ExpertInterpretationRules.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="FilterBreakpointsTable.sql" Guid="BCAD0C20-D3A0-4C78-B2B6-A044487BD3AC">
+				<File Id="FilterBreakpointsTable.sql" Name="FilterBreakpointsTable.sql"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\FilterBreakpointsTable.sql" KeyPath="yes" />
+			</Component>
+
+			<Component Id="Organisms.txt" Guid="600629F9-229D-47AF-8584-F63CFDFA0B8A">
+				<File Id="Organisms.txt" Name="Organisms.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\Organisms.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="QC_Ranges.txt" Guid="9738F122-4CD9-466A-975E-E4212AFF0971">
+				<File Id="QC_Ranges.txt" Name="QC_Ranges.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\QC_Ranges.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="SampleConfig.json" Guid="7AFE14B4-9771-438A-87C2-4C1C206B2A1B">
+				<File Id="SampleConfig.json" Name="SampleConfig.json"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\SampleConfig.json" KeyPath="yes" />
+			</Component>
+
+			<Component Id="SampleInputFile.txt" Guid="111329B8-B7B5-4786-AFC5-A37765F80207">
+				<File Id="SampleInputFile.txt" Name="SampleInputFile.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\SampleInputFile.txt" KeyPath="yes" />
+			</Component>
+
+			<Component Id="SampleUserDefinedBreakpoints.txt" Guid="E84B8049-CA83-4854-A312-0583C19DAC35">
+				<File Id="SampleUserDefinedBreakpoints.txt" Name="SampleUserDefinedBreakpoints.txt"
+					  Source="$(var.AMRIE.WinForms.TargetDir)Resources\SampleUserDefinedBreakpoints.txt" KeyPath="yes" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

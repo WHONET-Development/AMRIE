@@ -1,0 +1,19 @@
+{
+	"RoundHalfDilutions": true,
+	"IncludeInterpretationComments": false,
+	"EnabledExpertInterpretationRules": [
+		"BLNAR-HFLU",
+		"MRS",
+		"ICR"
+	],
+	"_Comment_IgnoredExpertInterpretationRules": [
+		"ESBL-CONFIRMED",
+		"ESBL-AMPC-PROBABLE"
+	],
+	"GuidelineYear": 2026,
+	"PrioritizedBreakpointTypes": [ "Human", "Animal", "ECOFF" ],
+	"PrioritizedSitesOfInfection": [],
+	"DisabledSitesOfInfection": [],
+	"HorizontalAntibioticResults": true,
+	"DISABLED_UserDefinedBreakpointsFile": "Resources\\SampleUserDefinedBreakpoints.txt"
+}

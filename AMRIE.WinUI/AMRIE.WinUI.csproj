@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Interpretation Engine\Interpretation Engine.csproj" />
+    <ProjectReference Include="..\AMRIE.Library\AMRIE.Library.csproj" />
   </ItemGroup>
 
   <!-- Publish Properties -->

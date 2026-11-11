@@ -1,0 +1,21 @@
+<Project Sdk="WixToolset.Sdk/5.0.1">
+  <PropertyGroup>
+    <OutputName>AMRIE.WinForms</OutputName>
+    <Platforms>x64;ARM64</Platforms>
+    <Version Condition="'$(Version)' == ''">$([System.DateTime]::Now.ToString("yy.M.d"))</Version>
+    <Title>AMR Interpretation Engine</Title>
+    <DefineConstants>$(DefineConstants);Title=$(Title);Version=$(Version)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.NetFx.wixext" Version="5.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AMRIE.CLI\AMRIE.CLI.csproj" />
+    <ProjectReference Include="..\AMRIE.WinForms\AMRIE.WinForms.csproj" />
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo Attempting to sign installation package...&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /d &quot;AMRIE&quot; /a &quot;$(TargetDir)en-us\$(TargetName).msi&quot;" />
+  </Target>
+</Project>

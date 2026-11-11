@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Version>$(VersionPrefix)26.3.26</Version>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <SignAssembly>False</SignAssembly>
+    <ApplicationIcon>Icons\AMRIE_Square_No_Text.ico</ApplicationIcon>
+    <StartupObject>AMRIE.WinForms.Program</StartupObject>
+    <AssemblyTitle>AMRIE.WinForms</AssemblyTitle>
+    <RootNamespace>AMRIE.WinForms</RootNamespace>
+    <AssemblyName>AMRIE.WinForms</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icons\AMRIE_Square_No_Text.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AMRIE.Library\AMRIE.Library.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if $(ConfigurationName) == Release (&#xD;&#xA;echo Attempting to sign binary...&#xD;&#xA;signtool.exe sign /tr http://timestamp.sectigo.com /td sha256 /fd sha256 /a &quot;$(TargetDir)$(TargetName).exe&quot;&#xD;&#xA;) else (&#xD;&#xA;echo Signing skipped because we are not in Release mode.&#xD;&#xA;)" />
+  </Target>
+
+</Project>
