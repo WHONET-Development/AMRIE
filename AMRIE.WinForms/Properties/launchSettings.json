@@ -1,8 +1,7 @@
 {
   "profiles": {
-    "Interpretation Interface": {
-      "commandName": "Project",
-      "commandLineArgs": "FILE Resources\\SampleConfig.json TAB Resources\\SampleInputFile.txt Results.txt v"
+    "Main Interface": {
+      "commandName": "Project"
     }
   }
 }

@@ -9,11 +9,11 @@ using AMRIE.Library;
 
 namespace AMRIE.WinForms
 {
-	public partial class MainApplicationForm : Form
+	public partial class MainInterface : Form
 	{
 		#region Init
 
-		public MainApplicationForm()
+		public MainInterface()
 		{
 			InitializeComponent();
 		}

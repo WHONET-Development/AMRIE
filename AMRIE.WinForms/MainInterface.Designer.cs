@@ -1,7 +1,7 @@
 ﻿
 namespace AMRIE.WinForms
 {
-	partial class MainApplicationForm
+	partial class MainInterface
 	{
 		/// <summary>
 		///  Required designer variable.
@@ -29,7 +29,7 @@ namespace AMRIE.WinForms
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainApplicationForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainInterface));
             GetApplicableBreakpointsButton = new System.Windows.Forms.Button();
             GuidelinesCheckbox = new System.Windows.Forms.CheckBox();
             SelectedGuidelinesCheckedListBox = new System.Windows.Forms.CheckedListBox();
