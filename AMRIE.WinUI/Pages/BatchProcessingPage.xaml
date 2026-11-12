@@ -92,7 +92,8 @@
                             <ComboBox Header="Field Delimiter"
                                       ItemsSource="{x:Bind ViewModel.Delimiters}"
                                       SelectedItem="{x:Bind ViewModel.SelectedDelimiter, Mode=TwoWay}"
-                                      HorizontalAlignment="Stretch" />
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Top" />
 
                             <!-- Guideline Year -->
                             <NumberBox Grid.Column="1"
@@ -102,19 +103,23 @@
                                        SmallChange="1"
                                        Minimum="1990"
                                        Maximum="2035"
-                                       HorizontalAlignment="Stretch" />
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Top" />
                         </Grid>
 
                         <!-- Config file -->
-                        <Grid ColumnSpacing="12">
+                        <Grid ColumnSpacing="8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox Header="Interpretation Configuration File (.json)"
-                                     PlaceholderText="Path to SampleConfig.json or custom config..."
+                                     PlaceholderText="Path to SampleConfig.json or custom config (or drag &amp; drop .json)..."
                                      Text="{x:Bind ViewModel.ConfigFilePath, Mode=TwoWay}" />
-                            <Button Grid.Column="1" VerticalAlignment="Bottom" Height="32" Content="Browse..." Command="{x:Bind ViewModel.BrowseConfigFileCommand}" Padding="16,0" />
+                            <Button Grid.Column="1" VerticalAlignment="Bottom" Height="32" Content="Edit..." Click="EditConfig_Click"
+                                    ToolTipService.ToolTip="Inspect or edit configuration JSON options visually" Padding="12,0" />
+                            <Button Grid.Column="2" VerticalAlignment="Bottom" Height="32" Content="Browse..." Command="{x:Bind ViewModel.BrowseConfigFileCommand}" Padding="16,0" />
                         </Grid>
 
                         <!-- Output file -->
@@ -146,7 +151,7 @@
                             <ProgressBar Minimum="0"
                                          Maximum="100"
                                          Value="{x:Bind ViewModel.ProgressPercentage, Mode=OneWay}"
-                                         IsIndeterminate="{x:Bind ViewModel.IsProcessing, Mode=OneWay}"
+                                         IsIndeterminate="{x:Bind ViewModel.IsProgressIndeterminate, Mode=OneWay}"
                                          HorizontalAlignment="Stretch"
                                          Height="8"
                                          CornerRadius="4" />
@@ -167,23 +172,33 @@
                             <Button Content="Interpret File"
                                     Style="{ThemeResource AccentButtonStyle}"
                                     Command="{x:Bind ViewModel.StartProcessingCommand}"
+                                    CornerRadius="4"
                                     Height="32"
                                     Padding="20,0" />
                             <Button Content="Cancel Operation"
                                     Command="{x:Bind ViewModel.CancelProcessingCommand}"
+                                    CornerRadius="4"
                                     Height="32"
                                     Padding="16,0" />
                             <Button Content="Open File"
                                     Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
                                     Command="{x:Bind ViewModel.OpenOutputFileCommand}"
+                                    CornerRadius="4"
                                     Height="32"
                                     Padding="16,0" />
                             <Button Content="Open Folder"
                                     Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
                                     Command="{x:Bind ViewModel.OpenOutputFolderCommand}"
+                                    CornerRadius="4"
                                     Height="32"
                                     Padding="16,0" />
                         </StackPanel>
+
+                        <TextBlock Text="{x:Bind ViewModel.BatchSummaryText, Mode=OneWay}"
+                                   Visibility="{x:Bind ViewModel.IsSuccess, Mode=OneWay}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
             </Grid>

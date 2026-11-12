@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using AMRIE.Library;
 using AMRIE.WinUI.Common;
@@ -11,6 +12,7 @@ namespace AMRIE.WinUI.Pages;
 public sealed partial class SettingsPage : Page
 {
     private bool _isInitializing = false;
+    private bool _isLicenseDialogOpen = false;
 
     public SettingsPage()
     {
@@ -18,6 +20,24 @@ public sealed partial class SettingsPage : Page
         Loaded += SettingsPage_Loaded;
         Unloaded += SettingsPage_Unloaded;
         VersionTextBlock.Text = $"Version: {GetAppVersion()} (WinUI 3 Edition)";
+        ResourceSummaryTextBlock.Text = BuildResourceSummary();
+    }
+
+    private static string BuildResourceSummary()
+    {
+        try
+        {
+            return $"Guideline Table Revision: {Constants.BreakpointTableRevisionYear}.{Constants.BreakpointTableRevisionMinorChangeNumber}  •  " +
+                   $"{Breakpoint.Breakpoints.Count:N0} breakpoints  •  " +
+                   $"{Organism.AllOrganisms.Count:N0} organisms  •  " +
+                   $"{Antibiotic.AllAntibiotics.Count:N0} antibiotics  •  " +
+                   $"{ExpertInterpretationRule.ExpertInterpretationRules.Count:N0} expert rules  •  " +
+                   $"{ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules.Count:N0} intrinsic rules";
+        }
+        catch
+        {
+            return $"Guideline Table Revision: {Constants.BreakpointTableRevisionYear}.{Constants.BreakpointTableRevisionMinorChangeNumber}";
+        }
     }
 
     private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
@@ -97,6 +117,86 @@ public sealed partial class SettingsPage : Page
                     rootElement.RequestedTheme = theme;
                 }
             }
+        }
+    }
+
+    private void ViewClinicalAttribution_Click(object sender, RoutedEventArgs e)
+        => ShowBundledLicenseDialog("Clinical Data Attribution", "CLINICAL-DATA-ATTRIBUTION.md");
+
+    private void ViewThirdPartyNotices_Click(object sender, RoutedEventArgs e)
+        => ShowBundledLicenseDialog("Third-Party Software Notices", "THIRD-PARTY-NOTICES.md");
+
+    private void ViewMgbLicense_Click(object sender, RoutedEventArgs e)
+        => ShowBundledLicenseDialog("Mass General Brigham Open Access License 1.0", "LICENSE-MGB.txt");
+
+    private async void ShowBundledLicenseDialog(string title, string fileName)
+    {
+        if (_isLicenseDialogOpen) return;
+        _isLicenseDialogOpen = true;
+        try
+        {
+            string licensePath = Path.Combine(AppContext.BaseDirectory, "licenses", fileName);
+            bool exists = File.Exists(licensePath);
+            string body = exists
+                ? await File.ReadAllTextAsync(licensePath)
+                : $"License file not found at:\n{licensePath}";
+
+            UIElement contentElement = exists && fileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
+                ? MarkdownViewerHelper.BuildMarkdownView(body, Path.GetDirectoryName(licensePath) ?? AppContext.BaseDirectory)
+                : new TextBlock
+                {
+                    Text = body,
+                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+                    FontSize = 12,
+                    TextWrapping = TextWrapping.Wrap,
+                    IsTextSelectionEnabled = true
+                };
+
+            var scrollViewer = new ScrollViewer
+            {
+                MaxHeight = 460,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = contentElement,
+                Padding = new Thickness(0, 0, 12, 0)
+            };
+
+            var closeButton = new Button
+            {
+                Content = "Close",
+                Width = 100,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                CornerRadius = new CornerRadius(4)
+            };
+            Grid.SetRow(closeButton, 1);
+
+            var layout = new Grid
+            {
+                Width = 680,
+                RowSpacing = 12
+            };
+            layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            layout.Children.Add(scrollViewer);
+            layout.Children.Add(closeButton);
+
+            var dialog = new ContentDialog
+            {
+                Title = title,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Content = layout
+            };
+            dialog.Resources["ContentDialogMaxWidth"] = 760d;
+            WindowHelper.ApplyDialogTheme(dialog, this);
+            WindowHelper.ConfigureInlineCloseDialog(dialog, closeButton);
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AMRIE] Error displaying license dialog ({fileName}): {ex}");
+        }
+        finally
+        {
+            _isLicenseDialogOpen = false;
         }
     }
 
