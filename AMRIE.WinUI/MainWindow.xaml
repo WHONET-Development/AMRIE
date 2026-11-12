@@ -15,6 +15,11 @@
     </Window.SystemBackdrop>
 
     <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Key="Number1" Modifiers="Control" Invoked="NavShortcut_Invoked" />
+            <KeyboardAccelerator Key="Number2" Modifiers="Control" Invoked="NavShortcut_Invoked" />
+            <KeyboardAccelerator Key="Number3" Modifiers="Control" Invoked="NavShortcut_Invoked" />
+        </Grid.KeyboardAccelerators>
         <!-- Main Fluent Navigation -->
         <NavigationView
             x:Name="NavView"

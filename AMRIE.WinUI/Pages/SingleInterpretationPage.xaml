@@ -27,15 +27,22 @@
                     <TextBlock Text="Perform ad-hoc interpretation of antimicrobial measurements against published CLSI, EUCAST, and SFM rules."
                                Style="{ThemeResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
-                <Button Grid.Column="1"
-                        ToolTipService.ToolTip="Load a standard test case (E. coli + Ciprofloxacin 22 mm)"
-                        Command="{x:Bind ViewModel.LoadExampleCommand}"
-                        VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE8B9;" FontSize="12" />
-                        <TextBlock Text="Try an Example" />
-                    </StackPanel>
-                </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button ToolTipService.ToolTip="Load a standard test case (S. pneumoniae + Amoxicillin/Clavulanic acid MIC 2 µg/mL)"
+                            Command="{x:Bind ViewModel.LoadExampleCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE8B9;" FontSize="12" />
+                            <TextBlock Text="Try an Example" />
+                        </StackPanel>
+                    </Button>
+                    <Button ToolTipService.ToolTip="Clear organism, antibiotic, measurement, and results"
+                            Command="{x:Bind ViewModel.ClearInputsCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE894;" FontSize="12" />
+                            <TextBlock Text="Clear" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
 
             <!-- Status Alert (InfoBar) -->
@@ -87,7 +94,7 @@
                             <Grid ColumnSpacing="10">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="110" />
+                                    <RowDefinition Height="124" />
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -120,10 +127,11 @@
                                     </ItemsControl>
                                 </Border>
 
-                                <!-- Column 2: Breakpoint Types Header & Box -->
+                                <!-- Column 2: Breakpoint Types Header & Box (priority-ordered) -->
                                 <CheckBox Grid.Row="0" Grid.Column="1"
-                                          Content="Types"
+                                          Content="Types (Priority)"
                                           IsChecked="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=TwoWay}"
+                                          ToolTipService.ToolTip="Drag items or use arrows to set priority order"
                                           VerticalContentAlignment="Center"
                                           FontWeight="SemiBold"
                                           Margin="0,0,0,4" />
@@ -132,23 +140,60 @@
                                         BorderThickness="1"
                                         Background="{ThemeResource LayerFillColorDefaultBrush}"
                                         CornerRadius="4"
-                                        Padding="8,4">
-                                    <ItemsControl ItemsSource="{x:Bind ViewModel.BreakpointTypes}"
-                                                  IsEnabled="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=OneWay}">
-                                        <ItemsControl.ItemTemplate>
+                                        Padding="4,2">
+                                    <ListView ItemsSource="{x:Bind ViewModel.BreakpointTypes}"
+                                              IsEnabled="{x:Bind ViewModel.RestrictBreakpointTypes, Mode=OneWay}"
+                                              CanDragItems="True"
+                                              CanReorderItems="True"
+                                              AllowDrop="True"
+                                              SelectionMode="None">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="MinHeight" Value="28" />
+                                                <Setter Property="Padding" Value="4,0" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
                                             <DataTemplate x:DataType="models:SelectableItem">
-                                                <CheckBox Content="{x:Bind Name}" VerticalContentAlignment="Center"
-                                                          IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                                          Margin="0,0,0,1" />
+                                                <Grid ColumnSpacing="5" Background="Transparent">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <FontIcon Grid.Column="0" Glyph="&#xE700;" FontSize="10"
+                                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                              VerticalAlignment="Center" Margin="2,0,0,0" />
+                                                    <CheckBox Grid.Column="1"
+                                                              IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                              MinWidth="0" MinHeight="0" Padding="0"
+                                                              VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{x:Bind Name}"
+                                                               VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <Button Grid.Column="3" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                                            Tag="{x:Bind}" Click="MoveTypeUp_Click" ToolTipService.ToolTip="Move higher in priority">
+                                                        <FontIcon Glyph="&#xE70E;" FontSize="9" />
+                                                    </Button>
+                                                    <Button Grid.Column="4" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                                            Tag="{x:Bind}" Click="MoveTypeDown_Click" ToolTipService.ToolTip="Move lower in priority">
+                                                        <FontIcon Glyph="&#xE70D;" FontSize="9" />
+                                                    </Button>
+                                                </Grid>
                                             </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
                                 </Border>
 
-                                <!-- Column 3: Sites of Infection Header & Box -->
+                                <!-- Column 3: Sites of Infection Header & Box (priority-ordered) -->
                                 <CheckBox Grid.Row="0" Grid.Column="2"
-                                          Content="Sites"
+                                          Content="Sites (Priority)"
                                           IsChecked="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=TwoWay}"
+                                          ToolTipService.ToolTip="Drag items or use arrows to set priority order"
                                           VerticalContentAlignment="Center"
                                           FontWeight="SemiBold"
                                           Margin="0,0,0,4" />
@@ -156,19 +201,54 @@
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                         BorderThickness="1"
                                         Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                        CornerRadius="4">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,4">
-                                        <ItemsControl ItemsSource="{x:Bind ViewModel.SitesOfInfection}"
-                                                      IsEnabled="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=OneWay}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="models:SelectableItem">
-                                                    <CheckBox Content="{x:Bind Name}" VerticalContentAlignment="Center"
+                                        CornerRadius="4"
+                                        Padding="4,2">
+                                    <ListView ItemsSource="{x:Bind ViewModel.SitesOfInfection}"
+                                              IsEnabled="{x:Bind ViewModel.RestrictSitesOfInfection, Mode=OneWay}"
+                                              CanDragItems="True"
+                                              CanReorderItems="True"
+                                              AllowDrop="True"
+                                              SelectionMode="None">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="MinHeight" Value="28" />
+                                                <Setter Property="Padding" Value="4,0" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate x:DataType="models:SelectableItem">
+                                                <Grid ColumnSpacing="5" Background="Transparent">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <FontIcon Grid.Column="0" Glyph="&#xE700;" FontSize="10"
+                                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                              VerticalAlignment="Center" Margin="2,0,0,0" />
+                                                    <CheckBox Grid.Column="1"
                                                               IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                                                              Margin="0,0,0,1" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
+                                                              MinWidth="0" MinHeight="0" Padding="0"
+                                                              VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{x:Bind Name}"
+                                                               VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <Button Grid.Column="3" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                                            Tag="{x:Bind}" Click="MoveSiteUp_Click" ToolTipService.ToolTip="Move higher in priority">
+                                                        <FontIcon Glyph="&#xE70E;" FontSize="9" />
+                                                    </Button>
+                                                    <Button Grid.Column="4" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                                            Tag="{x:Bind}" Click="MoveSiteDown_Click" ToolTipService.ToolTip="Move lower in priority">
+                                                        <FontIcon Glyph="&#xE70D;" FontSize="9" />
+                                                    </Button>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
                                 </Border>
                             </Grid>
                         </StackPanel>
@@ -208,7 +288,7 @@
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{x:Bind Code}"
                                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                               Foreground="White"
+                                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                                                FontWeight="SemiBold" />
                                                 </Border>
                                             </Grid>
@@ -248,7 +328,7 @@
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{x:Bind Code}"
                                                                Style="{ThemeResource CaptionTextBlockStyle}"
-                                                               Foreground="White"
+                                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                                                FontWeight="SemiBold" />
                                                 </Border>
                                             </Grid>
@@ -288,8 +368,9 @@
 
                             <!-- Quick Applicable Lookup Buttons -->
                             <MenuFlyoutSeparator Margin="0,6,0,2" />
-                            <Grid ColumnSpacing="10">
+                            <Grid ColumnSpacing="8">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
@@ -300,17 +381,27 @@
                                         ToolTipService.ToolTip="View applicable breakpoints for current organism/antibiotic/filters">
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                         <FontIcon Glyph="&#xE8F1;" FontSize="13" />
-                                        <TextBlock Text="Applicable Breakpoints" />
+                                        <TextBlock Text="Breakpoints" />
                                     </StackPanel>
                                 </Button>
 
                                 <Button Grid.Column="1"
                                         HorizontalAlignment="Stretch"
+                                        Click="GetApplicableExpertRules_Click"
+                                        ToolTipService.ToolTip="View applicable expert interpretation rules for current organism/antibiotic/filters">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE9D5;" FontSize="13" />
+                                        <TextBlock Text="Expert Rules" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Grid.Column="2"
+                                        HorizontalAlignment="Stretch"
                                         Click="GetApplicableIntrinsicResistance_Click"
                                         ToolTipService.ToolTip="View applicable intrinsic resistance phenotypes for current organism/antibiotic/filters">
                                     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                                         <FontIcon Glyph="&#xEA18;" FontSize="13" />
-                                        <TextBlock Text="Intrinsic Resistance" />
+                                        <TextBlock Text="Intrinsic Rules" />
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -349,9 +440,18 @@
                                     Padding="20,0" />
                         </Grid>
 
-                        <!-- Include comments checkbox -->
-                        <CheckBox Content="Include interpretation comments" VerticalContentAlignment="Center"
-                                  IsChecked="{x:Bind ViewModel.IncludeComments, Mode=TwoWay}" />
+                        <!-- Engine options checkboxes -->
+                        <StackPanel Spacing="2">
+                            <CheckBox Content="Include interpretation comments" VerticalContentAlignment="Center"
+                                      IsChecked="{x:Bind ViewModel.IncludeComments, Mode=TwoWay}" />
+                            <CheckBox Content="Round half-dilutions (MIC)" VerticalContentAlignment="Center"
+                                      IsChecked="{x:Bind ViewModel.RoundHalfDilutions, Mode=TwoWay}"
+                                      IsEnabled="{x:Bind ViewModel.IsMicMethod, Mode=OneWay}"
+                                      ToolTipService.ToolTip="Round intermediate MIC values up to the next standard two-fold dilution before interpretation" />
+                            <CheckBox Content="Apply intrinsic resistance rules" VerticalContentAlignment="Center"
+                                      IsChecked="{x:Bind ViewModel.UseIntrinsicResistanceRules, Mode=TwoWay}"
+                                      ToolTipService.ToolTip="Override susceptibility results using expected intrinsic resistance phenotype rules" />
+                        </StackPanel>
 
                         <!-- Interpretation Results Display -->
                         <StackPanel Spacing="8" Visibility="{x:Bind ViewModel.Results.Count, Mode=OneWay, Converter={StaticResource IntToVisibilityConverter}, FallbackValue=Collapsed}">

@@ -5,6 +5,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased] - 2026-11-12
+
+### Added & Improved - `AMRIE.WinUI`
+
+- **Single Interpretation (`SingleInterpretationPage`):**
+  - Added **Expert Rules** lookup button and `ApplicableExpertRulesDialog` (matching WinForms `ExpertRuleDisplay`) using `ExpertInterpretationRule.GetApplicableExpertRules(...)`.
+  - Added **Round half-dilutions (MIC)** and **Apply intrinsic resistance rules** checkboxes wired into `InterpretationConfiguration`.
+  - Added drag-to-reorder (`CanDragItems="True"`) and Up/Down priority controls for **Breakpoint Types** and **Sites of Infection**.
+  - Added **Clear** button (`ClearInputs`) alongside **Try an Example**, and updated **Try an Example** (`LoadExampleAsync`) to match the README/CLI/Library quickstart example (`spn`, `AMC_NM`, MIC `2`) without auto-interpreting until **Interpret** is clicked.
+  - Updated `AutoSuggestBox` code badges to use `{ThemeResource TextOnAccentFillColorPrimaryBrush}` and updated all lookup and license modals (`ApplicableBreakpointsDialog`, `ApplicableIntrinsicRulesDialog`, `ApplicableExpertRulesDialog`, `BatchConfigDialog`, and `SettingsPage` notice dialogs) to inherit the active app theme (`WindowHelper.ApplyDialogTheme`) and use compact inline Close buttons without separate footer bars (`WindowHelper.ConfigureInlineCloseDialog`).
+- **Batch Processing (`BatchProcessingPage`):**
+  - Fixed the `ProgressBar` staying indeterminate during file processing so it tracks the `0–100%` progress reported by `IO_Library.InterpretDataFileBounded`.
+  - Added completion summary stats (interpreted isolate count, elapsed time, and output file size).
+  - Routed dropped `.json` files on `BatchProcessingPage` directly to `ConfigFilePath`.
+  - Added visual **Edit...** configuration dialog (`BatchConfigDialog`) to inspect, create, or save `.json` batch configurations.
+- **Resource Explorer (`ResourceExplorerPage`):**
+  - Added initial loading `ProgressRing`, 180 ms debounced search filtering, `Ctrl+F` search focus shortcut, **Reset Filters** button, and theme-adaptive `S`/`R` contrast brushes (shared with `ApplicableBreakpointsDialog`).
+- **Startup, UI Polish, Settings & CLI Consistency (`MainWindow`, `SettingsPage`, `AMRIE.CLI`):**
+  - Improved 1st-screen startup responsiveness by deferring initial page inflation until window activation, removing duplicate settings file reads, and loading reference tables (`Breakpoints`, `Organisms`, `Antibiotics`) asynchronously off the UI thread.
+  - Migrated WinUI ViewModels/models (`SingleInterpretationViewModel`, `BatchProcessingViewModel`, `ResourceExplorerViewModel`, `SelectableItem`) from `[ObservableProperty]` fields to C# `partial` properties (eliminating all `45` `MVVMTK0045` warnings).
+  - Persisted window bounds and maximized state in `%LOCALAPPDATA%\AMRIE\settings.json` with display-area clamping.
+  - Added keyboard navigation shortcuts (`Ctrl+1`, `Ctrl+2`, `Ctrl+3`, `Ctrl+,`).
+  - Added loaded clinical guideline resource counts and formatted native WinUI rendering (`MarkdownViewerHelper`) for bundled `licenses/` Markdown notices (`CLINICAL-DATA-ATTRIBUTION.md`, `THIRD-PARTY-NOTICES.md`) plus `LICENSE-MGB.txt`.
+  - Updated `AMRIE.CLI` help fallback (`AMRIE.CLI.exe`) and launch profile name/arguments (`AMRIE.CLI`, `spn AMC_NM "2"`).
+
+---
+
 ## [Unreleased] - 2026-11-08
 
 ### Changed - .NET 10 LTS

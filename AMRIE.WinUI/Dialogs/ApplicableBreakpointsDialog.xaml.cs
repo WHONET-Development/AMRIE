@@ -14,6 +14,7 @@ public sealed partial class ApplicableBreakpointsDialog : ContentDialog
     public ApplicableBreakpointsDialog()
     {
         InitializeComponent();
+        Common.WindowHelper.ConfigureInlineCloseDialog(this, CloseModalButton);
     }
 
     public void SetData(List<BreakpointRow> rows, string filterSummary)

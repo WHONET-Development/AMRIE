@@ -4,27 +4,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:AMRIE.WinUI.Models"
     xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular"
-    Title="Applicable Breakpoints"
-    CloseButtonText="Close"
-    DefaultButton="Close"
->
+    Style="{StaticResource DefaultContentDialogStyle}"
+    Title="Applicable Breakpoints">
 
     <ContentDialog.Resources>
         <x:Double x:Key="ContentDialogMaxWidth">1320</x:Double>
     </ContentDialog.Resources>
 
-    <ContentDialog.CloseButtonStyle>
-        <Style TargetType="Button">
-            <Setter Property="Width" Value="110" />
-            <Setter Property="HorizontalAlignment" Value="Right" />
-        </Style>
-    </ContentDialog.CloseButtonStyle>
-
-    <Grid Width="1200" MaxHeight="620" RowSpacing="12">
+    <Grid Width="1200" MaxHeight="640" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Context & Filter Summary -->
@@ -126,7 +118,7 @@
                         <tabular:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:BreakpointRow">
                                 <Grid Padding="12,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{x:Bind RDisplay}" Foreground="#A80000" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind RDisplay}" Foreground="{ThemeResource ResistantTextBrush}" FontWeight="SemiBold" />
                                 </Grid>
                             </DataTemplate>
                         </tabular:TableViewTemplateColumn.CellTemplate>
@@ -137,7 +129,7 @@
                         <tabular:TableViewTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:BreakpointRow">
                                 <Grid Padding="12,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{x:Bind SDisplay}" Foreground="#107C41" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind SDisplay}" Foreground="{ThemeResource SusceptibleTextBrush}" FontWeight="SemiBold" />
                                 </Grid>
                             </DataTemplate>
                         </tabular:TableViewTemplateColumn.CellTemplate>
@@ -166,6 +158,13 @@
                 </tabular:TableView.Columns>
             </tabular:TableView>
         </Border>
+
+        <Button x:Name="CloseModalButton"
+                Grid.Row="3"
+                Content="Close"
+                Width="100"
+                HorizontalAlignment="Right"
+                CornerRadius="4" />
     </Grid>
 </ContentDialog>
 

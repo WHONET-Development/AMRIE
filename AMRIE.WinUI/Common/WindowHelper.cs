@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Windows.Graphics;
 using WinRT.Interop;
 
@@ -79,5 +80,99 @@ public static class WindowHelper
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
         appWindow.Resize(new SizeInt32(widthPx, heightPx));
+    }
+
+    public static void RestoreWindowState(Window window, AppSettings settings)
+    {
+        var hwnd = WindowNative.GetWindowHandle(window);
+        var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+        var appWindow = AppWindow.GetFromWindowId(windowId);
+
+        int targetW;
+        int targetH;
+        if (settings.WindowWidth is int w && w >= 600 &&
+            settings.WindowHeight is int h && h >= 450)
+        {
+            targetW = w;
+            targetH = h;
+        }
+        else
+        {
+            var scale = GetDpiForWindow(hwnd) / 96.0;
+            targetW = (int)Math.Round(1150 * scale);
+            targetH = (int)Math.Round(780 * scale);
+        }
+
+        DisplayArea display = settings.WindowX is int x && settings.WindowY is int y
+            ? DisplayArea.GetFromPoint(new PointInt32(x + targetW / 2, y + targetH / 2), DisplayAreaFallback.Primary)
+            : DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
+
+        var work = display.WorkArea;
+        int clampedW = Math.Min(targetW, work.Width);
+        int clampedH = Math.Min(targetH, work.Height);
+        int centeredX = work.X + Math.Max(0, (work.Width - clampedW) / 2);
+        int centeredY = work.Y + Math.Max(0, (work.Height - clampedH) / 2);
+        appWindow.MoveAndResize(new RectInt32(centeredX, centeredY, clampedW, clampedH));
+
+        if ((settings.IsMaximized ?? true) && appWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.Maximize();
+        }
+    }
+
+    public static void SaveWindowState(Window window)
+    {
+        var hwnd = WindowNative.GetWindowHandle(window);
+        var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
+        var appWindow = AppWindow.GetFromWindowId(windowId);
+        var settings = SettingsManager.LoadSettings();
+
+        bool isMaximized = appWindow.Presenter is OverlappedPresenter p && p.State == OverlappedPresenterState.Maximized;
+        settings.IsMaximized = isMaximized;
+
+        if (!isMaximized)
+        {
+            var pos = appWindow.Position;
+            var size = appWindow.Size;
+            if (size.Width >= 600 && size.Height >= 450)
+            {
+                settings.WindowX = pos.X;
+                settings.WindowY = pos.Y;
+                settings.WindowWidth = size.Width;
+                settings.WindowHeight = size.Height;
+            }
+        }
+
+        SettingsManager.SaveSettings(settings);
+    }
+
+    /// <summary>
+    /// Applies the active app theme and XamlRoot to a ContentDialog before it is shown.
+    /// </summary>
+    public static void ApplyDialogTheme(ContentDialog dialog, FrameworkElement? source = null)
+    {
+        var xamlRoot = source?.XamlRoot ?? (MainWindow?.Content as UIElement)?.XamlRoot;
+        if (xamlRoot != null)
+            dialog.XamlRoot = xamlRoot;
+
+        dialog.RequestedTheme = MainWindow is MainWindow mainWindow
+            ? mainWindow.CurrentTheme
+            : source?.ActualTheme ?? ElementTheme.Default;
+    }
+
+    /// <summary>
+    /// Wires an inline Close button and Escape key handling for dialogs that omit ContentDialog footer buttons.
+    /// </summary>
+    public static void ConfigureInlineCloseDialog(ContentDialog dialog, Button closeButton)
+    {
+        closeButton.Click += (_, _) => dialog.Hide();
+        dialog.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Windows.System.VirtualKey.Escape)
+            {
+                e.Handled = true;
+                dialog.Hide();
+            }
+        };
     }
 }

@@ -8,6 +8,7 @@ using AMRIE.Library;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AMRIE.WinUI.Models;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
 
 namespace AMRIE.WinUI.ViewModels;
@@ -20,22 +21,22 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
     // Guideline Year
     [ObservableProperty]
-    private bool _restrictGuidelineYear = true;
+    public partial bool RestrictGuidelineYear { get; set; } = true;
 
     [ObservableProperty]
-    private int _guidelineYear = Constants.BreakpointTableRevisionYear;
+    public partial int GuidelineYear { get; set; } = Constants.BreakpointTableRevisionYear;
 
     public ObservableCollection<int> AvailableYears { get; } = new();
 
     // Filters
     [ObservableProperty]
-    private bool _restrictGuidelines = true;
+    public partial bool RestrictGuidelines { get; set; } = true;
 
     [ObservableProperty]
-    private bool _restrictBreakpointTypes = true;
+    public partial bool RestrictBreakpointTypes { get; set; } = true;
 
     [ObservableProperty]
-    private bool _restrictSitesOfInfection = false;
+    public partial bool RestrictSitesOfInfection { get; set; } = false;
 
     public ObservableCollection<SelectableItem> Guidelines { get; } = new();
     public ObservableCollection<SelectableItem> BreakpointTypes { get; } = new();
@@ -46,16 +47,16 @@ public partial class SingleInterpretationViewModel : ObservableObject
     public List<AntibioticItem> AllAntibiotics { get; } = new();
 
     [ObservableProperty]
-    private OrganismItem? _selectedOrganism;
+    public partial OrganismItem? SelectedOrganism { get; set; }
 
     [ObservableProperty]
-    private string _organismSearchText = string.Empty;
+    public partial string OrganismSearchText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private AntibioticItem? _selectedAntibiotic;
+    public partial AntibioticItem? SelectedAntibiotic { get; set; }
 
     [ObservableProperty]
-    private string _antibioticSearchText = string.Empty;
+    public partial string AntibioticSearchText { get; set; } = string.Empty;
 
     // Test Method (Disk vs MIC)
     // Single source of truth: one private field drives both public booleans.
@@ -93,55 +94,53 @@ public partial class SingleInterpretationViewModel : ObservableObject
     public ObservableCollection<string> DiskPotencies { get; } = new();
 
     [ObservableProperty]
-    private string? _selectedDiskPotency;
+    public partial string? SelectedDiskPotency { get; set; }
 
-    // Measurement & Comments
+    // Measurement & Engine Options
     [ObservableProperty]
-    private string _measurement = string.Empty;
+    public partial string Measurement { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _includeComments = true;
+    public partial bool IncludeComments { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool RoundHalfDilutions { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool UseIntrinsicResistanceRules { get; set; } = true;
 
     // Status & Results
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _hasStatusMessage = false;
+    public partial bool HasStatusMessage { get; set; } = false;
 
     [ObservableProperty]
-    private bool _isStatusError = false;
+    public partial bool IsStatusError { get; set; } = false;
 
     [ObservableProperty]
-    private InfoBarSeverity _statusInfoBarSeverity = InfoBarSeverity.Informational;
+    public partial InfoBarSeverity StatusInfoBarSeverity { get; set; } = InfoBarSeverity.Informational;
 
     public ObservableCollection<InterpretationResultItem> Results { get; } = new();
+
+    private Task? _initializationTask;
 
     public SingleInterpretationViewModel()
     {
         InitializeData();
     }
 
+    /// <summary>
+    /// Ensures reference tables (breakpoints, organisms, antibiotics) have finished loading asynchronously.
+    /// </summary>
+    public Task EnsureDataLoadedAsync() => _initializationTask ?? Task.CompletedTask;
+
     private void InitializeData()
     {
-        // Available Years
-        try
-        {
-            var years = Breakpoint.Breakpoints
-                .Select(b => b.YEAR)
-                .Distinct()
-                .OrderByDescending(y => y)
-                .ToList();
-
-            foreach (var y in years)
-                AvailableYears.Add(y);
-
-            if (AvailableYears.Contains(Constants.BreakpointTableRevisionYear))
-                GuidelineYear = Constants.BreakpointTableRevisionYear;
-            else if (AvailableYears.Count > 0)
-                GuidelineYear = AvailableYears[0];
-        }
-        catch { }
+        // Seed initial default year synchronously so the UI renders immediately without waiting for file I/O.
+        AvailableYears.Add(Constants.BreakpointTableRevisionYear);
+        GuidelineYear = Constants.BreakpointTableRevisionYear;
 
         // Guidelines
         Guidelines.Add(new SelectableItem(nameof(Antibiotic.GuidelineNames.CLSI), true));
@@ -163,32 +162,111 @@ public partial class SingleInterpretationViewModel : ObservableObject
             SitesOfInfection.Add(new SelectableItem(site, false));
         }
 
-        // Cache Organisms (identical to classic WinForms app: string.Format("{0} - ({1})", o.ORGANISM, o.WHONET_ORG_CODE).Distinct())
-        try
-        {
-            // Anonymous type projection relies on compiler-generated Equals/GetHashCode value equality for Distinct().
-            var orgs = Organism.AllOrganisms
-                .OrderBy(o => o.ORGANISM)
-                .Select(o => new { Display = $"{o.ORGANISM} - ({o.WHONET_ORG_CODE})", Code = o.WHONET_ORG_CODE })
-                .Distinct()
-                .Select(o => new OrganismItem(o.Display, o.Code))
-                .ToList();
-            AllOrganisms.AddRange(orgs);
-        }
-        catch { }
+        _initializationTask = LoadReferenceDataAsync();
+    }
 
-        // Cache Antibiotics (identical to classic WinForms app: string.Format("{0} - ({1})", a.ANTIBIOTIC, a.WHONET_ABX_CODE).Distinct())
-        try
+    private async Task LoadReferenceDataAsync()
+    {
+        var dispatcher = DispatcherQueue.GetForCurrentThread();
+
+        var (years, orgs, abxs) = await Task.Run(() =>
         {
-            var abxs = Antibiotic.AllAntibiotics
-                .OrderBy(a => a.ANTIBIOTIC)
-                .Select(a => new { Display = $"{a.ANTIBIOTIC} - ({a.WHONET_ABX_CODE})", Code = a.WHONET_ABX_CODE })
-                .Distinct()
-                .Select(a => new AntibioticItem(a.Display, a.Code))
-                .ToList();
+            List<int> loadedYears = new();
+            try
+            {
+                loadedYears = Breakpoint.Breakpoints
+                    .Select(b => b.YEAR)
+                    .Distinct()
+                    .OrderByDescending(y => y)
+                    .ToList();
+            }
+            catch { }
+
+            List<OrganismItem> loadedOrgs = new();
+            try
+            {
+                // Anonymous type projection relies on compiler-generated Equals/GetHashCode value equality for Distinct().
+                loadedOrgs = Organism.AllOrganisms
+                    .OrderBy(o => o.ORGANISM)
+                    .Select(o => new { Display = $"{o.ORGANISM} - ({o.WHONET_ORG_CODE})", Code = o.WHONET_ORG_CODE })
+                    .Distinct()
+                    .Select(o => new OrganismItem(o.Display, o.Code))
+                    .ToList();
+            }
+            catch { }
+
+            List<AntibioticItem> loadedAbxs = new();
+            try
+            {
+                loadedAbxs = Antibiotic.AllAntibiotics
+                    .OrderBy(a => a.ANTIBIOTIC)
+                    .Select(a => new { Display = $"{a.ANTIBIOTIC} - ({a.WHONET_ABX_CODE})", Code = a.WHONET_ABX_CODE })
+                    .Distinct()
+                    .Select(a => new AntibioticItem(a.Display, a.Code))
+                    .ToList();
+            }
+            catch { }
+
+            return (loadedYears, loadedOrgs, loadedAbxs);
+        }).ConfigureAwait(false);
+
+        void ApplyLoadedData()
+        {
+            if (years.Count > 0)
+            {
+                for (int i = 0; i < years.Count; i++)
+                {
+                    int y = years[i];
+                    if (!AvailableYears.Contains(y))
+                    {
+                        AvailableYears.Insert(Math.Min(i, AvailableYears.Count), y);
+                    }
+                }
+
+                if (!AvailableYears.Contains(GuidelineYear))
+                {
+                    GuidelineYear = AvailableYears.Contains(Constants.BreakpointTableRevisionYear)
+                        ? Constants.BreakpointTableRevisionYear
+                        : AvailableYears[0];
+                }
+            }
+
+            AllOrganisms.Clear();
+            AllOrganisms.AddRange(orgs);
+
+            AllAntibiotics.Clear();
             AllAntibiotics.AddRange(abxs);
+
+            if (SelectedAntibiotic != null && DiskPotencies.Count == 0)
+            {
+                UpdateDiskPotencies();
+            }
         }
-        catch { }
+
+        if (dispatcher != null && !dispatcher.HasThreadAccess)
+        {
+            var tcs = new TaskCompletionSource();
+            if (!dispatcher.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        ApplyLoadedData();
+                        tcs.TrySetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.TrySetException(ex);
+                    }
+                }))
+            {
+                tcs.TrySetResult();
+            }
+            await tcs.Task.ConfigureAwait(false);
+        }
+        else
+        {
+            ApplyLoadedData();
+        }
     }
 
     private int _statusVersion = 0;
@@ -397,6 +475,8 @@ public partial class SingleInterpretationViewModel : ObservableObject
         HasStatusMessage = false;
         Results.Clear();
 
+        await EnsureDataLoadedAsync();
+
         if (SelectedOrganism == null && !string.IsNullOrWhiteSpace(OrganismSearchText))
             SelectedOrganism = ResolveOrganism(OrganismSearchText);
         if (SelectedAntibiotic == null && !string.IsNullOrWhiteSpace(AntibioticSearchText))
@@ -447,7 +527,9 @@ public partial class SingleInterpretationViewModel : ObservableObject
         // Build config
         var config = new InterpretationConfiguration
         {
+            RoundHalfDilutions = RoundHalfDilutions,
             IncludeInterpretationComments = IncludeComments,
+            UseIntrinsicResistanceRules = UseIntrinsicResistanceRules,
             GuidelineYear = RestrictGuidelineYear ? Convert.ToInt64(GuidelineYear) : 0,
             PrioritizedBreakpointTypes = new List<string>()
         };
@@ -593,33 +675,46 @@ public partial class SingleInterpretationViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void LoadExample()
+    public async Task LoadExampleAsync()
     {
-        var eco = AllOrganisms.FirstOrDefault(o => o.Code.Equals("eco", StringComparison.OrdinalIgnoreCase))
-                  ?? AllOrganisms.FirstOrDefault(o => o.DisplayName.Contains("coli", StringComparison.OrdinalIgnoreCase));
-        if (eco != null)
+        await EnsureDataLoadedAsync();
+
+        var clsi = Guidelines.FirstOrDefault(g => g.Name.Equals(nameof(Antibiotic.GuidelineNames.CLSI), StringComparison.OrdinalIgnoreCase));
+        if (clsi != null)
+            clsi.IsSelected = true;
+
+        var spn = AllOrganisms.FirstOrDefault(o => o.Code.Equals("spn", StringComparison.OrdinalIgnoreCase))
+                  ?? AllOrganisms.FirstOrDefault(o => o.DisplayName.Contains("pneumoniae", StringComparison.OrdinalIgnoreCase));
+        if (spn != null)
         {
-            SelectedOrganism = eco;
-            OrganismSearchText = eco.DisplayName;
+            SelectedOrganism = spn;
+            OrganismSearchText = spn.DisplayName;
         }
 
-        var cip = AllAntibiotics.FirstOrDefault(a => a.Code.Equals("CIP", StringComparison.OrdinalIgnoreCase))
-                  ?? AllAntibiotics.FirstOrDefault(a => a.DisplayName.Contains("Ciprofloxacin", StringComparison.OrdinalIgnoreCase));
-        if (cip != null)
+        var amc = AllAntibiotics.FirstOrDefault(a => a.Code.Equals("AMC", StringComparison.OrdinalIgnoreCase))
+                  ?? AllAntibiotics.FirstOrDefault(a => a.DisplayName.Contains("Amoxicillin/Clavulanic", StringComparison.OrdinalIgnoreCase));
+        if (amc != null)
         {
-            SelectedAntibiotic = cip;
-            AntibioticSearchText = cip.DisplayName;
+            SelectedAntibiotic = amc;
+            AntibioticSearchText = amc.DisplayName;
         }
 
-        IsDiskMethod = true;
-        if (DiskPotencies.Contains("5 µg"))
-            SelectedDiskPotency = "5 µg";
-        else if (DiskPotencies.Count > 0)
-            SelectedDiskPotency = DiskPotencies[0];
+        IsMicMethod = true;
+        Measurement = "2";
+        ClearResults();
+    }
 
-        Measurement = "22";
-
-        _ = InterpretAsync();
+    [RelayCommand]
+    public void ClearInputs()
+    {
+        SelectedOrganism = null;
+        OrganismSearchText = string.Empty;
+        SelectedAntibiotic = null;
+        AntibioticSearchText = string.Empty;
+        Measurement = string.Empty;
+        DiskPotencies.Clear();
+        SelectedDiskPotency = null;
+        ClearResults();
     }
 
     [RelayCommand]
@@ -969,6 +1064,113 @@ public partial class SingleInterpretationViewModel : ObservableObject
         string summary = string.Join("  •  ", summaryParts);
         if (string.IsNullOrWhiteSpace(summary))
             summary = "All Intrinsic Resistance Rules";
+
+        summary += $"  •  {list.Count} records";
+
+        return (list, summary);
+    }
+
+    public static void MovePriorityItem(ObservableCollection<SelectableItem> collection, SelectableItem? item, int delta)
+    {
+        if (item == null) return;
+        int oldIndex = collection.IndexOf(item);
+        int newIndex = oldIndex + delta;
+        if (oldIndex < 0 || newIndex < 0 || newIndex >= collection.Count) return;
+        collection.Move(oldIndex, newIndex);
+    }
+
+    public (List<ExpertRuleRow> Rows, string Summary) GetApplicableExpertRules()
+    {
+        if (SelectedOrganism == null && !string.IsNullOrWhiteSpace(OrganismSearchText))
+            SelectedOrganism = ResolveOrganism(OrganismSearchText);
+        if (SelectedAntibiotic == null && !string.IsNullOrWhiteSpace(AntibioticSearchText))
+            SelectedAntibiotic = ResolveAntibiotic(AntibioticSearchText);
+
+        var lookup = GetOrganismNameLookup();
+        string? orgCode = SelectedOrganism?.Code;
+        string? abxCode = SelectedAntibiotic?.Code;
+        var activeGuidelines = RestrictGuidelines ? Guidelines.Where(g => g.IsSelected).Select(g => g.Name).ToHashSet(StringComparer.OrdinalIgnoreCase) : null;
+
+        Organism? organismEntity = null;
+        if (!string.IsNullOrWhiteSpace(orgCode))
+        {
+            if (Organism.CurrentOrganisms.TryGetValue(orgCode, out var foundOrg))
+                organismEntity = foundOrg;
+            else if (Organism.MergedOrganisms.TryGetValue(orgCode, out var mergedCode) && Organism.CurrentOrganisms.TryGetValue(mergedCode, out var mergedOrg))
+                organismEntity = mergedOrg;
+            else
+                organismEntity = Organism.CurrentOrganisms.Values.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase))
+                    ?? Organism.AllOrganisms.FirstOrDefault(o => o.WHONET_ORG_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+        }
+
+        IEnumerable<ExpertInterpretationRule> query;
+        if (organismEntity != null && !string.IsNullOrWhiteSpace(abxCode))
+        {
+            var fullTestCodes = GetFullTestCodes();
+            if (fullTestCodes.Count == 0)
+            {
+                string gCode = Antibiotic.GuidelineCodes.CLSI.ToString();
+                fullTestCodes.Add(IsDiskMethod
+                    ? $"{abxCode}_{gCode}D"
+                    : $"{abxCode}_{gCode}M");
+            }
+
+            query = ExpertInterpretationRule.GetApplicableExpertRules(
+                organismEntity.WHONET_ORG_CODE,
+                fullTestCodes,
+                new List<string>(),
+                ExpertInterpretationRule.RuleCodes.All);
+        }
+        else
+        {
+            query = ExpertInterpretationRule.ExpertInterpretationRules;
+            if (!string.IsNullOrWhiteSpace(orgCode))
+            {
+                query = query.Where(r => r.ORGANISM_CODE.Equals(orgCode, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrWhiteSpace(abxCode))
+            {
+                query = query.Where(r =>
+                    (r.AFFECTED_ANTIBIOTICS != null && r.AFFECTED_ANTIBIOTICS.Contains(abxCode, StringComparer.OrdinalIgnoreCase)) ||
+                    (r.RULE_CRITERIA != null && r.RULE_CRITERIA.Any(c => c.TestName.Equals(abxCode, StringComparison.OrdinalIgnoreCase))));
+            }
+        }
+
+        if (activeGuidelines != null && activeGuidelines.Count > 0)
+        {
+            query = query.Where(r =>
+                activeGuidelines.Any(g =>
+                    r.RULE_CODE.Contains(g, StringComparison.OrdinalIgnoreCase) ||
+                    r.DESCRIPTION.Contains(g, StringComparison.OrdinalIgnoreCase) ||
+                    (!r.RULE_CODE.Contains("EUCAST", StringComparison.OrdinalIgnoreCase) &&
+                     !r.RULE_CODE.Contains("CLSI", StringComparison.OrdinalIgnoreCase) &&
+                     !r.RULE_CODE.Contains("SFM", StringComparison.OrdinalIgnoreCase))));
+        }
+
+        var list = query
+            .Select(r => new ExpertRuleRow(
+                r.RULE_CODE,
+                r.DESCRIPTION,
+                r.ORGANISM_CODE,
+                ResolveOrgName(r.ORGANISM_CODE, lookup),
+                string.Join(", ", r.AFFECTED_ANTIBIOTICS ?? new List<string>()),
+                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>())
+            ))
+            .OrderBy(r => r.RuleCode)
+            .ThenBy(r => r.OrganismCode)
+            .ToList();
+
+        var summaryParts = new List<string>();
+        if (SelectedOrganism != null)
+            summaryParts.Add($"Organism: {SelectedOrganism.DisplayName}");
+        if (SelectedAntibiotic != null)
+            summaryParts.Add($"Antibiotic: {SelectedAntibiotic.DisplayName}");
+        if (activeGuidelines != null && activeGuidelines.Count > 0)
+            summaryParts.Add($"Guidelines: {string.Join(", ", activeGuidelines)}");
+
+        string summary = string.Join("  •  ", summaryParts);
+        if (string.IsNullOrWhiteSpace(summary))
+            summary = "All Expert Interpretation Rules";
 
         summary += $"  •  {list.Count} records";
 

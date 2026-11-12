@@ -14,6 +14,7 @@ public sealed partial class ApplicableIntrinsicRulesDialog : ContentDialog
     public ApplicableIntrinsicRulesDialog()
     {
         InitializeComponent();
+        Common.WindowHelper.ConfigureInlineCloseDialog(this, CloseModalButton);
     }
 
     public void SetData(List<IntrinsicRuleRow> rows, string filterSummary)

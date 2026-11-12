@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AMRIE.Library;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,10 +16,10 @@ public partial class ResourceExplorerViewModel : ObservableObject
 {
     // Selected Section: 0 = Breakpoints, 1 = Expert Rules, 2 = Intrinsic Resistance
     [ObservableProperty]
-    private int _selectedSectionIndex = 0;
+    public partial int SelectedSectionIndex { get; set; } = 0;
 
     [ObservableProperty]
-    private string _selectedSectionName = "Breakpoints";
+    public partial string SelectedSectionName { get; set; } = "Breakpoints";
 
     public ObservableCollection<string> AvailableSections { get; } = new()
     {
@@ -28,11 +29,11 @@ public partial class ResourceExplorerViewModel : ObservableObject
     };
 
     [ObservableProperty]
-    private string _filterQuery = string.Empty;
+    public partial string FilterQuery { get; set; } = string.Empty;
 
     // Organism / Clinical Panel Filter
     [ObservableProperty]
-    private OrganismFilterItem _selectedOrganism;
+    public partial OrganismFilterItem SelectedOrganism { get; set; }
 
     public ObservableCollection<OrganismFilterItem> AvailableOrganisms { get; } = new();
 
@@ -51,7 +52,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     // Guideline Filter (CLSI, EUCAST, SFM, All)
     [ObservableProperty]
-    private string _selectedGuideline = "All Guidelines";
+    public partial string SelectedGuideline { get; set; } = "All Guidelines";
 
     public ObservableCollection<string> AvailableGuidelines { get; } = new()
     {
@@ -63,7 +64,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     // Test Method Filter (All Methods, Disk, MIC)
     [ObservableProperty]
-    private string _selectedTestMethod = "All Methods";
+    public partial string SelectedTestMethod { get; set; } = "All Methods";
 
     public ObservableCollection<string> AvailableTestMethods { get; } = new()
     {
@@ -74,7 +75,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     // Breakpoint Type Filter (All Types, Human, Animal, ECOFF)
     [ObservableProperty]
-    private string _selectedBreakpointType = "All Types";
+    public partial string SelectedBreakpointType { get; set; } = "All Types";
 
     public ObservableCollection<string> AvailableBreakpointTypes { get; } = new()
     {
@@ -86,16 +87,23 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     // Year Filter ("All Years" or specific year)
     [ObservableProperty]
-    private string _selectedYear = Constants.BreakpointTableRevisionYear.ToString();
+    public partial string SelectedYear { get; set; } = Constants.BreakpointTableRevisionYear.ToString();
 
     public ObservableCollection<string> AvailableYears { get; } = new();
 
     // Option to hide rows where all breakpoints (S/I/R/SDD) are not available (shown as -)
     [ObservableProperty]
-    private bool _hideUndefinedBreakpoints;
+    public partial bool HideUndefinedBreakpoints { get; set; }
 
     [ObservableProperty]
-    private string _resultCountMessage = string.Empty;
+    public partial string ResultCountMessage { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsLoading { get; set; } = false;
+
+    private bool _suppressFilter = false;
+    private bool _syncingSection = false;
+    private CancellationTokenSource? _filterDebounceCts;
 
     public ObservableCollection<BreakpointRow> FilteredBreakpoints { get; } = new();
     public ObservableCollection<ExpertRuleRow> FilteredExpertRules { get; } = new();
@@ -109,7 +117,9 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     public ResourceExplorerViewModel()
     {
-        _selectedOrganism = InitializeAvailableOrganisms();
+        _suppressFilter = true;
+        SelectedOrganism = InitializeAvailableOrganisms();
+        _suppressFilter = false;
         AvailableYears.Add("All Years");
         AvailableYears.Add(Constants.BreakpointTableRevisionYear.ToString());
     }
@@ -267,40 +277,56 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     private async Task LoadAllResourcesAsync()
     {
-        var years = await Task.Run(LoadAllResources);
-
-        string targetYear = Constants.BreakpointTableRevisionYear.ToString();
-        var yearList = new List<string> { "All Years" };
-        foreach (var year in years)
+        IsLoading = true;
+        try
         {
-            string yStr = year.ToString();
-            if (!yearList.Contains(yStr))
+            var years = await Task.Run(LoadAllResources);
+
+            string targetYear = Constants.BreakpointTableRevisionYear.ToString();
+            var yearList = new List<string> { "All Years" };
+            foreach (var year in years)
             {
-                yearList.Add(yStr);
+                string yStr = year.ToString();
+                if (!yearList.Contains(yStr))
+                {
+                    yearList.Add(yStr);
+                }
             }
-        }
 
-        AvailableYears.Clear();
-        foreach (var yStr in yearList)
-        {
-            AvailableYears.Add(yStr);
-        }
+            _suppressFilter = true;
+            try
+            {
+                AvailableYears.Clear();
+                foreach (var yStr in yearList)
+                {
+                    AvailableYears.Add(yStr);
+                }
 
-        if (AvailableYears.Contains(targetYear))
-        {
-            SelectedYear = targetYear;
-        }
-        else if (AvailableYears.Count > 1)
-        {
-            SelectedYear = AvailableYears[1];
-        }
-        else
-        {
-            SelectedYear = "All Years";
-        }
-        OnPropertyChanged(nameof(SelectedYear));
+                if (AvailableYears.Contains(targetYear))
+                {
+                    SelectedYear = targetYear;
+                }
+                else if (AvailableYears.Count > 1)
+                {
+                    SelectedYear = AvailableYears[1];
+                }
+                else
+                {
+                    SelectedYear = "All Years";
+                }
+                OnPropertyChanged(nameof(SelectedYear));
+            }
+            finally
+            {
+                _suppressFilter = false;
+            }
 
-        ApplyFilter();
+            ApplyFilter();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private List<int> LoadAllResources()
@@ -376,32 +402,98 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
     partial void OnSelectedSectionIndexChanged(int value)
     {
+        if (_syncingSection) return;
         if (value >= 0 && value < AvailableSections.Count && SelectedSectionName != AvailableSections[value])
         {
-            _selectedSectionName = AvailableSections[value];
-            OnPropertyChanged(nameof(SelectedSectionName));
+            _syncingSection = true;
+            try
+            {
+                SelectedSectionName = AvailableSections[value];
+            }
+            finally
+            {
+                _syncingSection = false;
+            }
         }
         ApplyFilter();
     }
 
     partial void OnSelectedSectionNameChanged(string value)
     {
+        if (_syncingSection) return;
         int index = AvailableSections.IndexOf(value);
         if (index >= 0 && index != SelectedSectionIndex)
         {
-            _selectedSectionIndex = index;
-            OnPropertyChanged(nameof(SelectedSectionIndex));
+            _syncingSection = true;
+            try
+            {
+                SelectedSectionIndex = index;
+            }
+            finally
+            {
+                _syncingSection = false;
+            }
             ApplyFilter();
         }
     }
 
-    partial void OnSelectedOrganismChanged(OrganismFilterItem value) => ApplyFilter();
-    partial void OnFilterQueryChanged(string value) => ApplyFilter();
-    partial void OnSelectedGuidelineChanged(string value) => ApplyFilter();
-    partial void OnSelectedTestMethodChanged(string value) => ApplyFilter();
-    partial void OnSelectedBreakpointTypeChanged(string value) => ApplyFilter();
-    partial void OnSelectedYearChanged(string value) => ApplyFilter();
-    partial void OnHideUndefinedBreakpointsChanged(bool value) => ApplyFilter();
+    partial void OnSelectedOrganismChanged(OrganismFilterItem value) { if (!_suppressFilter) ApplyFilter(); }
+    partial void OnFilterQueryChanged(string value)
+    {
+        if (_suppressFilter) return;
+        DebounceFilterAsync();
+    }
+    partial void OnSelectedGuidelineChanged(string value) { if (!_suppressFilter) ApplyFilter(); }
+    partial void OnSelectedTestMethodChanged(string value) { if (!_suppressFilter) ApplyFilter(); }
+    partial void OnSelectedBreakpointTypeChanged(string value) { if (!_suppressFilter) ApplyFilter(); }
+    partial void OnSelectedYearChanged(string value) { if (!_suppressFilter) ApplyFilter(); }
+    partial void OnHideUndefinedBreakpointsChanged(bool value) { if (!_suppressFilter) ApplyFilter(); }
+
+    private async void DebounceFilterAsync()
+    {
+        _filterDebounceCts?.Cancel();
+        _filterDebounceCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _filterDebounceCts = cts;
+
+        try
+        {
+            await Task.Delay(180, cts.Token);
+            if (!cts.IsCancellationRequested)
+            {
+                ApplyFilter();
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    [RelayCommand]
+    public void ResetFilters()
+    {
+        _filterDebounceCts?.Cancel();
+        _suppressFilter = true;
+        try
+        {
+            FilterQuery = string.Empty;
+            if (AvailableOrganisms.Count > 0)
+                SelectedOrganism = AvailableOrganisms[0];
+            SelectedGuideline = "All Guidelines";
+            SelectedTestMethod = "All Methods";
+            SelectedBreakpointType = "All Types";
+            string targetYear = Constants.BreakpointTableRevisionYear.ToString();
+            SelectedYear = AvailableYears.Contains(targetYear)
+                ? targetYear
+                : (AvailableYears.Count > 1 ? AvailableYears[1] : "All Years");
+            HideUndefinedBreakpoints = false;
+        }
+        finally
+        {
+            _suppressFilter = false;
+        }
+        ApplyFilter();
+    }
 
     private void BuildTaxonomicLookups()
     {

@@ -16,13 +16,18 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
 
         WindowHelper.MainWindow = this;
-        // Configure default restore-state dimensions before maximizing so restoring the window returns to a sensible size
-        WindowHelper.SetWindowSize(this, 1150, 780);
+        var savedSettings = SettingsManager.LoadSettings();
+        WindowHelper.RestoreWindowState(this, savedSettings);
+        Closed += (_, _) => WindowHelper.SaveWindowState(this);
 
-        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        // Ctrl+, (VK_OEM_COMMA = 188) is not a named VirtualKey enum member in XAML
+        var settingsAccelerator = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
         {
-            presenter.Maximize();
-        }
+            Key = (Windows.System.VirtualKey)188,
+            Modifiers = Windows.System.VirtualKeyModifiers.Control
+        };
+        settingsAccelerator.Invoked += NavShortcut_Invoked;
+        RootGrid.KeyboardAccelerators.Add(settingsAccelerator);
 
         ExtendsContentIntoTitleBar = false;
 
@@ -45,15 +50,25 @@ public sealed partial class MainWindow : Window
             }
         };
 
-        // Load persisted theme
-        var savedTheme = SettingsManager.LoadTheme();
+        // Apply persisted theme from already-loaded settings (avoids a duplicate settings.json read)
+        ElementTheme savedTheme = ElementTheme.Default;
+        if (!string.IsNullOrEmpty(savedSettings.Theme) && Enum.TryParse<ElementTheme>(savedSettings.Theme, out var parsedTheme))
+        {
+            savedTheme = parsedTheme;
+        }
         RootGrid.RequestedTheme = savedTheme;
 
         // Initialize theme toggle visuals
         UpdateThemeButtonVisuals();
 
-        // Default navigation to Single Interpretation
-        NavView.SelectedItem = NavView.MenuItems[0];
+        // Defer initial page inflation until the window is activated so the first frame paints immediately
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+        {
+            if (NavView.SelectedItem == null && NavView.MenuItems.Count > 0)
+            {
+                NavView.SelectedItem = NavView.MenuItems[0];
+            }
+        });
     }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -177,5 +192,28 @@ public sealed partial class MainWindow : Window
     private void UpdateTitleBarTheme(bool isDark)
     {
         WindowHelper.SetNativeTitleBarTheme(this, isDark);
+    }
+
+    private void NavShortcut_Invoked(Microsoft.UI.Xaml.Input.KeyboardAccelerator sender, Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        switch (sender.Key)
+        {
+            case Windows.System.VirtualKey.Number1:
+                NavView.SelectedItem = NavView.MenuItems[0];
+                args.Handled = true;
+                break;
+            case Windows.System.VirtualKey.Number2:
+                NavView.SelectedItem = NavView.MenuItems[1];
+                args.Handled = true;
+                break;
+            case Windows.System.VirtualKey.Number3:
+                NavView.SelectedItem = NavView.MenuItems[2];
+                args.Handled = true;
+                break;
+            case (Windows.System.VirtualKey)188:
+                NavView.SelectedItem = NavView.SettingsItem;
+                args.Handled = true;
+                break;
+        }
     }
 }

@@ -30,17 +30,25 @@ public sealed partial class SingleInterpretationPage : Page
         };
     }
 
-    private void OrganismSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private async void OrganismSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            string query = sender.Text.Trim();
-            ViewModel.OrganismSearchText = sender.Text;
+            string rawText = sender.Text;
+            string query = rawText.Trim();
+            ViewModel.OrganismSearchText = rawText;
             ViewModel.SelectedOrganism = null;
             if (string.IsNullOrWhiteSpace(query))
             {
                 sender.ItemsSource = null;
                 return;
+            }
+
+            if (ViewModel.AllOrganisms.Count == 0)
+            {
+                await ViewModel.EnsureDataLoadedAsync();
+                if (!string.Equals(sender.Text, rawText, StringComparison.Ordinal))
+                    return;
             }
 
             var terms = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -84,17 +92,25 @@ public sealed partial class SingleInterpretationPage : Page
         }
     }
 
-    private void AntibioticSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    private async void AntibioticSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            string query = sender.Text.Trim();
-            ViewModel.AntibioticSearchText = sender.Text;
+            string rawText = sender.Text;
+            string query = rawText.Trim();
+            ViewModel.AntibioticSearchText = rawText;
             ViewModel.SelectedAntibiotic = null;
             if (string.IsNullOrWhiteSpace(query))
             {
                 sender.ItemsSource = null;
                 return;
+            }
+
+            if (ViewModel.AllAntibiotics.Count == 0)
+            {
+                await ViewModel.EnsureDataLoadedAsync();
+                if (!string.Equals(sender.Text, rawText, StringComparison.Ordinal))
+                    return;
             }
 
             var terms = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -152,24 +168,34 @@ public sealed partial class SingleInterpretationPage : Page
 
     private static bool _isDialogOpen = false;
 
-    private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    private void MoveTypeUp_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        => SingleInterpretationViewModel.MovePriorityItem(ViewModel.BreakpointTypes, (sender as Microsoft.UI.Xaml.FrameworkElement)?.Tag as SelectableItem, -1);
+
+    private void MoveTypeDown_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        => SingleInterpretationViewModel.MovePriorityItem(ViewModel.BreakpointTypes, (sender as Microsoft.UI.Xaml.FrameworkElement)?.Tag as SelectableItem, 1);
+
+    private void MoveSiteUp_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        => SingleInterpretationViewModel.MovePriorityItem(ViewModel.SitesOfInfection, (sender as Microsoft.UI.Xaml.FrameworkElement)?.Tag as SelectableItem, -1);
+
+    private void MoveSiteDown_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        => SingleInterpretationViewModel.MovePriorityItem(ViewModel.SitesOfInfection, (sender as Microsoft.UI.Xaml.FrameworkElement)?.Tag as SelectableItem, 1);
+
+    private async System.Threading.Tasks.Task ShowLookupDialogAsync<TDialog>(Func<TDialog> createDialog, string logName)
+        where TDialog : ContentDialog
     {
         if (_isDialogOpen) return;
         _isDialogOpen = true;
         try
         {
+            await ViewModel.EnsureDataLoadedAsync();
             ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
-            var (rows, summary) = ViewModel.GetApplicableBreakpoints();
-            var dialog = new Dialogs.ApplicableBreakpointsDialog
-            {
-                XamlRoot = this.XamlRoot ?? (Content as Microsoft.UI.Xaml.UIElement)?.XamlRoot
-            };
-            dialog.SetData(rows, summary);
+            var dialog = createDialog();
+            Common.WindowHelper.ApplyDialogTheme(dialog, this);
             await dialog.ShowAsync();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableBreakpointsDialog: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying {logName}: {ex}");
         }
         finally
         {
@@ -177,28 +203,36 @@ public sealed partial class SingleInterpretationPage : Page
         }
     }
 
+    private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        await ShowLookupDialogAsync(() =>
+        {
+            var (rows, summary) = ViewModel.GetApplicableBreakpoints();
+            var dialog = new Dialogs.ApplicableBreakpointsDialog();
+            dialog.SetData(rows, summary);
+            return dialog;
+        }, nameof(Dialogs.ApplicableBreakpointsDialog));
+    }
+
+    private async void GetApplicableExpertRules_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+    {
+        await ShowLookupDialogAsync(() =>
+        {
+            var (rows, summary) = ViewModel.GetApplicableExpertRules();
+            var dialog = new Dialogs.ApplicableExpertRulesDialog();
+            dialog.SetData(rows, summary);
+            return dialog;
+        }, nameof(Dialogs.ApplicableExpertRulesDialog));
+    }
+
     private async void GetApplicableIntrinsicResistance_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        if (_isDialogOpen) return;
-        _isDialogOpen = true;
-        try
+        await ShowLookupDialogAsync(() =>
         {
-            ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
             var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
-            var dialog = new Dialogs.ApplicableIntrinsicRulesDialog
-            {
-                XamlRoot = this.XamlRoot ?? (Content as Microsoft.UI.Xaml.UIElement)?.XamlRoot
-            };
+            var dialog = new Dialogs.ApplicableIntrinsicRulesDialog();
             dialog.SetData(rows, summary);
-            await dialog.ShowAsync();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying ApplicableIntrinsicRulesDialog: {ex}");
-        }
-        finally
-        {
-            _isDialogOpen = false;
-        }
+            return dialog;
+        }, nameof(Dialogs.ApplicableIntrinsicRulesDialog));
     }
 }
