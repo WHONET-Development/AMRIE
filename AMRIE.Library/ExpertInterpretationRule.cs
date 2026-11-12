@@ -21,7 +21,7 @@ namespace AMRIE.Library
             public const string MRStaph = "MRS";
             public const string ICR = "ICR";
 
-            public static readonly List<string> All = new List<string>() { ESBL_Confirmed, ESBL_Probable, BLNAR, MRStaph, ICR };
+            public static readonly List<string> All = [ESBL_Confirmed, ESBL_Probable, BLNAR, MRStaph, ICR];
         }
 
         public class PROF_CLASS
@@ -71,7 +71,7 @@ namespace AMRIE.Library
 
         public bool EvaluateCriteria(Dictionary<string, string> rowValues, Dictionary<string, string> resultInterpretations)
         {
-            List<bool> ruleResults = new List<bool>();
+            List<bool> ruleResults = [];
 
             // An earlier step has already matched the organism.
             // We only need to evaluate the rule criteria.
@@ -157,7 +157,7 @@ namespace AMRIE.Library
         {
             if (!Organism.CurrentOrganisms.ContainsKey(whonetOrganismCode))
                 // Cannot determine the expert rules for an unknown organism.
-                return new List<ExpertInterpretationRule>();
+                return [];
 
             Organism o = Organism.CurrentOrganisms[whonetOrganismCode];
 
@@ -185,8 +185,8 @@ namespace AMRIE.Library
                 select thisRule;
 
             // Make two copies so that we can iterate over one and remove items from the other if needed.
-            List<ExpertInterpretationRule> returnList = expertRules.ToList();
-            List<ExpertInterpretationRule> iterationList = returnList.ToList();
+            List<ExpertInterpretationRule> returnList = [.. expertRules];
+            List<ExpertInterpretationRule> iterationList = [.. returnList];
 
             foreach (ExpertInterpretationRule thisRule in iterationList)
             {
@@ -291,7 +291,7 @@ namespace AMRIE.Library
             if (File.Exists(expertRulesTableFile))
             {
                 List<ExpertInterpretationRule> allRules =
-                    new List<ExpertInterpretationRule>();
+                    [];
 
                 using (CsvReader parser = CsvReader.Create(
                     new StreamReader(expertRulesTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
@@ -306,7 +306,7 @@ namespace AMRIE.Library
                     {
                         string[] values = IO_Library.GetFields(parser);
 
-                        List<ExpertRuleCriterion> ruleCriteria = new List<ExpertRuleCriterion>();
+                        List<ExpertRuleCriterion> ruleCriteria = [];
 
                         // Default operator is AND.
                         string ruleOp = RuleOperators.And;
@@ -342,13 +342,13 @@ namespace AMRIE.Library
                                 break;
 
                             default:
-                                affectedAntibiotics = IO_Library.SplitLine(values[headerMap[nameof(AFFECTED_ANTIBIOTICS)]], Constants.Delimiters.CommaChar).ToList();
+                                affectedAntibiotics = [.. IO_Library.SplitLine(values[headerMap[nameof(AFFECTED_ANTIBIOTICS)]], Constants.Delimiters.CommaChar)];
                                 break;
                         }
                         ;
 
                         // Exeptions to the affected antibiotics, if any.
-                        List<string> antibioticExceptions = IO_Library.SplitLine(values[headerMap[nameof(ANTIBIOTIC_EXCEPTIONS)]], Constants.Delimiters.CommaChar).ToList();
+                        List<string> antibioticExceptions = [.. IO_Library.SplitLine(values[headerMap[nameof(ANTIBIOTIC_EXCEPTIONS)]], Constants.Delimiters.CommaChar)];
 
                         ExpertInterpretationRule newRule = new ExpertInterpretationRule(ruleCode, values[headerMap[nameof(DESCRIPTION)]],
                             values[headerMap[nameof(ORGANISM_CODE)]], values[headerMap[nameof(ORGANISM_CODE_TYPE)]],

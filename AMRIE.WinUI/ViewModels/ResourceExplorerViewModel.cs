@@ -21,12 +21,12 @@ public partial class ResourceExplorerViewModel : ObservableObject
     [ObservableProperty]
     public partial string SelectedSectionName { get; set; } = "Breakpoints";
 
-    public ObservableCollection<string> AvailableSections { get; } = new()
-    {
+    public ObservableCollection<string> AvailableSections { get; } =
+    [
         "Breakpoints",
         "Expert Rules",
         "Intrinsic Resistance"
-    };
+    ];
 
     [ObservableProperty]
     public partial string FilterQuery { get; set; } = string.Empty;
@@ -35,7 +35,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
     [ObservableProperty]
     public partial OrganismFilterItem SelectedOrganism { get; set; }
 
-    public ObservableCollection<OrganismFilterItem> AvailableOrganisms { get; } = new();
+    public ObservableCollection<OrganismFilterItem> AvailableOrganisms { get; } = [];
 
     // Taxonomic mappings: species code -> list of parent panel codes (e.g. "pmi" -> ["EBC", "PR-"])
     private readonly Dictionary<string, List<string>> _memberToPanels = new(StringComparer.OrdinalIgnoreCase);
@@ -54,42 +54,42 @@ public partial class ResourceExplorerViewModel : ObservableObject
     [ObservableProperty]
     public partial string SelectedGuideline { get; set; } = "All Guidelines";
 
-    public ObservableCollection<string> AvailableGuidelines { get; } = new()
-    {
+    public ObservableCollection<string> AvailableGuidelines { get; } =
+    [
         "All Guidelines",
         nameof(Antibiotic.GuidelineNames.CLSI),
         nameof(Antibiotic.GuidelineNames.EUCAST),
         nameof(Antibiotic.GuidelineNames.SFM)
-    };
+    ];
 
     // Test Method Filter (All Methods, Disk, MIC)
     [ObservableProperty]
     public partial string SelectedTestMethod { get; set; } = "All Methods";
 
-    public ObservableCollection<string> AvailableTestMethods { get; } = new()
-    {
+    public ObservableCollection<string> AvailableTestMethods { get; } =
+    [
         "All Methods",
         "Disk",
         "MIC"
-    };
+    ];
 
     // Breakpoint Type Filter (All Types, Human, Animal, ECOFF)
     [ObservableProperty]
     public partial string SelectedBreakpointType { get; set; } = "All Types";
 
-    public ObservableCollection<string> AvailableBreakpointTypes { get; } = new()
-    {
+    public ObservableCollection<string> AvailableBreakpointTypes { get; } =
+    [
         "All Types",
         Breakpoint.BreakpointTypes.Human,
         Breakpoint.BreakpointTypes.Animal,
         Breakpoint.BreakpointTypes.ECOFF
-    };
+    ];
 
     // Year Filter ("All Years" or specific year)
     [ObservableProperty]
     public partial string SelectedYear { get; set; } = Constants.BreakpointTableRevisionYear.ToString();
 
-    public ObservableCollection<string> AvailableYears { get; } = new();
+    public ObservableCollection<string> AvailableYears { get; } = [];
 
     // Option to hide rows where all breakpoints (S/I/R/SDD) are not available (shown as -)
     [ObservableProperty]
@@ -105,13 +105,13 @@ public partial class ResourceExplorerViewModel : ObservableObject
     private bool _syncingSection = false;
     private CancellationTokenSource? _filterDebounceCts;
 
-    public ObservableCollection<BreakpointRow> FilteredBreakpoints { get; } = new();
-    public ObservableCollection<ExpertRuleRow> FilteredExpertRules { get; } = new();
-    public ObservableCollection<IntrinsicRuleRow> FilteredIntrinsicRules { get; } = new();
+    public ObservableCollection<BreakpointRow> FilteredBreakpoints { get; } = [];
+    public ObservableCollection<ExpertRuleRow> FilteredExpertRules { get; } = [];
+    public ObservableCollection<IntrinsicRuleRow> FilteredIntrinsicRules { get; } = [];
 
-    private List<BreakpointRow> _allBreakpoints = new();
-    private List<ExpertRuleRow> _allExpertRules = new();
-    private List<IntrinsicRuleRow> _allIntrinsicRules = new();
+    private List<BreakpointRow> _allBreakpoints = [];
+    private List<ExpertRuleRow> _allExpertRules = [];
+    private List<IntrinsicRuleRow> _allIntrinsicRules = [];
 
     private Task? _loadTask;
 
@@ -340,7 +340,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
         try
         {
             // Breakpoints
-            _allBreakpoints = Breakpoint.Breakpoints.Select(b => new BreakpointRow(
+            _allBreakpoints = [.. Breakpoint.Breakpoints.Select(b => new BreakpointRow(
                 b.GUIDELINES,
                 b.YEAR,
                 b.TEST_METHOD,
@@ -361,39 +361,39 @@ public partial class ResourceExplorerViewModel : ObservableObject
                 b.COMMENTS,
                 b.ORGANISM_CODE_TYPE,
                 b.REFERENCE_TABLE
-            )).ToList();
+            ))];
 
-            years = _allBreakpoints.Select(b => b.Year).Distinct().OrderByDescending(y => y).ToList();
+            years = [.. _allBreakpoints.Select(b => b.Year).Distinct().OrderByDescending(y => y)];
         }
         catch { }
 
         try
         {
             // Expert Rules
-            _allExpertRules = ExpertInterpretationRule.ExpertInterpretationRules.Select(r => new ExpertRuleRow(
+            _allExpertRules = [.. ExpertInterpretationRule.ExpertInterpretationRules.Select(r => new ExpertRuleRow(
                 r.RULE_CODE,
                 r.DESCRIPTION,
                 r.ORGANISM_CODE,
                 ResolveOrganismName(r.ORGANISM_CODE, organismNameCache),
-                string.Join(", ", r.AFFECTED_ANTIBIOTICS ?? new List<string>()),
-                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>())
-            )).ToList();
+                string.Join(", ", r.AFFECTED_ANTIBIOTICS ?? []),
+                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? [])
+            ))];
         }
         catch { }
 
         try
         {
             // Intrinsic Rules: Load all rules directly
-            _allIntrinsicRules = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules
+            _allIntrinsicRules = [.. ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules
                 .Select(r => new IntrinsicRuleRow(
                     r.GUIDELINE,
                     r.ORGANISM_CODE,
                     ResolveOrganismName(r.ORGANISM_CODE, organismNameCache),
                     r.ABX_CODE,
                     ResolveAntibioticName(r.ABX_CODE, antibioticNameCache),
-                    string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>()),
+                    string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? []),
                     r.COMMENTS
-                )).ToList();
+                ))];
         }
         catch { }
 
@@ -527,12 +527,12 @@ public partial class ResourceExplorerViewModel : ObservableObject
 
                 if (panels.Count > 0)
                 {
-                    _memberToPanels[code] = panels.Distinct().ToList();
+                    _memberToPanels[code] = [.. panels.Distinct()];
                     foreach (var p in panels)
                     {
                         if (!_panelToMembers.TryGetValue(p, out var members))
                         {
-                            members = new List<string>();
+                            members = [];
                             _panelToMembers[p] = members;
                         }
                         if (!members.Contains(code, StringComparer.OrdinalIgnoreCase))
@@ -568,38 +568,38 @@ public partial class ResourceExplorerViewModel : ObservableObject
             {
                 _organismNameLookup.TryGetValue(q, out name);
             }
-            var panels = parentPanels ?? (_memberToPanels.TryGetValue(q, out var p) ? p : new List<string>());
-            return new ResolvedOrganismContext(q.ToLowerInvariant(), name ?? q, false, panels, new List<string>());
+            var panels = parentPanels ?? (_memberToPanels.TryGetValue(q, out var p) ? p : []);
+            return new ResolvedOrganismContext(q.ToLowerInvariant(), name ?? q, false, panels, []);
         }
 
         // 2. Direct match on panel code (e.g. "EBC", "PR-", "STA")
         if (_panelToMembers.TryGetValue(qUpper, out var memberSpecies) || _organismNameLookup.ContainsKey(qUpper))
         {
             _organismNameLookup.TryGetValue(qUpper, out string? panelName);
-            var members = memberSpecies ?? (_panelToMembers.TryGetValue(qUpper, out var m) ? m : new List<string>());
-            return new ResolvedOrganismContext(qUpper, panelName ?? qUpper, true, new List<string>(), members);
+            var members = memberSpecies ?? (_panelToMembers.TryGetValue(qUpper, out var m) ? m : []);
+            return new ResolvedOrganismContext(qUpper, panelName ?? qUpper, true, [], members);
         }
 
         // 3. Exact match on organism name
         if (_organismNameToCode.TryGetValue(q, out var matchedCode))
         {
-            var panels = _memberToPanels.TryGetValue(matchedCode, out var p) ? p : new List<string>();
-            return new ResolvedOrganismContext(matchedCode.ToLowerInvariant(), q, false, panels, new List<string>());
+            var panels = _memberToPanels.TryGetValue(matchedCode, out var p) ? p : [];
+            return new ResolvedOrganismContext(matchedCode.ToLowerInvariant(), q, false, panels, []);
         }
 
         var nameMatch = _organismNameToCode.FirstOrDefault(kvp => string.Equals(kvp.Key, q, StringComparison.OrdinalIgnoreCase));
         if (!string.IsNullOrEmpty(nameMatch.Value))
         {
-            var panels = _memberToPanels.TryGetValue(nameMatch.Value, out var p) ? p : new List<string>();
-            return new ResolvedOrganismContext(nameMatch.Value.ToLowerInvariant(), nameMatch.Key, false, panels, new List<string>());
+            var panels = _memberToPanels.TryGetValue(nameMatch.Value, out var p) ? p : [];
+            return new ResolvedOrganismContext(nameMatch.Value.ToLowerInvariant(), nameMatch.Key, false, panels, []);
         }
 
         // 4. Panel description match (e.g. "Enterobacterales")
         var panelMatch = _organismNameLookup.FirstOrDefault(kvp => string.Equals(kvp.Value, q, StringComparison.OrdinalIgnoreCase));
         if (!string.IsNullOrEmpty(panelMatch.Key))
         {
-            var members = _panelToMembers.TryGetValue(panelMatch.Key, out var pMembers) ? pMembers : new List<string>();
-            return new ResolvedOrganismContext(panelMatch.Key.ToUpperInvariant(), panelMatch.Value, true, new List<string>(), members);
+            var members = _panelToMembers.TryGetValue(panelMatch.Key, out var pMembers) ? pMembers : [];
+            return new ResolvedOrganismContext(panelMatch.Key.ToUpperInvariant(), panelMatch.Value, true, [], members);
         }
 
         return null;

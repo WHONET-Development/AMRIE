@@ -35,9 +35,9 @@ public sealed partial class BatchConfigDialog : ContentDialog
         public string? UserDefinedBreakpointsFile { get; set; }
     }
 
-    private readonly ObservableCollection<SelectableItem> _breakpointTypes = new();
-    private readonly ObservableCollection<SelectableItem> _expertRules = new();
-    private readonly ObservableCollection<SelectableItem> _sites = new();
+    private readonly ObservableCollection<SelectableItem> _breakpointTypes = [];
+    private readonly ObservableCollection<SelectableItem> _expertRules = [];
+    private readonly ObservableCollection<SelectableItem> _sites = [];
     private List<string>? _disabledSites;
     private string _currentPath = string.Empty;
 
@@ -110,7 +110,7 @@ public sealed partial class BatchConfigDialog : ContentDialog
             Breakpoint.BreakpointTypes.Animal,
             Breakpoint.BreakpointTypes.ECOFF
         };
-        var configuredTypes = config.PrioritizedBreakpointTypes ?? new List<string>();
+        var configuredTypes = config.PrioritizedBreakpointTypes ?? [];
         foreach (var t in configuredTypes)
         {
             if (allTypes.Contains(t, StringComparer.OrdinalIgnoreCase))
@@ -146,7 +146,7 @@ public sealed partial class BatchConfigDialog : ContentDialog
 
         // Populate Sites of Infection in configured priority order, followed by remaining sites
         _sites.Clear();
-        var configuredSites = config.PrioritizedSitesOfInfection ?? new List<string>();
+        var configuredSites = config.PrioritizedSitesOfInfection ?? [];
         foreach (var s in configuredSites)
         {
             _sites.Add(new SelectableItem(s, true));
@@ -191,7 +191,7 @@ public sealed partial class BatchConfigDialog : ContentDialog
         var selectedTypes = _breakpointTypes.Where(t => t.IsSelected).Select(t => t.Name).ToList();
         var selectedSites = _sites.Where(s => s.IsSelected).Select(s => s.Name).ToList();
         List<string>? enabledRules = FilterExpertRulesCheck.IsChecked == true
-            ? _expertRules.Where(r => r.IsSelected).Select(r => r.Name).ToList()
+            ? [.. _expertRules.Where(r => r.IsSelected).Select(r => r.Name)]
             : null;
 
         return new BatchConfigFileModel
@@ -203,7 +203,7 @@ public sealed partial class BatchConfigDialog : ContentDialog
             GuidelineYear = double.IsNaN(GuidelineYearBox.Value) ? Constants.BreakpointTableRevisionYear : Convert.ToInt64(GuidelineYearBox.Value),
             PrioritizedBreakpointTypes = selectedTypes,
             PrioritizedSitesOfInfection = selectedSites,
-            DisabledSitesOfInfection = _disabledSites ?? new List<string>(),
+            DisabledSitesOfInfection = _disabledSites ?? [],
             HorizontalAntibioticResults = HorizontalResultsCheck.IsChecked ?? true,
             UserDefinedBreakpointsFile = string.IsNullOrWhiteSpace(UserDefinedFileBox.Text) ? null : UserDefinedFileBox.Text.Trim()
         };

@@ -53,8 +53,8 @@ namespace AMRIE.Library
                     (long)whonetOrganismCode.Length + thisAntibiotic.Guideline.Length + thisAntibiotic.Code.Length,
                     () => ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
                         whonetOrganismCode,
-                        new List<string>() { thisAntibiotic.Guideline },
-                        new List<string> { thisAntibiotic.Code }).FirstOrDefault());
+                        [thisAntibiotic.Guideline],
+                        [thisAntibiotic.Code]).FirstOrDefault());
             }
             else
                 MostApplicableIntrinsicResistanceRule = null;
@@ -137,7 +137,7 @@ namespace AMRIE.Library
             BackgroundWorker worker,
             bool reportProgress)
         {
-            distinctInterpretationKeys = distinctInterpretationKeys.Distinct().ToList();
+            distinctInterpretationKeys = [.. distinctInterpretationKeys.Distinct()];
 
 			object syncObject = new();
 			int totalKeys = distinctInterpretationKeys.Count();
@@ -426,12 +426,12 @@ namespace AMRIE.Library
                 (long)(whonetOrganismCode?.Length ?? 0) + (guideline?.Length ?? 0) + cacheKey.Item4.Length,
                 () => Breakpoint.GetApplicableBreakpoints(
                         whonetOrganismCode,
-                        userDefinedBreakpoints ?? new List<Breakpoint>(),
-                        prioritizedGuidelines: new List<string>() { guideline },
-                        prioritizedGuidelineYears: new List<int> { guidelineYear },
+                        userDefinedBreakpoints ?? [],
+                        prioritizedGuidelines: [guideline],
+                        prioritizedGuidelineYears: [guidelineYear],
                         prioritizedBreakpointTypes: prioritizedBreakpointTypes,
                         prioritizedSitesOfInfection: prioritizedSitesOfInfection,
-                        prioritizedWhonetAbxFullDrugCodes: new List<string>() { whonetAntimicrobialFullCode },
+                        prioritizedWhonetAbxFullDrugCodes: [whonetAntimicrobialFullCode],
                         returnFirstBreakpointOnly: true).FirstOrDefault());
         }
 

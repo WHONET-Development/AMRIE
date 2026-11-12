@@ -146,7 +146,7 @@ namespace AMRIE.Library
 
             if (File.Exists(organismsTableFile))
             {
-                List<Organism> allOrgs = new List<Organism>();
+                List<Organism> allOrgs = [];
 
                 using (CsvReader parser = CsvReader.Create(
                     new StreamReader(organismsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
@@ -208,7 +208,7 @@ namespace AMRIE.Library
         /// <exception cref="FileNotFoundException"></exception>
         private static Dictionary<string, Organism> LoadCurrentOrganisms()
         {
-            Dictionary<string, Organism> currentOrgMap = new Dictionary<string, Organism>();
+            Dictionary<string, Organism> currentOrgMap = [];
 
             foreach (Organism currentOrg in AllOrganisms.Where(o => o.TAXONOMIC_STATUS == CurrentOrgCode))
                 currentOrgMap.Add(currentOrg.WHONET_ORG_CODE, currentOrg);
@@ -232,7 +232,7 @@ namespace AMRIE.Library
 
             if (File.Exists(organismsTableFile))
             {
-                Dictionary<string, string> mergedOrganismMap = new Dictionary<string, string>();
+                Dictionary<string, string> mergedOrganismMap = [];
 
                 using (CsvReader parser = CsvReader.Create(
                     new StreamReader(organismsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),

@@ -175,7 +175,7 @@ namespace AMRIE.WinForms
 				InterpretationConfiguration interpretationConfig = new();
 
 				interpretationConfig.IncludeInterpretationComments = IncludeInterpretationCommentsCheckbox.Checked;
-				interpretationConfig.PrioritizedBreakpointTypes = new();
+				interpretationConfig.PrioritizedBreakpointTypes = [];
 				if (BreakpointTypesCheckbox.Checked)
 					foreach (string item in BreakpointTypesCheckedListBox.CheckedItems)
 						interpretationConfig.PrioritizedBreakpointTypes.Add(item);
@@ -184,9 +184,7 @@ namespace AMRIE.WinForms
 
 				if (SitesOfInfectionCheckbox.Checked)
 				{
-					interpretationConfig.PrioritizedSitesOfInfection = new();
-					foreach (string item in SitesOfInfectionCheckedListBox.CheckedItems)
-						interpretationConfig.PrioritizedSitesOfInfection.Add(item);
+					interpretationConfig.PrioritizedSitesOfInfection = [.. SitesOfInfectionCheckedListBox.CheckedItems.Cast<string>()];
 				}
 
 				interpretationConfig.GuidelineYear = Convert.ToInt64(GuidelineYearUpDown.Value);
@@ -210,7 +208,7 @@ namespace AMRIE.WinForms
 				}
 
 				List<string> interpretations =
-					antibioticTestCodes.Select(
+                    [.. antibioticTestCodes.Select(
 						fullTestCode =>
 						{
 							string rawInterpretation =
@@ -220,8 +218,7 @@ namespace AMRIE.WinForms
 								rawInterpretation = IsolateInterpretation.RemoveComments(rawInterpretation);
 
 							return string.Format(@"{0}: {1}", fullTestCode, rawInterpretation);
-						}).
-						ToList();
+						})];
 
 				MessageBox.Show(string.Join(Environment.NewLine, interpretations));
 			}
@@ -240,29 +237,22 @@ namespace AMRIE.WinForms
 
 				if (GuidelinesCheckbox.Checked)
 				{
-					prioritizedGuidelines = new();
-					foreach (string item in SelectedGuidelinesCheckedListBox.CheckedItems)
-						prioritizedGuidelines.Add(item);
+					prioritizedGuidelines = [.. SelectedGuidelinesCheckedListBox.CheckedItems.Cast<string>()];
 				}
 
 				if (BreakpointTypesCheckbox.Checked)
 				{
-					prioritizedBreakpointTypes = new();
-					foreach (string item in BreakpointTypesCheckedListBox.CheckedItems)
-						prioritizedBreakpointTypes.Add(item);
+					prioritizedBreakpointTypes = [.. BreakpointTypesCheckedListBox.CheckedItems.Cast<string>()];
 				}
 
 				if (SitesOfInfectionCheckbox.Checked)
 				{
-					prioritizedSitesOfInfection = new();
-					foreach (string item in SitesOfInfectionCheckedListBox.CheckedItems)
-						prioritizedSitesOfInfection.Add(item);
+					prioritizedSitesOfInfection = [.. SitesOfInfectionCheckedListBox.CheckedItems.Cast<string>()];
 				}
 
 				if (YearCheckbox.Checked)
 				{
-					prioritizedGuidelineYears = new();
-					prioritizedGuidelineYears.Add(Convert.ToInt32(GuidelineYearUpDown.Value));
+					prioritizedGuidelineYears = [Convert.ToInt32(GuidelineYearUpDown.Value)];
 				}
 
 				if (ValidateAntibioticSelection())
@@ -272,7 +262,7 @@ namespace AMRIE.WinForms
 					List<Breakpoint> applicableBreakpoints =
 						Breakpoint.GetApplicableBreakpoints(
 							orgCode,
-							new List<Breakpoint>(),
+							[],
 							prioritizedGuidelines: prioritizedGuidelines,
 							prioritizedGuidelineYears: prioritizedGuidelineYears,
 							prioritizedBreakpointTypes: prioritizedBreakpointTypes,
@@ -295,9 +285,9 @@ namespace AMRIE.WinForms
 			{
 				string orgCode = OrganismComboBox.SelectedValue as string;
 
-				string[] abxAndTests = GetFullTestCodes().ToArray();
-				List<string> antibioticCodes = abxAndTests.Where(abx => IsolateInterpretation.ValidAntibioticCode.IsMatch(abx)).ToList();
-				List<string> otherTestsCodes = abxAndTests.Except(antibioticCodes).ToList();
+				string[] abxAndTests = [.. GetFullTestCodes()];
+				List<string> antibioticCodes = [.. abxAndTests.Where(abx => IsolateInterpretation.ValidAntibioticCode.IsMatch(abx))];
+				List<string> otherTestsCodes = [.. abxAndTests.Except(antibioticCodes)];
 
 				List<ExpertInterpretationRule> expertRules =
 					ExpertInterpretationRule.GetApplicableExpertRules(orgCode, antibioticCodes, otherTestsCodes, ExpertInterpretationRule.RuleCodes.All);
@@ -317,9 +307,7 @@ namespace AMRIE.WinForms
 				List<string> prioritizedGuidelines = null;
 				if (GuidelinesCheckbox.Checked)
 				{
-					prioritizedGuidelines = new();
-					foreach (string item in SelectedGuidelinesCheckedListBox.CheckedItems)
-						prioritizedGuidelines.Add(item);
+					prioritizedGuidelines = [.. SelectedGuidelinesCheckedListBox.CheckedItems.Cast<string>()];
 				}
 
 				IEnumerable<ExpectedResistancePhenotypeRule> applicableIntrinsicRules =
@@ -424,7 +412,7 @@ namespace AMRIE.WinForms
 					(AntibioticComboBox.SelectedItem as Tuple<string, string>).Item2;
 				
 				List<string> guidelines =
-					SelectedGuidelinesCheckedListBox.CheckedItems.Cast<string>().ToList();
+                    [.. SelectedGuidelinesCheckedListBox.CheckedItems.Cast<string>()];
 
 				if (sender == SelectedGuidelinesCheckedListBox)
 				{
@@ -439,10 +427,10 @@ namespace AMRIE.WinForms
 				}
 
 				List<string> diskContentOptions =
-					Antibiotic.AllAntibiotics.Where(abx => abx.WHONET_ABX_CODE == abxCode && guidelines.Any(
+                    [.. Antibiotic.AllAntibiotics.Where(abx => abx.WHONET_ABX_CODE == abxCode && guidelines.Any(
 						g => (g == nameof(abx.CLSI) && abx.CLSI) || (g == nameof(abx.EUCAST) && abx.EUCAST) || (g == nameof(abx.SFM)))).
 					Select(abx => abx.POTENCY).
-					Distinct().ToList();
+					Distinct()];
 
 				DiskContentComboBox.DataSource = diskContentOptions;
 			}
@@ -466,15 +454,12 @@ namespace AMRIE.WinForms
 			{
 				// Filter the items using the search terms provided by the user.
 				List<string> searchTerms =
-					searchString.Split(' ').
+                    [.. searchString.Split(' ').
 					Where(s => !string.IsNullOrWhiteSpace(s)).
-					Distinct(StringComparer.InvariantCultureIgnoreCase).
-					ToList();
+					Distinct(StringComparer.InvariantCultureIgnoreCase)];
 
 				List<Tuple<string, string>> filteredList =
-					fullList.Skip(1).
-					Where(item => searchTerms.All(s => item.Item1.Contains(s, StringComparison.InvariantCultureIgnoreCase) || item.Item2.Contains(s, StringComparison.InvariantCultureIgnoreCase))).
-					ToList();
+                    [.. fullList.Skip(1).Where(item => searchTerms.All(s => item.Item1.Contains(s, StringComparison.InvariantCultureIgnoreCase) || item.Item2.Contains(s, StringComparison.InvariantCultureIgnoreCase)))];
 
 				targetControl.DataSource = filteredList;
 			}
@@ -587,9 +572,7 @@ namespace AMRIE.WinForms
 		private List<string> GetFullTestCodes()
 		{
 			List<string> guidelines =
-				SelectedGuidelinesCheckedListBox.CheckedItems.
-				Cast<string>().
-				ToList();
+                [.. SelectedGuidelinesCheckedListBox.CheckedItems.Cast<string>()];
 
 			string selectedAntibioticCode =
 				AntibioticComboBox.SelectedValue as string;
@@ -598,10 +581,9 @@ namespace AMRIE.WinForms
 			if (DiskRadioButton.Checked && DiskContentComboBox.SelectedValue != null)
 				diskContent = DiskContentComboBox.SelectedValue as string;
 
-			return guidelines.
+			return [.. guidelines.
 				Select(g => Create_FullTestCode(g, selectedAntibioticCode, DiskRadioButton.Checked, diskContent)).
-				Where(fullCode => !string.IsNullOrWhiteSpace(fullCode)).
-				ToList();
+				Where(fullCode => !string.IsNullOrWhiteSpace(fullCode))];
 		}
 
 		private string Create_FullTestCode(string guidelineName, string antibioticCode, bool diskTest, string diskContent = "")

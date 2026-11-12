@@ -26,7 +26,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
     [ObservableProperty]
     public partial int GuidelineYear { get; set; } = Constants.BreakpointTableRevisionYear;
 
-    public ObservableCollection<int> AvailableYears { get; } = new();
+    public ObservableCollection<int> AvailableYears { get; } = [];
 
     // Filters
     [ObservableProperty]
@@ -38,13 +38,13 @@ public partial class SingleInterpretationViewModel : ObservableObject
     [ObservableProperty]
     public partial bool RestrictSitesOfInfection { get; set; } = false;
 
-    public ObservableCollection<SelectableItem> Guidelines { get; } = new();
-    public ObservableCollection<SelectableItem> BreakpointTypes { get; } = new();
-    public ObservableCollection<SelectableItem> SitesOfInfection { get; } = new();
+    public ObservableCollection<SelectableItem> Guidelines { get; } = [];
+    public ObservableCollection<SelectableItem> BreakpointTypes { get; } = [];
+    public ObservableCollection<SelectableItem> SitesOfInfection { get; } = [];
 
     // Organisms & Antibiotics
-    public List<OrganismItem> AllOrganisms { get; } = new();
-    public List<AntibioticItem> AllAntibiotics { get; } = new();
+    public List<OrganismItem> AllOrganisms { get; } = [];
+    public List<AntibioticItem> AllAntibiotics { get; } = [];
 
     [ObservableProperty]
     public partial OrganismItem? SelectedOrganism { get; set; }
@@ -91,7 +91,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
         }
     }
 
-    public ObservableCollection<string> DiskPotencies { get; } = new();
+    public ObservableCollection<string> DiskPotencies { get; } = [];
 
     [ObservableProperty]
     public partial string? SelectedDiskPotency { get; set; }
@@ -122,7 +122,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
     [ObservableProperty]
     public partial InfoBarSeverity StatusInfoBarSeverity { get; set; } = InfoBarSeverity.Informational;
 
-    public ObservableCollection<InterpretationResultItem> Results { get; } = new();
+    public ObservableCollection<InterpretationResultItem> Results { get; } = [];
 
     private Task? _initializationTask;
 
@@ -171,39 +171,36 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
         var (years, orgs, abxs) = await Task.Run(() =>
         {
-            List<int> loadedYears = new();
+            List<int> loadedYears = [];
             try
             {
-                loadedYears = Breakpoint.Breakpoints
+                loadedYears = [.. Breakpoint.Breakpoints
                     .Select(b => b.YEAR)
                     .Distinct()
-                    .OrderByDescending(y => y)
-                    .ToList();
+                    .OrderByDescending(y => y)];
             }
             catch { }
 
-            List<OrganismItem> loadedOrgs = new();
+            List<OrganismItem> loadedOrgs = [];
             try
             {
                 // Anonymous type projection relies on compiler-generated Equals/GetHashCode value equality for Distinct().
-                loadedOrgs = Organism.AllOrganisms
+                loadedOrgs = [.. Organism.AllOrganisms
                     .OrderBy(o => o.ORGANISM)
                     .Select(o => new { Display = $"{o.ORGANISM} - ({o.WHONET_ORG_CODE})", Code = o.WHONET_ORG_CODE })
                     .Distinct()
-                    .Select(o => new OrganismItem(o.Display, o.Code))
-                    .ToList();
+                    .Select(o => new OrganismItem(o.Display, o.Code))];
             }
             catch { }
 
-            List<AntibioticItem> loadedAbxs = new();
+            List<AntibioticItem> loadedAbxs = [];
             try
             {
-                loadedAbxs = Antibiotic.AllAntibiotics
+                loadedAbxs = [.. Antibiotic.AllAntibiotics
                     .OrderBy(a => a.ANTIBIOTIC)
                     .Select(a => new { Display = $"{a.ANTIBIOTIC} - ({a.WHONET_ABX_CODE})", Code = a.WHONET_ABX_CODE })
                     .Distinct()
-                    .Select(a => new AntibioticItem(a.Display, a.Code))
-                    .ToList();
+                    .Select(a => new AntibioticItem(a.Display, a.Code))];
             }
             catch { }
 
@@ -531,7 +528,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             IncludeInterpretationComments = IncludeComments,
             UseIntrinsicResistanceRules = UseIntrinsicResistanceRules,
             GuidelineYear = RestrictGuidelineYear ? Convert.ToInt64(GuidelineYear) : 0,
-            PrioritizedBreakpointTypes = new List<string>()
+            PrioritizedBreakpointTypes = []
         };
 
         if (RestrictBreakpointTypes)
@@ -546,7 +543,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
         if (RestrictSitesOfInfection)
         {
-            config.PrioritizedSitesOfInfection = SitesOfInfection.Where(s => s.IsSelected).Select(s => s.Name).ToList();
+            config.PrioritizedSitesOfInfection = [.. SitesOfInfection.Where(s => s.IsSelected).Select(s => s.Name)];
         }
 
         // Capture immutable locals needed in Task.Run before leaving the UI thread.
@@ -630,13 +627,12 @@ public partial class SingleInterpretationViewModel : ObservableObject
 
     public List<string> GetFullTestCodes()
     {
-        if (SelectedAntibiotic == null) return new List<string>();
+        if (SelectedAntibiotic == null) return [];
 
         var selectedGuidelines = Guidelines.Where(g => g.IsSelected).Select(g => g.Name).ToList();
-        return selectedGuidelines
+        return [.. selectedGuidelines
             .Select(g => CreateFullTestCode(g, SelectedAntibiotic.Code, IsDiskMethod, SelectedDiskPotency ?? string.Empty))
-            .Where(code => !string.IsNullOrWhiteSpace(code))
-            .ToList();
+            .Where(code => !string.IsNullOrWhiteSpace(code))];
     }
 
     private string CreateFullTestCode(string guidelineName, string abxCode, bool isDisk, string diskContent)
@@ -863,10 +859,10 @@ public partial class SingleInterpretationViewModel : ObservableObject
             // Reuse the engine so superseded parent-group breakpoints are dropped as in interpretation.
             query = Breakpoint.GetApplicableBreakpoints(
                 organismEntity.WHONET_ORG_CODE,
-                new List<Breakpoint>(),
+                [],
                 prioritizedGuidelines: activeGuidelines?.ToList(),
-                prioritizedGuidelineYears: activeYear.HasValue ? new List<int> { activeYear.Value } : null,
-                prioritizedBreakpointTypes: typeFilter.ToList(),
+                prioritizedGuidelineYears: activeYear.HasValue ? [activeYear.Value] : null,
+                prioritizedBreakpointTypes: [.. typeFilter],
                 prioritizedSitesOfInfection: activeSites?.ToList());
         }
         else
@@ -1045,7 +1041,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
                 ResolveOrgName(r.ORGANISM_CODE, lookup),
                 r.ABX_CODE,
                 ResolveAbxName(r.ABX_CODE, abxLookup),
-                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>()),
+                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? []),
                 r.COMMENTS
             ))
             .OrderBy(r => r.Guideline)
@@ -1118,7 +1114,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
             query = ExpertInterpretationRule.GetApplicableExpertRules(
                 organismEntity.WHONET_ORG_CODE,
                 fullTestCodes,
-                new List<string>(),
+                [],
                 ExpertInterpretationRule.RuleCodes.All);
         }
         else
@@ -1153,8 +1149,8 @@ public partial class SingleInterpretationViewModel : ObservableObject
                 r.DESCRIPTION,
                 r.ORGANISM_CODE,
                 ResolveOrgName(r.ORGANISM_CODE, lookup),
-                string.Join(", ", r.AFFECTED_ANTIBIOTICS ?? new List<string>()),
-                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? new List<string>())
+                string.Join(", ", r.AFFECTED_ANTIBIOTICS ?? []),
+                string.Join(", ", r.ANTIBIOTIC_EXCEPTIONS ?? [])
             ))
             .OrderBy(r => r.RuleCode)
             .ThenBy(r => r.OrganismCode)

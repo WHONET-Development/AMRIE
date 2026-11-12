@@ -21,7 +21,7 @@ public class InterpretationBehaviorTests
     [InlineData("MIC", "8mg", false, 0, "")]
     [InlineData("UNKNOWN", "8", false, 0, null)]
     public void ParseResultNormalizesSupportedMeasurements(
-        string method, string raw, bool expectedSuccess, decimal expectedValue, string expectedModifier)
+        string method, string raw, bool expectedSuccess, decimal expectedValue, string? expectedModifier)
     {
         decimal value = 0;
         string modifier = string.Empty;
@@ -165,6 +165,6 @@ public class InterpretationBehaviorTests
         GuidelineYear = year,
         EnabledExpertInterpretationRules = [],
         PrioritizedBreakpointTypes = [Breakpoint.BreakpointTypes.Human],
-        PrioritizedSitesOfInfection = Constants.SitesOfInfection.DefaultOrder.ToList()
+        PrioritizedSitesOfInfection = [.. Constants.SitesOfInfection.DefaultOrder]
     };
 }

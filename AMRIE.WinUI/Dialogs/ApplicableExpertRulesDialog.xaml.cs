@@ -8,8 +8,8 @@ namespace AMRIE.WinUI.Dialogs;
 
 public sealed partial class ApplicableExpertRulesDialog : ContentDialog
 {
-    private List<ExpertRuleRow> _allRows = new();
-    private List<ExpertRuleRow> _filteredRows = new();
+    private List<ExpertRuleRow> _allRows = [];
+    private List<ExpertRuleRow> _filteredRows = [];
 
     public ApplicableExpertRulesDialog()
     {
@@ -19,7 +19,7 @@ public sealed partial class ApplicableExpertRulesDialog : ContentDialog
 
     public void SetData(List<ExpertRuleRow> rows, string filterSummary)
     {
-        _allRows = rows ?? new List<ExpertRuleRow>();
+        _allRows = rows ?? [];
         SummaryTextBlock.Text = filterSummary;
         ApplyFilter(string.Empty);
     }
@@ -33,7 +33,7 @@ public sealed partial class ApplicableExpertRulesDialog : ContentDialog
         else
         {
             var terms = query.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            _filteredRows = _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t))).ToList();
+            _filteredRows = [.. _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t)))];
         }
 
         RulesTable.ItemsSource = _filteredRows;

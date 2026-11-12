@@ -8,8 +8,8 @@ namespace AMRIE.WinUI.Dialogs;
 
 public sealed partial class ApplicableIntrinsicRulesDialog : ContentDialog
 {
-    private List<IntrinsicRuleRow> _allRows = new();
-    private List<IntrinsicRuleRow> _filteredRows = new();
+    private List<IntrinsicRuleRow> _allRows = [];
+    private List<IntrinsicRuleRow> _filteredRows = [];
 
     public ApplicableIntrinsicRulesDialog()
     {
@@ -19,7 +19,7 @@ public sealed partial class ApplicableIntrinsicRulesDialog : ContentDialog
 
     public void SetData(List<IntrinsicRuleRow> rows, string filterSummary)
     {
-        _allRows = rows ?? new List<IntrinsicRuleRow>();
+        _allRows = rows ?? [];
         SummaryTextBlock.Text = filterSummary;
         ApplyFilter(string.Empty);
     }
@@ -33,7 +33,7 @@ public sealed partial class ApplicableIntrinsicRulesDialog : ContentDialog
         else
         {
             var terms = query.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            _filteredRows = _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t))).ToList();
+            _filteredRows = [.. _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t)))];
         }
 
         RulesTable.ItemsSource = _filteredRows;

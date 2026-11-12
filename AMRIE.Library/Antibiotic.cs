@@ -122,22 +122,22 @@ namespace AMRIE.Library
 
         // Prefiltered drug lists for performance.
         public static readonly List<string> CEPH3_AntibioticCodes =
-            AllAntibiotics.Where(a => a.PROF_CLASS == ExpertInterpretationRule.PROF_CLASS.CEPH3)
+            [.. AllAntibiotics.Where(a => a.PROF_CLASS == ExpertInterpretationRule.PROF_CLASS.CEPH3)
             .Select(a => a.WHONET_ABX_CODE)
-            .Distinct().ToList();
+            .Distinct()];
 
-        private static readonly HashSet<string> MRS_Classes = new HashSet<string>() { "Penicillins", "Cephems", "Cephems-Oral", "Monobactams", "Penems", "Beta-lactam+Inhibitors", "Beta-lactamase inhibitors" };
+        private static readonly HashSet<string> MRS_Classes = ["Penicillins", "Cephems", "Cephems-Oral", "Monobactams", "Penems", "Beta-lactam+Inhibitors", "Beta-lactamase inhibitors"];
         public static readonly List<string> MRS_Antibiotics_Except_CPT_BPR =
-            AllAntibiotics.Where(a => MRS_Classes.Contains(a.CLASS))
+            [.. AllAntibiotics.Where(a => MRS_Classes.Contains(a.CLASS))
             .Select(a => a.WHONET_ABX_CODE)
             .Except(new List<string> { "CPT", "BPR" })
-            .Distinct().ToList();
+            .Distinct()];
 
-        private static readonly HashSet<string> ICR_Classes = new HashSet<string>() { "Macrolides", "Lincosamides", "Streptogramins" };
+        private static readonly HashSet<string> ICR_Classes = ["Macrolides", "Lincosamides", "Streptogramins"];
         public static readonly List<string> ICR_Antibiotics =
-            AllAntibiotics.Where(a => ICR_Classes.Contains(a.CLASS))
+            [.. AllAntibiotics.Where(a => ICR_Classes.Contains(a.CLASS))
             .Select(a => a.WHONET_ABX_CODE)
-            .Distinct().ToList();
+            .Distinct()];
 
         #endregion
 
@@ -336,7 +336,7 @@ namespace AMRIE.Library
 
             if (File.Exists(antibioticsTableFile))
             {
-                List<Antibiotic> antibiotics = new List<Antibiotic>();
+                List<Antibiotic> antibiotics = [];
                 using (CsvReader parser = CsvReader.Create(
                     new StreamReader(antibioticsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
                     IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))

@@ -64,8 +64,8 @@ namespace AMRIE.Library
             string outputStagePath = Path.Combine(directory, $".amrie-{Guid.NewGuid():N}.output.tmp");
             bool rowsCreated = false;
             bool outputCreated = false;
-            List<string> inputColumnNames = new();
-            List<string> interpretationHeaders = new();
+            List<string> inputColumnNames = [];
+            List<string> interpretationHeaders = [];
             HashSet<string> seenInterpretationHeaders = new(StringComparer.Ordinal);
             List<Dictionary<string, string>> batch = new(arguments.BatchRowLimit);
             long batchCharacters = 0;
@@ -203,7 +203,7 @@ namespace AMRIE.Library
         /// <returns></returns>
         public static Dictionary<string, int> GetResourceHeaders(string[] headers)
         {
-            Dictionary<string, int> headerMap = new Dictionary<string, int>();
+            Dictionary<string, int> headerMap = [];
             for (int i = 0; i < headers.Length; i++)
                 headerMap.Add(headers[i], i);
 
@@ -248,7 +248,7 @@ namespace AMRIE.Library
             if (string.IsNullOrEmpty(record) || (!record.Contains(delimiter) && !record.Contains(Constants.Quote)))
 				return [record];
 
-            List<string> results = new List<string>();
+            List<string> results = [];
             StringBuilder field = new StringBuilder();
             bool inQualifier = false;
             bool fieldWasQuoted = false;
@@ -303,7 +303,7 @@ namespace AMRIE.Library
             }
 
             AddField();
-            return results.ToArray();
+            return [.. results];
         }
 
 		public static string ToLine(IEnumerable<string> values, char delimiter)
@@ -473,7 +473,7 @@ namespace AMRIE.Library
             Tuple<Dictionary<string, string>, Dictionary<string, string>>[] interpretationResults =
                 new Tuple<Dictionary<string, string>, Dictionary<string, string>>[rowCount];
 
-            HashSet<Tuple<string, string, string>> keys = new();
+            HashSet<Tuple<string, string, string>> keys = [];
             foreach (var row in rowValueSets)
             {
                 if (IsCancelled(e, arguments))
@@ -497,7 +497,7 @@ namespace AMRIE.Library
                 effectiveGuidelineYear,
                 interpretationConfig.PrioritizedBreakpointTypes,
                 interpretationConfig.PrioritizedSitesOfInfection,
-                keys.ToList(),
+                [.. keys],
                 arguments.Worker,
                 reportProgress: false);
 
@@ -580,7 +580,7 @@ namespace AMRIE.Library
 
             const string InterpSuffix = "_INTERP";
 
-            List<string> outputHeaders = inputColumnNames.ToList();
+            List<string> outputHeaders = [.. inputColumnNames];
             List<string> antibioticFields = null;
 
             if (interpretationConfig.HorizontalAntibioticResults)
@@ -597,10 +597,10 @@ namespace AMRIE.Library
             }
             else
             {
-                antibioticFields = outputHeaders.Where(h => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(h)).ToList();
+                antibioticFields = [.. outputHeaders.Where(h => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(h))];
 
                 // The antibiotics are transposed vertically. Remove the horizontal columns, and append the 3 vertical columns.
-                outputHeaders = outputHeaders.Except(antibioticFields).Concat(OutputAntibioticColumns.VerticalAntibioticFields).ToList();
+                outputHeaders = [.. outputHeaders.Except(antibioticFields), .. OutputAntibioticColumns.VerticalAntibioticFields];
             }
 
             writer.WriteLine(ToLine(outputHeaders, Constants.Delimiters.TabChar));
@@ -613,7 +613,7 @@ namespace AMRIE.Library
 
                 if (interpretationConfig.HorizontalAntibioticResults)
                 {
-                    List<string> thisRow = new List<string>();
+                    List<string> thisRow = [];
 
                     foreach (string h in outputHeaders)
                     {
@@ -643,7 +643,7 @@ namespace AMRIE.Library
                 }
                 else
                 {
-                    List<string> repeatedValueList = new List<string>();
+                    List<string> repeatedValueList = [];
 
                     // Repeat all but the final 3 columns, which are the variable antibiotics.
                     foreach (string h in outputHeaders.Take(outputHeaders.Count - 3))
@@ -671,7 +671,7 @@ namespace AMRIE.Library
                         {
                             if (row.Item1.ContainsKey(antibiotic))
                             {
-                                List<string> antibioticRowValues = new List<string>() { antibiotic, row.Item1[antibiotic] };
+                                List<string> antibioticRowValues = [antibiotic, row.Item1[antibiotic]];
 
                                 if (row.Item2.ContainsKey(antibiotic))
                                 {

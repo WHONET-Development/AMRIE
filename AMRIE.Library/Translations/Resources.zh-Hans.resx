@@ -135,4 +135,7 @@
   <data name="WholeFileMode">
     <value>整个文件模式</value>
   </data>
+  <data name="OneOrMoreSelectionsIsInvalid" xml:space="preserve">
+    <value>一项或多项选择无效。</value>
+  </data>
 </root>

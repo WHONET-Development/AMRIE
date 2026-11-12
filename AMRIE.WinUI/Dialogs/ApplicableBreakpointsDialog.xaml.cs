@@ -8,8 +8,8 @@ namespace AMRIE.WinUI.Dialogs;
 
 public sealed partial class ApplicableBreakpointsDialog : ContentDialog
 {
-    private List<BreakpointRow> _allRows = new();
-    private List<BreakpointRow> _filteredRows = new();
+    private List<BreakpointRow> _allRows = [];
+    private List<BreakpointRow> _filteredRows = [];
 
     public ApplicableBreakpointsDialog()
     {
@@ -19,7 +19,7 @@ public sealed partial class ApplicableBreakpointsDialog : ContentDialog
 
     public void SetData(List<BreakpointRow> rows, string filterSummary)
     {
-        _allRows = rows ?? new List<BreakpointRow>();
+        _allRows = rows ?? [];
         SummaryTextBlock.Text = filterSummary;
         ApplyFilter(string.Empty);
     }
@@ -33,12 +33,12 @@ public sealed partial class ApplicableBreakpointsDialog : ContentDialog
         else
         {
             var terms = query.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            _filteredRows = _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t))).ToList();
+            _filteredRows = [.. _allRows.Where(r => terms.All(t => r.SearchKey.Contains(t)))];
         }
 
         if (HideUndefinedCheck?.IsChecked == true)
         {
-            _filteredRows = _filteredRows.Where(r => r.HasAnyBreakpoint).ToList();
+            _filteredRows = [.. _filteredRows.Where(r => r.HasAnyBreakpoint)];
         }
 
         BreakpointsTable.ItemsSource = _filteredRows;

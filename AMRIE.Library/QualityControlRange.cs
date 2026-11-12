@@ -185,7 +185,7 @@ namespace AMRIE.Library
 
             if (!string.IsNullOrWhiteSpace(qualityControlTableFile) && File.Exists(qualityControlTableFile))
             {
-                List<QualityControlRange> qcRanges = new List<QualityControlRange>();
+                List<QualityControlRange> qcRanges = [];
 
                 using (CsvReader parser = CsvReader.Create(
                     new StreamReader(qualityControlTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),

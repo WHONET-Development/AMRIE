@@ -30,7 +30,7 @@ public class BreakpointMatrixTests
 
         int directlySelectedCombinations = 0;
         int thresholdTestedCombinations = 0;
-        List<string> unsupportedOrganismCombinations = new();
+        List<string> unsupportedOrganismCombinations = [];
         foreach (var combination in executableCombinations)
         {
             candidateOrganisms.TryGetValue(
@@ -58,11 +58,11 @@ public class BreakpointMatrixTests
                         : candidate.WHONET_ORG_CODE;
                     Breakpoint? candidateBreakpoint = Breakpoint.GetApplicableBreakpoints(
                             candidateOrganismCode,
-                            new List<Breakpoint>(),
+                            [],
                             prioritizedGuidelines: [combination.GUIDELINES],
                             prioritizedGuidelineYears: [combination.YEAR],
                             prioritizedBreakpointTypes: [combination.BREAKPOINT_TYPE],
-                            prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                            prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                             prioritizedWhonetAbxFullDrugCodes: [combination.WHONET_TEST],
                             returnFirstBreakpointOnly: true)
                         .FirstOrDefault();
@@ -93,7 +93,7 @@ public class BreakpointMatrixTests
             Organism selectedOrganism = organism ?? throw new InvalidOperationException("No organism selected for the test case.");
             Breakpoint selectedBreakpoint = selected ?? throw new InvalidOperationException("No breakpoint selected for the test case.");
             string requestedMethod = TestMethodFromCode(resourceBreakpoint.WHONET_TEST);
-            List<string> prioritizedSites = Constants.SitesOfInfection.DefaultOrder.ToList();
+            List<string> prioritizedSites = [.. Constants.SitesOfInfection.DefaultOrder];
             if (useSyntheticBreakpoint)
                 prioritizedSites.AddRange(resourceBreakpoint.SITES_OF_INFECTION
                     .Where(site => !string.IsNullOrWhiteSpace(site))
@@ -164,12 +164,12 @@ public class BreakpointMatrixTests
     public void UniversalBreakpointRowsAreFallbacksToOrganismSpecificRows()
     {
         const string testCode = "PEN_EM";
-        Breakpoint universalBreakpoint = Assert.Single(Breakpoint.Breakpoints.Where(breakpoint =>
+        Breakpoint universalBreakpoint = Assert.Single(Breakpoint.Breakpoints, breakpoint =>
             breakpoint.GUIDELINES == Antibiotic.GuidelineNames.EUCAST
             && breakpoint.YEAR == 2013
             && breakpoint.WHONET_TEST == testCode
             && breakpoint.ORGANISM_CODE_TYPE == "ALL"
-            && breakpoint.ORGANISM_CODE == "ALL"));
+            && breakpoint.ORGANISM_CODE == "ALL");
 
         Breakpoint? specificBreakpoint = Breakpoint.GetApplicableBreakpoints(
                 "spn",
@@ -177,7 +177,7 @@ public class BreakpointMatrixTests
                 prioritizedGuidelines: [universalBreakpoint.GUIDELINES],
                 prioritizedGuidelineYears: [universalBreakpoint.YEAR],
                 prioritizedBreakpointTypes: [universalBreakpoint.BREAKPOINT_TYPE],
-                prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                 prioritizedWhonetAbxFullDrugCodes: [testCode],
                 returnFirstBreakpointOnly: true)
             .FirstOrDefault();
@@ -192,7 +192,7 @@ public class BreakpointMatrixTests
                     prioritizedGuidelines: [universalBreakpoint.GUIDELINES],
                     prioritizedGuidelineYears: [universalBreakpoint.YEAR],
                     prioritizedBreakpointTypes: [universalBreakpoint.BREAKPOINT_TYPE],
-                    prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                    prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                     prioritizedWhonetAbxFullDrugCodes: [testCode],
                     returnFirstBreakpointOnly: true)
                 .FirstOrDefault())
@@ -238,7 +238,7 @@ public class BreakpointMatrixTests
 
     private static Dictionary<(string Type, string Code), List<Organism>> CreateCandidateOrganisms()
     {
-        Dictionary<(string Type, string Code), List<Organism>> candidates = new();
+        Dictionary<(string Type, string Code), List<Organism>> candidates = [];
 
         void Add(string type, string code, Organism organism)
         {
@@ -247,7 +247,7 @@ public class BreakpointMatrixTests
 
             if (!candidates.TryGetValue((type, code), out List<Organism>? matchingOrganisms))
             {
-                matchingOrganisms = new List<Organism>();
+                matchingOrganisms = [];
                 candidates.Add((type, code), matchingOrganisms);
             }
 
@@ -287,7 +287,7 @@ public class BreakpointMatrixTests
 
     private static IEnumerable<decimal> GetBoundaryMeasurements(Breakpoint breakpoint, string testMethod)
     {
-        HashSet<decimal> measurements = new();
+        HashSet<decimal> measurements = [];
 
         void AddAround(decimal threshold)
         {
@@ -459,6 +459,6 @@ public class BreakpointMatrixTests
         EnabledExpertInterpretationRules = [],
         UseIntrinsicResistanceRules = false,
         PrioritizedBreakpointTypes = [Breakpoint.BreakpointTypes.Human],
-        PrioritizedSitesOfInfection = Constants.SitesOfInfection.DefaultOrder.ToList()
+        PrioritizedSitesOfInfection = [.. Constants.SitesOfInfection.DefaultOrder]
     };
 }

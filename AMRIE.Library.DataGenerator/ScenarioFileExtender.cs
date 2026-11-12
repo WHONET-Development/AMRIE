@@ -71,27 +71,22 @@ internal static class ScenarioFileExtender
         if (profiles.Select(profile => profile.OrganismCode).Distinct(StringComparer.Ordinal).Count() != profiles.Count)
             throw new InvalidDataException("Scenario profiles must have unique organism codes.");
 
-        string[] probeKindNames = profiles
+        string[] probeKindNames = [.. profiles
             .SelectMany(profile => profile.Fields)
             .SelectMany(field => field.Probes)
             .Select(probe => probe.ProbeKind)
             .Distinct(StringComparer.Ordinal)
-            .OrderBy(kind => kind, StringComparer.Ordinal)
-            .ToArray();
+            .OrderBy(kind => kind, StringComparer.Ordinal)];
         Dictionary<string, int> probeKindIndices = probeKindNames
             .Select((kind, index) => (kind, index))
             .ToDictionary(item => item.kind, item => item.index, StringComparer.Ordinal);
         foreach (ScenarioProbe probe in profiles.SelectMany(profile => profile.Fields).SelectMany(field => field.Probes))
             probe.KindIndex = probeKindIndices[probe.ProbeKind];
 
-        ScenarioLayout[] layouts = profiles
-            .Select(profile => CreateLayout(profile, headers, rowIndexColumn, organismColumn))
-            .ToArray();
+        ScenarioLayout[] layouts = [.. profiles.Select(profile => CreateLayout(profile, headers, rowIndexColumn, organismColumn))];
 
-        string[] pipeRuns = Enumerable.Range(0, headers.Count + 1)
-            .Select(length => new string('|', length))
-            .ToArray();
-        List<string> headerList = headers.ToList();
+        string[] pipeRuns = [.. Enumerable.Range(0, headers.Count + 1).Select(length => new string('|', length))];
+        List<string> headerList = [.. headers];
         StringBuilder line = new(Math.Max(headers.Count + 32, 1024));
         long[] probeKindCounts = new long[probeKindNames.Length];
         SortedDictionary<string, long> referenceOutcomeCounts = new(StringComparer.Ordinal);
@@ -188,7 +183,7 @@ internal static class ScenarioFileExtender
                         Breakpoint.BreakpointTypes.Animal,
                         Breakpoint.BreakpointTypes.ECOFF
                     ],
-                    prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                    prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                     roundHalfDilutions: true,
                     useIntrinsicResistanceRules: false);
                 Dictionary<string, string> interpretations = isolate.GetAllInterpretations();
@@ -242,7 +237,7 @@ internal static class ScenarioFileExtender
             new(rowIndexColumn, ScenarioCellKind.RowIndex, null, -1),
             new(organismColumn, ScenarioCellKind.Organism, null, -1)
         ];
-        ScenarioField[] fields = profile.Fields.OrderBy(field => field.ColumnIndex).ToArray();
+        ScenarioField[] fields = [.. profile.Fields.OrderBy(field => field.ColumnIndex)];
         HashSet<int> occupiedColumns = [rowIndexColumn, organismColumn];
 
         for (int fieldOrdinal = 0; fieldOrdinal < fields.Length; fieldOrdinal++)
@@ -272,7 +267,7 @@ internal static class ScenarioFileExtender
         }
 
         cells.Sort((left, right) => left.ColumnIndex.CompareTo(right.ColumnIndex));
-        return new ScenarioLayout(profile.OrganismCode, fields, cells.ToArray());
+        return new ScenarioLayout(profile.OrganismCode, fields, [.. cells]);
     }
 
     private static int FindColumn(IReadOnlyList<string> headers, string header)

@@ -135,4 +135,7 @@
   <data name="WholeFileMode">
     <value>Modo de archivo completo</value>
   </data>
+  <data name="OneOrMoreSelectionsIsInvalid" xml:space="preserve">
+    <value>Una o más selecciones no son válidas.</value>
+  </data>
 </root>

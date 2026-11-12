@@ -14,7 +14,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="PolyfillLib" Version="11.4.5" />
-    <PackageReference Include="System.Text.Json" Version="10.0.14" />
+    <PackageReference Include="System.Text.Json" Version="11.0.0" />
     <Using Include="Polyfills" />
   </ItemGroup>
 

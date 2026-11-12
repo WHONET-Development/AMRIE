@@ -83,26 +83,24 @@ internal sealed class DatasetGenerator
             || !sampleHeaders.Contains("ROW_IDX", StringComparer.Ordinal))
             throw new InvalidDataException("SampleInputFile.txt must contain ROW_IDX and ORGANISM columns.");
 
-        List<IndexedBreakpoint> breakpointRows = Breakpoint.Breakpoints
+        List<IndexedBreakpoint> breakpointRows = [.. Breakpoint.Breakpoints
             .Select((breakpoint, index) => new IndexedBreakpoint(breakpoint, index))
             .Where(item => item.Breakpoint.YEAR == GuidelineYear
                 && IncludedGuidelines.Contains(item.Breakpoint.GUIDELINES)
-                && BreakpointTypes.Contains(item.Breakpoint.BREAKPOINT_TYPE, StringComparer.Ordinal))
-            .ToList();
+                && BreakpointTypes.Contains(item.Breakpoint.BREAKPOINT_TYPE, StringComparer.Ordinal))];
         if (breakpointRows.Count == 0)
             throw new InvalidDataException($"No {GuidelineYear} CLSI/EUCAST breakpoints were loaded.");
 
-        Organism[] organisms = Organism.AllOrganisms
+        Organism[] organisms = [.. Organism.AllOrganisms
             .GroupBy(organism => organism.WHONET_ORG_CODE, StringComparer.Ordinal)
             .Select(group => group.FirstOrDefault(organism => Organism.CurrentOrganisms.ContainsKey(organism.WHONET_ORG_CODE)) ?? group.First())
-            .OrderBy(organism => organism.WHONET_ORG_CODE, StringComparer.Ordinal)
-            .ToArray();
+            .OrderBy(organism => organism.WHONET_ORG_CODE, StringComparer.Ordinal)];
         Dictionary<string, Antibiotic[]> antibioticsByCode = Antibiotic.AllAntibiotics
             .GroupBy(antibiotic => antibiotic.WHONET_ABX_CODE, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
 
-        Dictionary<PairKey, ProbeSet> directCases = new();
-        HashSet<ThresholdKey> thresholds = new();
+        Dictionary<PairKey, ProbeSet> directCases = [];
+        HashSet<ThresholdKey> thresholds = [];
         int breakpointRowOrganismIncidences = 0;
         int expandedBreakpointAgentIncidences = 0;
         int atcPrefixExpansions = 0;
@@ -192,13 +190,12 @@ internal sealed class DatasetGenerator
             .Where(pair => pair.Key.TestField.EndsWith(Antibiotic.TestMethodCodes.ETest))
             .Sum(pair => pair.Value.Probes.Count);
         int totalMeasurementCount = allCases.Sum(pair => pair.Value.Probes.Count);
-        string[] testFields = allCases.Keys
+        string[] testFields = [.. allCases.Keys
             .Select(key => key.TestField)
             .Distinct(StringComparer.Ordinal)
-            .OrderBy(field => field, StringComparer.Ordinal)
-            .ToArray();
+            .OrderBy(field => field, StringComparer.Ordinal)];
 
-        List<string> headers = sampleHeaders.ToList();
+        List<string> headers = [.. sampleHeaders];
         HashSet<string> headerSet = new(headers, StringComparer.Ordinal);
         foreach (string field in testFields)
             if (headerSet.Add(field))
@@ -270,14 +267,13 @@ internal sealed class DatasetGenerator
                     .Where(BreakpointAgentCatalogAliases.ContainsKey)
                     .ToDictionary(code => code, code => BreakpointAgentCatalogAliases[code], StringComparer.Ordinal),
                 StringComparer.Ordinal),
-            UnmappedBreakpointAgentCodes = breakpointRows
+            UnmappedBreakpointAgentCodes = [.. breakpointRows
                 .Select(item => item.Breakpoint.WHONET_ABX_CODE)
                 .Distinct(StringComparer.Ordinal)
                 .Where(code => !antibioticsByCode.ContainsKey(code)
                     && !BreakpointAgentCatalogAliases.ContainsKey(code)
                     && !Antibiotic.AllAntibiotics.Any(antibiotic => antibiotic.ATC_CODE.StartsWith(code, StringComparison.Ordinal)))
-                .OrderBy(code => code, StringComparer.Ordinal)
-                .ToArray(),
+                .OrderBy(code => code, StringComparer.Ordinal)],
             OrganismCodes = directCases.Keys.Select(key => key.OrganismCode).Distinct(StringComparer.Ordinal).Count(),
             DirectPairCount = directCases.Count,
             DirectTestFieldCount = directCases.Keys.Select(key => key.TestField).Distinct(StringComparer.Ordinal).Count(),
@@ -298,12 +294,11 @@ internal sealed class DatasetGenerator
             ReferenceOutputCount = outcomes.ResultCount,
             ReferenceOutputScope = "comprehensive base matrix",
             OutcomeCounts = outcomes.OutcomeCounts,
-            UnmappedHistoricalOrganismCodes = directCases.Keys
+            UnmappedHistoricalOrganismCodes = [.. directCases.Keys
                 .Select(key => key.OrganismCode)
                 .Distinct(StringComparer.Ordinal)
                 .Where(code => !Organism.CurrentOrganisms.ContainsKey(code) && !Organism.MergedOrganisms.ContainsKey(code))
-                .OrderBy(code => code, StringComparer.Ordinal)
-                .ToArray(),
+                .OrderBy(code => code, StringComparer.Ordinal)],
             IntrinsicRuleFile = intrinsicFile,
             IntrinsicRuleFileBytes = intrinsicFileBytes,
             IntrinsicRuleCaseRows = intrinsicRules.RowCount,
@@ -341,17 +336,17 @@ internal sealed class DatasetGenerator
             .Select((header, index) => (header, index))
             .ToDictionary(item => item.header, item => item.index, StringComparer.Ordinal);
 
-        return cases.Values
+        return [.. cases.Values
             .GroupBy(probeSet => probeSet.Key.OrganismCode, StringComparer.Ordinal)
             .OrderBy(group => group.Key, StringComparer.Ordinal)
             .Select(organismGroup =>
             {
-                ScenarioField[] fields = organismGroup
+                ScenarioField[] fields = [.. organismGroup
                     .GroupBy(probeSet => probeSet.Key.TestField, StringComparer.Ordinal)
                     .OrderBy(fieldGroup => headerIndices[fieldGroup.Key])
                     .Select(fieldGroup =>
                     {
-                        ScenarioProbe[] probes = fieldGroup
+                        ScenarioProbe[] probes = [.. fieldGroup
                             .SelectMany(probeSet => probeSet.Probes)
                             .GroupBy(probe => probe.Key, StringComparer.Ordinal)
                             .Select(probeGroup => probeGroup
@@ -363,15 +358,12 @@ internal sealed class DatasetGenerator
                             .ThenBy(probe => probe.Value.BreakpointRowIndex)
                             .ThenBy(probe => probe.Value.CutoffName, StringComparer.Ordinal)
                             .ThenBy(probe => probe.Key, StringComparer.Ordinal)
-                            .Select(probe => new ScenarioProbe(probe.Key, probe.Value.ProbeKind))
-                            .ToArray();
+                            .Select(probe => new ScenarioProbe(probe.Key, probe.Value.ProbeKind))];
 
                         return new ScenarioField(headerIndices[fieldGroup.Key], fieldGroup.Key, probes);
-                    })
-                    .ToArray();
+                    })];
                 return new ScenarioProfile(organismGroup.Key, fields);
-            })
-            .ToArray();
+            })];
     }
 
     private static string NormalizeScenarioKind(string probeKind)
@@ -395,10 +387,9 @@ internal sealed class DatasetGenerator
             return [new ResolvedAgent(breakpoint.WHONET_ABX_CODE, breakpoint.WHONET_TEST)];
         }
 
-        Antibiotic[] classMembers = Antibiotic.AllAntibiotics
+        Antibiotic[] classMembers = [.. Antibiotic.AllAntibiotics
             .Where(antibiotic => !string.IsNullOrWhiteSpace(antibiotic.ATC_CODE)
-                && antibiotic.ATC_CODE.StartsWith(breakpoint.WHONET_ABX_CODE, StringComparison.Ordinal))
-            .ToArray();
+                && antibiotic.ATC_CODE.StartsWith(breakpoint.WHONET_ABX_CODE, StringComparison.Ordinal))];
         if (classMembers.Length == 0)
         {
             if (IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(breakpoint.WHONET_TEST)
@@ -414,10 +405,9 @@ internal sealed class DatasetGenerator
 
         wasAtcPrefix = true;
         string suffix = breakpoint.WHONET_TEST[suffixSeparator..];
-        return classMembers
+        return [.. classMembers
             .OrderBy(antibiotic => antibiotic.WHONET_ABX_CODE, StringComparer.Ordinal)
-            .Select(antibiotic => new ResolvedAgent(antibiotic.WHONET_ABX_CODE, antibiotic.WHONET_ABX_CODE + suffix))
-            .ToArray();
+            .Select(antibiotic => new ResolvedAgent(antibiotic.WHONET_ABX_CODE, antibiotic.WHONET_ABX_CODE + suffix))];
     }
 
     private static bool MatchesOrganism(Organism organism, string type, string code) => type switch
@@ -572,19 +562,17 @@ internal sealed class DatasetGenerator
             .ToDictionary(item => item.header, item => item.index, StringComparer.Ordinal);
         string organismHeader = Constants.KeyFields.ORGANISM;
         string rowIndexHeader = "ROW_IDX";
-        List<OrganismCases> organismCases = cases.Values
+        List<OrganismCases> organismCases = [.. cases.Values
             .GroupBy(probeSet => probeSet.Key.OrganismCode, StringComparer.Ordinal)
             .OrderBy(group => group.Key, StringComparer.Ordinal)
             .Select(group =>
             {
-                FieldCases[] fields = group
+                FieldCases[] fields = [.. group
                     .OrderBy(probeSet => probeSet.Key.TestField, StringComparer.Ordinal)
                     .Select(probeSet => new FieldCases(probeSet.Key.TestField,
-                        probeSet.Probes.OrderBy(probe => probe.Key, StringComparer.Ordinal).ToArray()))
-                    .ToArray();
+                        [.. probeSet.Probes.OrderBy(probe => probe.Key, StringComparer.Ordinal)]))];
                 return new OrganismCases(group.Key, fields, fields.Max(field => field.Probes.Length));
-            })
-            .ToList();
+            })];
 
         int rowCount = organismCases.Sum(organism => organism.RowCount);
         long cellMapRows = 0;
@@ -644,7 +632,7 @@ internal sealed class DatasetGenerator
     private static OutcomeSummary InterpretGeneratedMatrix(string inputFile, List<string> expectedHeaders)
     {
         SortedDictionary<string, long> outcomeCounts = new(StringComparer.Ordinal);
-        HashSet<(string Organism, string TestField)> coveredFields = new();
+        HashSet<(string Organism, string TestField)> coveredFields = [];
         using IncrementalHash outputHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         using TextFieldParser parser = new(inputFile, Encoding.UTF8)
         {
@@ -692,12 +680,12 @@ internal sealed class DatasetGenerator
 
             IsolateInterpretation isolate = new(
                 rowValues,
-                headers.ToList(),
+                [.. headers],
                 [],
                 [],
                 guidelineYear: GuidelineYear,
-                prioritizedBreakpointTypes: BreakpointTypes.ToList(),
-                prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                prioritizedBreakpointTypes: [.. BreakpointTypes],
+                prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                 roundHalfDilutions: true,
                 useIntrinsicResistanceRules: false);
             Dictionary<string, string> interpretations = isolate.GetAllInterpretations();
@@ -734,15 +722,14 @@ internal sealed class DatasetGenerator
         Dictionary<string, Dictionary<string, string>> rows = new(StringComparer.Ordinal);
         int pairCount = 0;
         string[] guidelines = [Antibiotic.GuidelineNames.CLSI, Antibiotic.GuidelineNames.EUCAST];
-        List<string> antibioticCodes = Antibiotic.AllAntibiotics
+        List<string> antibioticCodes = [.. Antibiotic.AllAntibiotics
             .Select(antibiotic => antibiotic.WHONET_ABX_CODE)
-            .Distinct(StringComparer.Ordinal)
-            .ToList();
+            .Distinct(StringComparer.Ordinal)];
 
         foreach (Organism organism in Organism.CurrentOrganisms.Values.OrderBy(org => org.WHONET_ORG_CODE, StringComparer.Ordinal))
         {
             foreach (ExpectedResistancePhenotypeRule rule in ExpectedResistancePhenotypeRule.GetApplicableExpectedResistanceRules(
-                organism.WHONET_ORG_CODE, guidelines.ToList(), antibioticCodes))
+                organism.WHONET_ORG_CODE, [.. guidelines], antibioticCodes))
             {
                 char guidelineCode = Antibiotic.GuidelineCodes.AllCodes.Single(code =>
                     Antibiotic.GuidelineNames.GetGuidelineFromCode(code) == rule.GUIDELINE);
@@ -780,8 +767,8 @@ internal sealed class DatasetGenerator
         List<string> sampleHeaders,
         string breakpointResourcePath)
     {
-        List<ExpertCase> cases = new();
-        Dictionary<(string Organism, string TestField), Breakpoint> userBreakpoints = new();
+        List<ExpertCase> cases = [];
+        Dictionary<(string Organism, string TestField), Breakpoint> userBreakpoints = [];
 
         foreach (ExpertInterpretationRule rule in ExpertInterpretationRule.ExpertInterpretationRules)
         {
@@ -820,17 +807,15 @@ internal sealed class DatasetGenerator
                 && criterion.TestName != ExpertInterpretationRule.PROF_CLASS.CEPH3))
                 values[criterion.TestName] = criterion.TestResult;
 
-            List<Breakpoint> ruleBreakpoints = userBreakpoints.Values
-                .Where(breakpoint => breakpoint.ORGANISM_CODE == organism.WHONET_ORG_CODE)
-                .ToList();
+            List<Breakpoint> ruleBreakpoints = [.. userBreakpoints.Values.Where(breakpoint => breakpoint.ORGANISM_CODE == organism.WHONET_ORG_CODE)];
             IsolateInterpretation isolate = new(
                 values,
-                values.Keys.ToList(),
+                [.. values.Keys],
                 [rule.RULE_CODE],
                 ruleBreakpoints,
                 guidelineYear: GuidelineYear,
                 prioritizedBreakpointTypes: [Breakpoint.BreakpointTypes.Human],
-                prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                 roundHalfDilutions: false,
                 useIntrinsicResistanceRules: false);
             Dictionary<string, string> interpretations = isolate.GetAllInterpretations();
@@ -882,12 +867,12 @@ internal sealed class DatasetGenerator
 
     private static string[] BuildHeaders(List<string> sampleHeaders, IEnumerable<string> additionalHeaders)
     {
-        List<string> headers = sampleHeaders.ToList();
+        List<string> headers = [.. sampleHeaders];
         HashSet<string> headerSet = new(headers, StringComparer.Ordinal);
         foreach (string header in additionalHeaders.OrderBy(header => header, StringComparer.Ordinal))
             if (headerSet.Add(header))
                 headers.Add(header);
-        return headers.ToArray();
+        return [.. headers];
     }
 
     private static void WriteScenarioRows(
@@ -951,12 +936,12 @@ internal sealed class DatasetGenerator
 
             IsolateInterpretation isolate = new(
                 input,
-                headers.ToList(),
-                useExpertRules ? ExpertInterpretationRule.ExpertInterpretationRules.Select(rule => rule.RULE_CODE).ToList() : [],
+                [.. headers],
+                useExpertRules ? [.. ExpertInterpretationRule.ExpertInterpretationRules.Select(rule => rule.RULE_CODE)] : [],
                 [],
                 guidelineYear: GuidelineYear,
-                prioritizedBreakpointTypes: BreakpointTypes.ToList(),
-                prioritizedSitesOfInfection: Constants.SitesOfInfection.DefaultOrder.ToList(),
+                prioritizedBreakpointTypes: [.. BreakpointTypes],
+                prioritizedSitesOfInfection: [.. Constants.SitesOfInfection.DefaultOrder],
                 roundHalfDilutions: false,
                 useIntrinsicResistanceRules: useIntrinsicRules);
             Dictionary<string, string> interpretations = isolate.GetAllInterpretations();
@@ -1081,9 +1066,7 @@ internal sealed class DatasetGenerator
             Constants.InterpretationCodes.WildType,
             Constants.InterpretationCodes.NonWildType
         ];
-        List<string> missing = requiredBreakpointOutcomes
-            .Where(outcome => !breakpointOutcomes.OutcomeCounts.ContainsKey(outcome))
-            .ToList();
+        List<string> missing = [.. requiredBreakpointOutcomes.Where(outcome => !breakpointOutcomes.OutcomeCounts.ContainsKey(outcome))];
         if (!breakpointOutcomes.OutcomeCounts.Keys.Any(outcome => outcome.Contains(Constants.InterpretationCodes.QuestionMark, StringComparison.Ordinal)))
             missing.Add("uncertain modifier result");
         if (!breakpointOutcomes.OutcomeCounts.ContainsKey("(blank)"))

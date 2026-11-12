@@ -148,7 +148,7 @@ namespace AMRIE.Library
             HOST = HOST_;
             SITE_OF_INFECTION = SITE_OF_INFECTION_;
 
-            SITES_OF_INFECTION = IO_Library.SplitLine(
+            SITES_OF_INFECTION = [.. IO_Library.SplitLine(
                 SITE_OF_INFECTION_,
                 Constants.Delimiters.CommaChar).
                 Select(s =>
@@ -160,7 +160,7 @@ namespace AMRIE.Library
                         nonBlankSite = string.Empty;
 
                     return nonBlankSite;
-                }).ToArray();
+                })];
 
             REFERENCE_TABLE = REFERENCE_TABLE_;
             REFERENCE_SEQUENCE = REFERENCE_SEQUENCE_;
@@ -199,7 +199,7 @@ namespace AMRIE.Library
             List<string> prioritizedSitesOfInfection = null, List<string> prioritizedWhonetAbxFullDrugCodes = null,
             bool returnFirstBreakpointOnly = false)
         {
-            userDefinedBreakpoints ??= new List<Breakpoint>();
+            userDefinedBreakpoints ??= [];
 
             if (prioritizedWhonetAbxFullDrugCodes != null && prioritizedWhonetAbxFullDrugCodes.Count() > 1 && returnFirstBreakpointOnly)
                 throw new ArgumentException("There must be exactly one drug specified when only the first breakpoint is requested.");
@@ -211,11 +211,11 @@ namespace AMRIE.Library
                     whonetOrganismCode = Organism.MergedOrganisms[whonetOrganismCode];
                 else
                     // Cannot determine breakpoints for an unknown organism.
-                    return new List<Breakpoint>();
+                    return [];
             }
 
             if (prioritizedSitesOfInfection is null)
-                prioritizedSitesOfInfection = Constants.SitesOfInfection.DefaultOrder.ToList();
+                prioritizedSitesOfInfection = [.. Constants.SitesOfInfection.DefaultOrder];
 
             Organism o = Organism.CurrentOrganisms[whonetOrganismCode];
 
@@ -224,9 +224,9 @@ namespace AMRIE.Library
             List<string> recodedDrugCodes = null;
             if (prioritizedWhonetAbxFullDrugCodes != null)
                 // Don't change the original list.
-                recodedDrugCodes = prioritizedWhonetAbxFullDrugCodes.ToList().
+                recodedDrugCodes = [.. prioritizedWhonetAbxFullDrugCodes.ToList().
                     Select(abx => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(abx) && abx.EndsWith("E") ? abx.Remove(abx.Length - 1) + "M" : abx).
-                    Distinct().ToList();
+                    Distinct()];
 
             IEnumerable<Breakpoint> breakpointCandidates = recodedDrugCodes == null
                 ? Breakpoints
@@ -299,7 +299,7 @@ namespace AMRIE.Library
                 select thisBreakpoint;
 
             // We have found the relevant breakpoints. We must now filter them down to only the applicable breakpoints.
-            List<Breakpoint> applicableBreakpoints = new List<Breakpoint>();
+            List<Breakpoint> applicableBreakpoints = [];
 
             if (returnFirstBreakpointOnly)
             {
@@ -441,7 +441,7 @@ namespace AMRIE.Library
         {
             if (!string.IsNullOrWhiteSpace(breakpointsTableFile) && File.Exists(breakpointsTableFile))
             {
-                List<Breakpoint> breakpoints = new List<Breakpoint>();
+                List<Breakpoint> breakpoints = [];
 
                 using (CsvReader parser = CsvReader.Create(
                     new StreamReader(breakpointsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
@@ -524,10 +524,9 @@ namespace AMRIE.Library
                 nameof(Organism.ANAEROBE),
                 Constants.OrganismGroups.AnaerobePlusSubkingdomCode
             ];
-            string[] matchingTypes = supportedTypes
+            string[] matchingTypes = [.. supportedTypes
                 .Where(type => Organism.CurrentOrganisms.Values.Any(organism =>
-                    MatchesOrganismCodeType(organism, type, organismCode)))
-                .ToArray();
+                    MatchesOrganismCodeType(organism, type, organismCode)))];
 
             return matchingTypes.Length == 1 ? matchingTypes[0] : declaredCodeType;
         }
@@ -563,8 +562,7 @@ namespace AMRIE.Library
         private static int GetIndex(List<string> prioritizedSitesOfInfection, string breakpointSitesOfInfection)
         {
             List<string> breakpointSitesList =
-                IO_Library.SplitLine(breakpointSitesOfInfection, Constants.Delimiters.CommaChar).
-                Select((sitesFromBP) => sitesFromBP.Trim()).ToList();
+                [.. IO_Library.SplitLine(breakpointSitesOfInfection, Constants.Delimiters.CommaChar).Select((sitesFromBP) => sitesFromBP.Trim())];
 
             return breakpointSitesList.Min(thisBreakpointSite =>
             {

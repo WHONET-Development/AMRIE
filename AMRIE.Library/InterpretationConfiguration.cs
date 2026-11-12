@@ -34,7 +34,7 @@ namespace AMRIE.Library
         public bool HorizontalAntibioticResults { get; set; } = true;
         public string UserDefinedBreakpointsFile { get; set; }
 
-        public List<Breakpoint> UserDefinedBreakpoints { get; set; } = new List<Breakpoint>();
+        public List<Breakpoint> UserDefinedBreakpoints { get; set; } = [];
 
         public InterpretationConfiguration() { }
 
@@ -125,20 +125,20 @@ namespace AMRIE.Library
         public static InterpretationConfiguration DefaultConfiguration()
         {
             List<string> defaultExpertInterpretationRules =
-                new List<string> {
+                [
                     ExpertInterpretationRule.RuleCodes.MRStaph,
                     ExpertInterpretationRule.RuleCodes.BLNAR,
                     ExpertInterpretationRule.RuleCodes.ICR
-                };
+                ];
 
-            List<string> defaultBreakpointTypes = new List<string> { Breakpoint.BreakpointTypes.Human };
+            List<string> defaultBreakpointTypes = [Breakpoint.BreakpointTypes.Human];
 
             // Generate an ordered list of the available sites of infection.
             List<string> defaultSitesOfInfection =
-                Constants.SitesOfInfection.DefaultOrder.ToList();
+                [.. Constants.SitesOfInfection.DefaultOrder];
 
             return new InterpretationConfiguration(true, true, defaultExpertInterpretationRules,
-                Constants.BreakpointTableRevisionYear, defaultBreakpointTypes, defaultSitesOfInfection, new List<string>(), string.Empty);
+                Constants.BreakpointTableRevisionYear, defaultBreakpointTypes, defaultSitesOfInfection, [], string.Empty);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace AMRIE.Library
                 UserDefinedBreakpointsFile)
                 {
                     UseIntrinsicResistanceRules = UseIntrinsicResistanceRules,
-                    UserDefinedBreakpoints = UserDefinedBreakpoints == null ? new List<Breakpoint>() : new List<Breakpoint>(UserDefinedBreakpoints)
+                    UserDefinedBreakpoints = UserDefinedBreakpoints == null ? [] : new List<Breakpoint>(UserDefinedBreakpoints)
                 };
 
             return newConfig;
@@ -172,29 +172,32 @@ namespace AMRIE.Library
             {
                 // Remove invalid sites of infection.
                 PrioritizedSitesOfInfection =
-                    PrioritizedSitesOfInfection.Intersect(Constants.SitesOfInfection.DefaultOrder).ToList();
+                    [.. PrioritizedSitesOfInfection.Intersect(Constants.SitesOfInfection.DefaultOrder)];
 
                 if (DisabledSitesOfInfection != null)
                 {
                     // Remove invalid sites of infection from the disabled list.
                     DisabledSitesOfInfection =
-                        DisabledSitesOfInfection.Intersect(Constants.SitesOfInfection.DefaultOrder).ToList();
+                        [.. DisabledSitesOfInfection.Intersect(Constants.SitesOfInfection.DefaultOrder)];
 
                     // Append any new sites of infection.
                     PrioritizedSitesOfInfection =
-                        PrioritizedSitesOfInfection.Concat(
-                            Constants.SitesOfInfection.DefaultOrder.
+                        [
+                            .. PrioritizedSitesOfInfection,
+                            .. Constants.SitesOfInfection.DefaultOrder.
                             Except(PrioritizedSitesOfInfection).
-                            Except(DisabledSitesOfInfection)).ToList();
+                            Except(DisabledSitesOfInfection),
+                        ];
                 }
                 else
                 {
                     // Append any new codes which aren't on the list. There is no disabled list.
                     PrioritizedSitesOfInfection =
-                        PrioritizedSitesOfInfection.
-                        Concat(
-                            Constants.SitesOfInfection.DefaultOrder.
-                            Except(PrioritizedSitesOfInfection)).ToList();
+                        [
+                            .. PrioritizedSitesOfInfection,
+                            .. Constants.SitesOfInfection.DefaultOrder.
+                            Except(PrioritizedSitesOfInfection),
+                        ];
                 }
             }
         }

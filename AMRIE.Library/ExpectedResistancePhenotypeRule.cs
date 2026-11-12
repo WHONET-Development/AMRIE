@@ -276,7 +276,7 @@ namespace AMRIE.Library
             if (File.Exists(expectedResistancePhenotypesTableFile))
             {
                 List<ExpectedResistancePhenotypeRule> expectedResistanceRules =
-                    new List<ExpectedResistancePhenotypeRule>();
+                    [];
 
 
                 using (CsvReader parser = CsvReader.Create(
@@ -294,7 +294,7 @@ namespace AMRIE.Library
 
                         // Exeptions to the affected antibiotics, if any.
                         List<string> antibioticExceptions =
-                            IO_Library.SplitLine(values[headerMap[nameof(ANTIBIOTIC_EXCEPTIONS)]], Constants.Delimiters.CommaChar).ToList();
+                            [.. IO_Library.SplitLine(values[headerMap[nameof(ANTIBIOTIC_EXCEPTIONS)]], Constants.Delimiters.CommaChar)];
 
                         DateTime tempEntered = DateTime.MinValue;
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(DATE_ENTERED)]]))

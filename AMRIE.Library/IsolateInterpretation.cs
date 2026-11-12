@@ -30,9 +30,9 @@ namespace AMRIE.Library
 
         private string OrganismCode { get; set; }
 
-        private readonly Dictionary<string, AntibioticSpecificInterpretationRules> ApplicableAntibioticSpecificRules = new Dictionary<string, AntibioticSpecificInterpretationRules>();
+        private readonly Dictionary<string, AntibioticSpecificInterpretationRules> ApplicableAntibioticSpecificRules = [];
 
-        private readonly Dictionary<string, string> ResultInterpretations = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> ResultInterpretations = [];
 
         private readonly Dictionary<string, string> DataRowValues;
 
@@ -136,7 +136,7 @@ namespace AMRIE.Library
             };
 
             IsolateInterpretation thisInterp = new IsolateInterpretation(sampleRow,
-                sampleRow.Keys.ToList(),
+                [.. sampleRow.Keys],
                 interpretationConfig.EnabledExpertInterpretationRules,
                 interpretationConfig.UserDefinedBreakpoints,
                 Convert.ToInt32(interpretationConfig.GuidelineYear),
@@ -184,8 +184,8 @@ namespace AMRIE.Library
         private void GetExpertInterpretations()
         {
             List<ExpertInterpretationRule> applicableExpertRules = ExpertInterpretationRule.GetApplicableExpertRules(OrganismCode,
-                DataRowValues.Keys.Where(k => ValidAntibioticFieldNameRegex.IsMatch(k)).ToList(),
-                DataRowValues.Keys.Where(k => !ValidAntibioticFieldNameRegex.IsMatch(k)).ToList(),
+                [.. DataRowValues.Keys.Where(k => ValidAntibioticFieldNameRegex.IsMatch(k))],
+                [.. DataRowValues.Keys.Where(k => !ValidAntibioticFieldNameRegex.IsMatch(k))],
                 EnabledExpertInterpretationRules);
 
             if (applicableExpertRules.Count == 0)
