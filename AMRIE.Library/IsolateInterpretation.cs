@@ -11,9 +11,9 @@ namespace AMRIE.Library
 
         /// <summary>
         /// Determine if the input matches the WHONET antibiotic column naming conventions.
-        /// Example: PEN_ND10, AMP_EM, FOX_FE
+        /// Example: PEN_ND10, AMP_EM, FOX_FE, X_01_ND10
         /// </summary>
-        public static readonly Regex ValidAntibioticFieldNameRegex = new Regex(@"^([A-Z]{3}|X_\d+)_(" + string.Join("|", Antibiotic.GuidelineCodes.AllCodes) + @")(D.*|M|E)$",
+        public static readonly Regex ValidAntibioticFieldNameRegex = new Regex(@"^([A-Z]{3}|X_\d{2})_(" + string.Join("|", Antibiotic.GuidelineCodes.AllCodes) + @")(D.*|M|E)$",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace AMRIE.Library
         /// before using this to extract the code portion.
         /// </summary>
         public static readonly Regex ValidAntibioticCode =
-            new Regex(@"^([A-Z]{3}|X_\d+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            new Regex(@"^([A-Z]{3}|X_\d{2})$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         #endregion
 

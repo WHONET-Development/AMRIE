@@ -300,7 +300,20 @@ namespace AMRIE.Library
 
         public static string ShortCode(string fullAntibioticCode)
         {
-            return fullAntibioticCode.Substring(0, 3);
+            ArgumentNullException.ThrowIfNull(fullAntibioticCode);
+
+            if (fullAntibioticCode.StartsWith("X_", StringComparison.OrdinalIgnoreCase))
+            {
+                // User-defined antibiotic code pattern: X_## (4 characters)
+                return fullAntibioticCode.Length >= 4
+                    ? fullAntibioticCode.Substring(0, 4)
+                    : fullAntibioticCode;
+            }
+
+            // Standard WHONET antibiotic code (3 characters)
+            return fullAntibioticCode.Length >= 3
+                ? fullAntibioticCode.Substring(0, 3)
+                : fullAntibioticCode;
         }
 
         #endregion

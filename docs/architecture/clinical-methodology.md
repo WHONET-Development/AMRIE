@@ -12,11 +12,11 @@ AMRIE (Antimicrobial Resistance Test Interpretation Engine) automates the assign
 | European Committee on Antimicrobial Susceptibility Testing | **EUCAST** | Human medicine (Europe and globally) |
 | Société Française de Microbiologie | **SFM / CA-SFM** | Human and veterinary medicine (France) |
 
-Each guideline defines its own breakpoint tables and intrinsic resistance rules. AMRIE selects the applicable guideline for each antibiotic column based on the **WHONET column naming convention** (e.g., `PEN_NC` → CLSI; `PEN_NE` → EUCAST; `PEN_NF` → SFM). Users can further constrain which guideline years and breakpoint types are considered via [`InterpretationConfiguration`](../../AMRIE.Library/InterpretationConfiguration.cs).
+Each guideline defines its own breakpoint tables and intrinsic resistance rules. AMRIE selects the applicable guideline for each antibiotic column based on the **WHONET column naming convention** (e.g., `PEN_ND10` / `PEN_NM` / `PEN_NE` → CLSI; `AMK_ED30` / `AMP_EM` / `AMP_EE` → EUCAST; `FOX_FD30` / `FOX_FM` / `FOX_FE` → SFM; or user-defined antibiotics like `X_01_ND10`). Users can further constrain which guideline years and breakpoint types are considered via [`InterpretationConfiguration`](../../AMRIE.Library/InterpretationConfiguration.cs).
 
 ## Why These Three Guidelines?
 
-The choice of CLSI, EUCAST, and SFM reflects the global distribution of WHONET users. WHONET is the WHO's reference software for AMR surveillance, used in thousands of laboratories across more than 120 countries. Its column naming convention encodes the guideline as a suffix letter, so a file exported from WHONET can carry measurements for multiple guidelines simultaneously. AMRIE is designed to be a drop-in interpretation engine for WHONET-formatted data.
+The choice of CLSI, EUCAST, and SFM reflects the global distribution of WHONET users. WHONET is the WHO's reference software for AMR surveillance, used in thousands of laboratories across more than 120 countries. Its column naming convention encodes the guideline as the first letter following the antibiotic code underscore (`N` for CLSI, `E` for EUCAST, `F` for SFM), followed by the test method (`D` for Disk diffusion, `M` for MIC, `E` for ETest), and an optional disk potency for disk diffusion tests. As a result, a file exported from WHONET can carry measurements for multiple guidelines simultaneously. AMRIE is designed to be a drop-in interpretation engine for WHONET-formatted data.
 
 > [!NOTE]
 > See [`licenses/CLINICAL-DATA-ATTRIBUTION.md`](../../licenses/CLINICAL-DATA-ATTRIBUTION.md) for the full legal attributions to CLSI, EUCAST, SFM, and WHONET.

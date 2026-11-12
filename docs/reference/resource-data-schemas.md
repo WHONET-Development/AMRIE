@@ -156,7 +156,7 @@ Input data files and test codes must conform to `IsolateInterpretation.ValidAnti
 <ABX_CODE>_<GUIDELINE_CHAR><METHOD_CHAR>[POTENCY]
 ```
 
-- **`<ABX_CODE>`:** 3-letter antibiotic code (e.g., `PEN`, `AMC`, `CRO`, `VAN`) or custom code (`X_1`).
+- **`<ABX_CODE>`:** 3-letter uppercase WHONET antibiotic code (e.g., `PEN`, `AMC`, `CRO`, `VAN`) or user-defined antibiotic code following the exact pattern `X_##` (e.g., `X_01` through `X_99`). Single-digit (`X_1`) or multi-digit variants (`X_100`) are invalid under WHONET rules.
 - **`<GUIDELINE_CHAR>`:**
   - `N` = **CLSI** (formerly NCCLS)
   - `E` = **EUCAST**

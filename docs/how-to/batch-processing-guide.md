@@ -29,9 +29,19 @@ Additional epidemiological columns (`PATIENT_ID`, `SPEC_DATE`, `WARD`, etc.) pas
 ROW_IDX|COUNTRY_A|LABORATORY|PATIENT_ID|FIRST_NAME|LAST_NAME|SEX|AGE|DATE_BIRTH|WARD|INSTITUT|DEPARTMENT|WARD_TYPE|PAT_TYPE|SPEC_NUM|SPEC_DATE|SPEC_TYPE|SPEC_CODE|SPEC_REAS|DATE_DATA|ORGANISM|ORG_TYPE|BETA_LACT|MECA_PCR|INDUC_CLI|COMMENT|ORIGIN|ESBL|PEN_ND10|ERY_ND15|...
 ```
 
-Antibiotic columns follow the pattern `<WHONET_ABX_CODE>_NM` (MIC, mg/L) or `<WHONET_ABX_CODE>_ND<potency>` (disk, mm). For example:
-- `AMK_NM` — Amikacin MIC
-- `PEN_ND10` — Penicillin 10 µg disk
+Antibiotic columns follow the WHONET naming pattern `<ABX_CODE>_<GUIDELINE><METHOD>[POTENCY]`:
+- **`<ABX_CODE>`**: 3-letter standard code (e.g., `AMK`, `PEN`, `AMP`, `CRO`) or user-defined code `X_##` (e.g., `X_01`, `X_02`).
+- **`<GUIDELINE>`**: Guideline identifier (`N` = CLSI, `E` = EUCAST, `F` = SFM).
+- **`<METHOD>`**: Test method (`D` = Disk diffusion, `M` = MIC dilution, `E` = ETest gradient strip).
+- **`[POTENCY]`**: Disk potency for disk diffusion tests (e.g., `10` for 10 µg, `30` for 30 µg, `1_2` for 1.25/23.75 µg).
+
+Examples:
+- `PEN_ND10` — Penicillin CLSI 10 µg disk diffusion
+- `AMK_ED30` — Amikacin EUCAST 30 µg disk diffusion
+- `CRO_NM` — Ceftriaxone CLSI MIC
+- `AMP_EM` — Ampicillin EUCAST MIC
+- `VAN_NE` — Vancomycin CLSI ETest
+- `X_01_ND10` — User-defined antibiotic 01 CLSI 10 µg disk diffusion
 
 > [!CAUTION]
 > Never include real patient health information (PHI) in input files. All test isolates must be synthetic or fully de-identified per HIPAA Safe Harbor / GDPR standards.
