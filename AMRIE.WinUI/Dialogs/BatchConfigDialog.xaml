@@ -1,0 +1,279 @@
+<ContentDialog
+    x:Class="AMRIE.WinUI.Dialogs.BatchConfigDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="using:AMRIE.WinUI.Models"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    Title="Batch Interpretation Configuration"
+    PrimaryButtonText="Save"
+    SecondaryButtonText="Save As..."
+    CloseButtonText="Cancel"
+    DefaultButton="Primary"
+    PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
+    SecondaryButtonClick="ContentDialog_SecondaryButtonClick">
+
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMaxWidth">960</x:Double>
+    </ContentDialog.Resources>
+
+    <ContentDialog.SecondaryButtonStyle>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+    </ContentDialog.SecondaryButtonStyle>
+
+    <ContentDialog.CloseButtonStyle>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+    </ContentDialog.CloseButtonStyle>
+
+    <Grid Width="860" MaxHeight="540" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <InfoBar Grid.Row="0"
+                 x:Name="HintInfoBar"
+                 IsOpen="False"
+                 IsClosable="True"
+                 Severity="Informational" />
+
+        <!-- Main 3-Column Configuration Layout (No Outer Scroll) -->
+        <Grid Grid.Row="1" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="310" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Column 0: Engine Options + Breakpoint Type Priority -->
+            <Grid Grid.Column="0" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Engine Options -->
+                <Border Grid.Row="0"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12,10">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Engine Options" Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <NumberBox x:Name="GuidelineYearBox"
+                                   Header="Default Guideline Year"
+                                   Minimum="1990"
+                                   Maximum="2035"
+                                   SpinButtonPlacementMode="Inline"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Top" />
+                        <StackPanel Spacing="1" Margin="0,2,0,0">
+                            <CheckBox x:Name="RoundHalfDilutionsCheck" Content="Round half-dilutions (MIC)" MinHeight="28" />
+                            <CheckBox x:Name="IncludeCommentsCheck" Content="Include comments (*, !, ?)" MinHeight="28" />
+                            <CheckBox x:Name="UseIntrinsicRulesCheck" Content="Apply intrinsic resistance rules" MinHeight="28" />
+                            <CheckBox x:Name="HorizontalResultsCheck" Content="Horizontal antibiotic results layout" MinHeight="28" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Prioritized Breakpoint Types (3 items, fits without scroll) -->
+                <Border Grid.Row="1"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12,10">
+                    <Grid RowSpacing="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0"
+                                   Text="Breakpoint Types (Priority)"
+                                   ToolTipService.ToolTip="Drag items or use arrows to set priority order"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <ListView Grid.Row="1"
+                                  x:Name="BreakpointTypesList"
+                                  MinHeight="88"
+                                  CanDragItems="True"
+                                  CanReorderItems="True"
+                                  AllowDrop="True"
+                                  SelectionMode="None">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="MinHeight" Value="28" />
+                                    <Setter Property="Padding" Value="4,0" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:SelectableItem">
+                                    <Grid ColumnSpacing="6" Background="Transparent">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" Glyph="&#xE700;" FontSize="10"
+                                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                  VerticalAlignment="Center" Margin="2,0,0,0" />
+                                        <CheckBox Grid.Column="1"
+                                                  IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                                  MinWidth="0" MinHeight="0" Padding="0"
+                                                  VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{x:Bind Name}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <Button Grid.Column="3" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                                Tag="{x:Bind}" Click="MoveTypeUp_Click" ToolTipService.ToolTip="Move up">
+                                            <FontIcon Glyph="&#xE70E;" FontSize="9" />
+                                        </Button>
+                                        <Button Grid.Column="4" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                                Tag="{x:Bind}" Click="MoveTypeDown_Click" ToolTipService.ToolTip="Move down">
+                                            <FontIcon Glyph="&#xE70D;" FontSize="9" />
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Column 1: Prioritized Sites of Infection -->
+            <Border Grid.Column="1"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,10">
+                <Grid RowSpacing="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0"
+                               Text="Sites of Infection (Priority)"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                    <TextBlock Grid.Row="1"
+                               Text="Drag or use arrows; leave unchecked for default."
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                    <ListView Grid.Row="2"
+                              x:Name="SitesList"
+                              CanDragItems="True"
+                              CanReorderItems="True"
+                              AllowDrop="True"
+                              SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="MinHeight" Value="28" />
+                                <Setter Property="Padding" Value="4,0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SelectableItem">
+                                <Grid ColumnSpacing="6" Background="Transparent">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Grid.Column="0" Glyph="&#xE700;" FontSize="10"
+                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                              VerticalAlignment="Center" Margin="2,0,0,0" />
+                                    <CheckBox Grid.Column="1"
+                                              IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                                              MinWidth="0" MinHeight="0" Padding="0"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2"
+                                               Text="{x:Bind Name}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <Button Grid.Column="3" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                            Tag="{x:Bind}" Click="MoveSiteUp_Click" ToolTipService.ToolTip="Move up">
+                                        <FontIcon Glyph="&#xE70E;" FontSize="9" />
+                                    </Button>
+                                    <Button Grid.Column="4" Padding="4,2" Background="Transparent" BorderThickness="0"
+                                            Tag="{x:Bind}" Click="MoveSiteDown_Click" ToolTipService.ToolTip="Move down">
+                                        <FontIcon Glyph="&#xE70D;" FontSize="9" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+
+            <!-- Column 2: Enabled Expert Rules -->
+            <Border Grid.Column="2"
+                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,10">
+                <Grid RowSpacing="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <CheckBox Grid.Row="0"
+                              x:Name="FilterExpertRulesCheck"
+                              Content="Restrict Expert Rules"
+                              FontWeight="SemiBold"
+                              VerticalContentAlignment="Center"
+                              Checked="FilterExpertRulesCheck_Changed"
+                              Unchecked="FilterExpertRulesCheck_Changed" />
+                    <TextBlock Grid.Row="1"
+                               Text="Unchecked applies all bundled expert rules."
+                               Style="{ThemeResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                    <ListView Grid.Row="2"
+                              x:Name="ExpertRulesList"
+                              SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="MinHeight" Value="28" />
+                                <Setter Property="Padding" Value="4,0" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SelectableItem">
+                                <CheckBox Content="{x:Bind Name}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" VerticalContentAlignment="Center" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Bottom Row: User-Defined Breakpoints File -->
+        <Grid Grid.Row="2" ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="UserDefinedFileBox"
+                     Header="User-Defined Breakpoints File (optional)"
+                     PlaceholderText="Path to custom breakpoints .txt file..." />
+            <Button Grid.Column="1" VerticalAlignment="Bottom" Height="32" CornerRadius="4" Content="Browse..." Click="BrowseUserBreakpoints_Click" />
+            <Button Grid.Column="2" VerticalAlignment="Bottom" Height="32" CornerRadius="4" Content="Clear" Click="ClearUserBreakpoints_Click" />
+        </Grid>
+    </Grid>
+</ContentDialog>

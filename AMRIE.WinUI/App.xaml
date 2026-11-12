@@ -12,6 +12,16 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <TabularControlsResources xmlns="using:Microsoft.UI.Xaml.Controls.Tabular" />
             </ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ResistantTextBrush" Color="#A80000" />
+                    <SolidColorBrush x:Key="SusceptibleTextBrush" Color="#107C41" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Default">
+                    <SolidColorBrush x:Key="ResistantTextBrush" Color="#FF99A4" />
+                    <SolidColorBrush x:Key="SusceptibleTextBrush" Color="#6CCB5F" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
             <common:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
             <common:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 

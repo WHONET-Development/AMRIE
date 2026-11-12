@@ -59,4 +59,11 @@ public sealed partial class ResourceExplorerPage : Page
             }
         }
     }
+
+    private void FocusSearch_Invoked(Microsoft.UI.Xaml.Input.KeyboardAccelerator sender, Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        FilterSearchBox.Focus(FocusState.Keyboard);
+        FilterSearchBox.SelectAll();
+        args.Handled = true;
+    }
 }

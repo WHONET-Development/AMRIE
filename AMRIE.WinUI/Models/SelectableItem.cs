@@ -5,10 +5,10 @@ namespace AMRIE.WinUI.Models;
 public partial class SelectableItem : ObservableObject
 {
     [ObservableProperty]
-    private string _name = string.Empty;
+    public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 
     public SelectableItem() { }
 

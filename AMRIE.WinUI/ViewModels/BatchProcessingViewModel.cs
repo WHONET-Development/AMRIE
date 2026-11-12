@@ -16,43 +16,65 @@ public partial class BatchProcessingViewModel : ObservableObject
     private BackgroundWorker? _worker;
 
     [ObservableProperty]
-    private string _inputFilePath = string.Empty;
+    public partial string InputFilePath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _configFilePath = string.Empty;
+    public partial string ConfigFilePath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _outputFilePath = string.Empty;
+    public partial string OutputFilePath { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _selectedDelimiter = "TAB";
+    public partial string SelectedDelimiter { get; set; } = "TAB";
 
     [ObservableProperty]
-    private double _guidelineYear = Constants.BreakpointTableRevisionYear;
+    public partial double GuidelineYear { get; set; } = Constants.BreakpointTableRevisionYear;
 
     [ObservableProperty]
-    private bool _restrictGuidelineYear = true;
+    public partial bool RestrictGuidelineYear { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isProcessing = false;
+    public partial bool IsProcessing { get; set; } = false;
 
     [ObservableProperty]
-    private int _progressPercentage = 0;
+    public partial int ProgressPercentage { get; set; } = 0;
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _hasStatusMessage = false;
+    public partial bool HasStatusMessage { get; set; } = false;
 
     [ObservableProperty]
-    private bool _isSuccess = false;
+    public partial bool IsSuccess { get; set; } = false;
 
     [ObservableProperty]
-    private bool _isError = false;
+    public partial bool IsError { get; set; } = false;
 
     [ObservableProperty]
-    private InfoBarSeverity _statusInfoBarSeverity = InfoBarSeverity.Informational;
+    public partial InfoBarSeverity StatusInfoBarSeverity { get; set; } = InfoBarSeverity.Informational;
+
+    [ObservableProperty]
+    public partial string BatchSummaryText { get; set; } = string.Empty;
+
+    public bool IsProgressIndeterminate => IsProcessing && ProgressPercentage == 0;
+
+    partial void OnIsProcessingChanged(bool value) => OnPropertyChanged(nameof(IsProgressIndeterminate));
+    partial void OnProgressPercentageChanged(int value) => OnPropertyChanged(nameof(IsProgressIndeterminate));
+
+    public string ResolveConfigFilePath()
+    {
+        string configFile = ConfigFilePath?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(configFile))
+            return string.Empty;
+        if (Path.IsPathFullyQualified(configFile))
+            return configFile;
+
+        string localConfig = Path.GetFullPath(configFile);
+        return File.Exists(localConfig)
+            ? localConfig
+            : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configFile));
+    }
 
     public string[] Delimiters { get; } = new[] { "TAB", "|", ",", ";" };
 
@@ -196,6 +218,7 @@ public partial class BatchProcessingViewModel : ObservableObject
         HasStatusMessage = false;
         IsSuccess = false;
         IsError = false;
+        BatchSummaryText = string.Empty;
 
         string inputFile = InputFilePath?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(inputFile))
@@ -302,7 +325,15 @@ public partial class BatchProcessingViewModel : ObservableObject
         {
             try
             {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 IO_Library.InterpretDataFileBounded(worker, doWorkArgs);
+                sw.Stop();
+
+                string summary = string.Empty;
+                if (!doWorkArgs.Cancel && File.Exists(outputFile))
+                {
+                    summary = BuildCompletionSummary(outputFile, sw.Elapsed);
+                }
 
                 dispatcherQueue?.TryEnqueue(() =>
                 {
@@ -314,7 +345,10 @@ public partial class BatchProcessingViewModel : ObservableObject
                     }
                     else
                     {
-                        StatusMessage = $"Interpretation complete! Output saved to: {outputFile}";
+                        BatchSummaryText = summary;
+                        StatusMessage = string.IsNullOrEmpty(summary)
+                            ? $"Interpretation complete! Output saved to: {outputFile}"
+                            : $"Interpretation complete ({summary}). Saved to: {outputFile}";
                         IsSuccess = true;
                         StatusInfoBarSeverity = InfoBarSeverity.Success;
                     }
@@ -445,7 +479,33 @@ public partial class BatchProcessingViewModel : ObservableObject
         StatusMessage = message;
         IsError = true;
         IsSuccess = false;
+        BatchSummaryText = string.Empty;
         StatusInfoBarSeverity = InfoBarSeverity.Error;
         HasStatusMessage = true;
+    }
+
+    private static string BuildCompletionSummary(string outputFile, TimeSpan elapsed)
+    {
+        try
+        {
+            long bytes = new FileInfo(outputFile).Length;
+            long lines = 0;
+            using (var reader = new StreamReader(outputFile))
+            {
+                while (reader.ReadLine() != null) lines++;
+            }
+            long records = Math.Max(0, lines - 1);
+            string sizeLabel = bytes >= 1024 * 1024
+                ? $"{bytes / (1024.0 * 1024.0):F1} MB"
+                : $"{Math.Max(1, bytes / 1024.0):F1} KB";
+            string timeLabel = elapsed.TotalSeconds >= 1.0
+                ? $"{elapsed.TotalSeconds:F2} s"
+                : $"{elapsed.TotalMilliseconds:F0} ms";
+            return $"{records:N0} isolates in {timeLabel} • {sizeLabel}";
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 }

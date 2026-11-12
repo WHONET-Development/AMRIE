@@ -88,7 +88,12 @@ namespace AMRIE.CLI
 
 		private static void WriteCliParameterInfoToConsole()
 		{
-			string processName = Path.GetFileName(Environment.ProcessPath ?? "AMRIE.exe");
+			string processFile = Path.GetFileName(Environment.ProcessPath);
+			string processName = string.IsNullOrEmpty(processFile) ||
+				processFile.Equals("dotnet", StringComparison.OrdinalIgnoreCase) ||
+				processFile.Equals("dotnet.exe", StringComparison.OrdinalIgnoreCase)
+				? "AMRIE.CLI.exe"
+				: processFile;
 			Console.WriteLine();
 			Console.WriteLine(Translations.Resources.WholeFileMode);
 			Console.WriteLine($"\"{processName}\" FILE {{Config file}} {{Delimiter: TAB, ',', ';', or '|'}} {{Input file}} {{Output file}}");

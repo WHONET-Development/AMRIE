@@ -1,0 +1,112 @@
+<ContentDialog
+    x:Class="AMRIE.WinUI.Dialogs.ApplicableExpertRulesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="using:AMRIE.WinUI.Models"
+    xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    Title="Applicable Expert Interpretation Rules">
+
+    <ContentDialog.Resources>
+        <x:Double x:Key="ContentDialogMaxWidth">1200</x:Double>
+    </ContentDialog.Resources>
+
+    <Grid Width="1060" MaxHeight="610" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Context & Filter Summary -->
+        <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12,8">
+            <StackPanel Spacing="2">
+                <TextBlock x:Name="SummaryTextBlock"
+                           Style="{ThemeResource BodyTextBlockStyle}"
+                           FontWeight="Medium"
+                           TextWrapping="Wrap" />
+                <TextBlock x:Name="CountTextBlock"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Search Box -->
+        <TextBox x:Name="SearchBox"
+                 Grid.Row="1"
+                 PlaceholderText="Search within fetched expert rules (rule, organism, drugs, description)..."
+                 TextChanged="SearchBox_TextChanged" />
+
+        <!-- Expert Rules TableView -->
+        <Border Grid.Row="2"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                MinHeight="250"
+                MaxHeight="420">
+            <tabular:TableView x:Name="RulesTable"
+                               SelectionMode="None"
+                               CanUserResizeColumns="True">
+                <tabular:TableView.Columns>
+                    <tabular:TableViewTextColumn Header="Rule" Binding="{Binding RuleCode}" Width="145" FrozenEdge="Leading" />
+                    <tabular:TableViewTemplateColumn Header="Organism" Width="180" SortMemberPath="OrganismCode" FrozenEdge="Leading">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ExpertRuleRow">
+                                <Grid Padding="12,4" VerticalAlignment="Center">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind OrganismCode}" FontWeight="Medium" />
+                                        <TextBlock Text="{x:Bind OrganismName}"
+                                                   ToolTipService.ToolTip="{x:Bind OrganismName}"
+                                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                    <tabular:TableViewTemplateColumn Header="Affected Drugs" Width="210" SortMemberPath="AffectedAntibiotics">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ExpertRuleRow">
+                                <Grid Padding="12,6" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind AffectedAntibiotics}" TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                    <tabular:TableViewTemplateColumn Header="Exceptions" Width="150" SortMemberPath="Exceptions">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ExpertRuleRow">
+                                <Grid Padding="12,6" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                    <tabular:TableViewTemplateColumn Header="Description" Width="*" SortMemberPath="Description">
+                        <tabular:TableViewTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:ExpertRuleRow">
+                                <Grid Padding="12,6" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Grid>
+                            </DataTemplate>
+                        </tabular:TableViewTemplateColumn.CellTemplate>
+                    </tabular:TableViewTemplateColumn>
+                </tabular:TableView.Columns>
+            </tabular:TableView>
+        </Border>
+
+        <Button x:Name="CloseModalButton"
+                Grid.Row="3"
+                Content="Close"
+                Width="100"
+                HorizontalAlignment="Right"
+                CornerRadius="4" />
+    </Grid>
+</ContentDialog>

@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.ApplicationModel.DataTransfer;
@@ -9,6 +8,8 @@ namespace AMRIE.WinUI.Pages;
 
 public sealed partial class BatchProcessingPage : Page
 {
+    private bool _isConfigDialogOpen;
+
     public BatchProcessingPage()
     {
         InitializeComponent();
@@ -29,8 +30,41 @@ public sealed partial class BatchProcessingPage : Page
             var items = await e.DataView.GetStorageItemsAsync();
             if (items.Count > 0 && items[0] is StorageFile file)
             {
-                await ViewModel.SetInputFileAsync(file.Path);
+                if (file.FileType.Equals(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    ViewModel.ConfigFilePath = file.Path;
+                }
+                else
+                {
+                    await ViewModel.SetInputFileAsync(file.Path);
+                }
             }
+        }
+    }
+
+    private async void EditConfig_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isConfigDialogOpen) return;
+        _isConfigDialogOpen = true;
+        try
+        {
+            var dialog = new Dialogs.BatchConfigDialog();
+            Common.WindowHelper.ApplyDialogTheme(dialog, this);
+            dialog.LoadFromFile(ViewModel.ResolveConfigFilePath());
+            var result = await dialog.ShowAsync();
+            if ((result == ContentDialogResult.Primary || result == ContentDialogResult.Secondary) &&
+                !string.IsNullOrWhiteSpace(dialog.SavedConfigPath))
+            {
+                ViewModel.ConfigFilePath = dialog.SavedConfigPath;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AMRIE] Error displaying BatchConfigDialog: {ex}");
+        }
+        finally
+        {
+            _isConfigDialogOpen = false;
         }
     }
 }

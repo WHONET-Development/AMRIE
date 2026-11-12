@@ -49,10 +49,34 @@
                     <StackPanel Spacing="6">
                         <TextBlock x:Name="VersionTextBlock" Text="Version: 26.9.27 (WinUI 3 Edition)" FontWeight="SemiBold" />
                         <TextBlock Text="Runtime: .NET 10 LTS with Windows App SDK 2.5 (experimental)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock x:Name="ResourceSummaryTextBlock"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
                         <HyperlinkButton Content="CLSI Guidelines Website" NavigateUri="https://clsi.org/" Padding="0" />
                         <HyperlinkButton Content="EUCAST Guidelines Website" NavigateUri="https://www.eucast.org/" Padding="0" />
                         <HyperlinkButton Content="SFM Guidelines Website" NavigateUri="https://www.sfm-microbiologie.org/" Padding="0" />
                         <HyperlinkButton Content="WHONET Website" NavigateUri="https://whonet.org" Padding="0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Licenses & Clinical Attribution Card -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Licenses &amp; Clinical Attribution" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                    <TextBlock Text="Review the Mass General Brigham license, third-party open-source notices, and clinical breakpoint attributions bundled with AMRIE."
+                               Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Clinical Data Attribution" Click="ViewClinicalAttribution_Click" />
+                        <Button Content="Third-Party Notices" Click="ViewThirdPartyNotices_Click" />
+                        <Button Content="MGB License" Click="ViewMgbLicense_Click" />
                     </StackPanel>
                 </StackPanel>
             </Border>
