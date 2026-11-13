@@ -53,6 +53,7 @@
                                    Style="{ThemeResource CaptionTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    TextWrapping="Wrap" />
+                        <HyperlinkButton Content="AMRIE Documentation" NavigateUri="https://github.com/WHONET-Development/AMRIE/blob/main/docs/index.md" Padding="0" />
                         <HyperlinkButton Content="CLSI Guidelines Website" NavigateUri="https://clsi.org/" Padding="0" />
                         <HyperlinkButton Content="EUCAST Guidelines Website" NavigateUri="https://www.eucast.org/" Padding="0" />
                         <HyperlinkButton Content="SFM Guidelines Website" NavigateUri="https://www.sfm-microbiologie.org/" Padding="0" />
@@ -62,17 +63,23 @@
             </Border>
 
 
-            <!-- Legal & Third-Party Notices Card -->
+            <!-- Licenses & Clinical Attribution Card -->
             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="8"
                     Padding="20">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Legal &amp; Third-Party Notices" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
-                    <TextBlock Text="View open-source licenses and third-party attributions."
-                               Style="{ThemeResource BodyTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <Button Content="View Notices" Click="OpenThirdPartyNotices" />
+                    <TextBlock Text="Licenses &amp; Clinical Attribution" Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="SemiBold" />
+                    <TextBlock Text="Review the Mass General Brigham license, third-party open-source notices, and clinical breakpoint attributions bundled with AMRIE."
+                               Style="{ThemeResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Clinical Data Attribution" Click="ViewClinicalAttribution_Click" />
+                        <Button Content="Third-Party Notices" Click="ViewThirdPartyNotices_Click" />
+                        <Button Content="MGB License" Click="ViewMgbLicense_Click" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
