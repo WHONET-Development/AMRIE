@@ -545,7 +545,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
             {
                 if (!_memberToPanels.ContainsKey(kvp.Key) && _memberToPanels.TryGetValue(kvp.Value, out var targetPanels))
                 {
-                    _memberToPanels[kvp.Key] = new List<string>(targetPanels);
+                    _memberToPanels[kvp.Key] = [.. targetPanels];
                 }
             }
         }

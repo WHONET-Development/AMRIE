@@ -148,16 +148,16 @@ namespace AMRIE.Library
         public InterpretationConfiguration Clone()
         {
             InterpretationConfiguration newConfig
-                = new InterpretationConfiguration(RoundHalfDilutions, IncludeInterpretationComments,
-                EnabledExpertInterpretationRules == null ? null : new List<string>(EnabledExpertInterpretationRules),
+                = new(RoundHalfDilutions, IncludeInterpretationComments,
+                EnabledExpertInterpretationRules == null ? null : [.. EnabledExpertInterpretationRules],
                 GuidelineYear,
-                PrioritizedBreakpointTypes == null ? null : new List<string>(PrioritizedBreakpointTypes),
-                PrioritizedSitesOfInfection == null ? null : new List<string>(PrioritizedSitesOfInfection),
-                DisabledSitesOfInfection == null ? null : new List<string>(DisabledSitesOfInfection),
+                PrioritizedBreakpointTypes == null ? null : [.. PrioritizedBreakpointTypes],
+                PrioritizedSitesOfInfection == null ? null : [.. PrioritizedSitesOfInfection],
+                DisabledSitesOfInfection == null ? null : [.. DisabledSitesOfInfection],
                 UserDefinedBreakpointsFile)
                 {
                     UseIntrinsicResistanceRules = UseIntrinsicResistanceRules,
-                    UserDefinedBreakpoints = UserDefinedBreakpoints == null ? [] : new List<Breakpoint>(UserDefinedBreakpoints)
+                    UserDefinedBreakpoints = UserDefinedBreakpoints == null ? [] : [.. UserDefinedBreakpoints]
                 };
 
             return newConfig;

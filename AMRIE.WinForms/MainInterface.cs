@@ -25,14 +25,14 @@ namespace AMRIE.WinForms
 			// Recode the empty string as "(Blank)" here for display purposes.
 			// (Blank) will be processed as the empty string when we determine the applicable breakpoints.
 			SitesOfInfectionCheckedListBox.Items.AddRange(
-				Constants.SitesOfInfection.DefaultOrder.ToArray());
+                [.. Constants.SitesOfInfection.DefaultOrder]);
 
 			SelectedGuidelinesCheckedListBox.SetItemChecked(0, true);
 			FieldDelimiterComboBox.SelectedIndex = 0;
 
 			// Add the full list of organisms.
 			List<Tuple<string, string>> Organisms = 
-				new List<Tuple<string, string>>([DefaultSelection]);
+				new([DefaultSelection]);
 
 			Organisms.AddRange(
 				Organism.AllOrganisms.OrderBy(o => o.ORGANISM).
@@ -47,7 +47,7 @@ namespace AMRIE.WinForms
 
 			// Add the full list of antibiotics.
 			List<Tuple<string, string>> Antibiotics = 
-				new List<Tuple<string, string>>([DefaultSelection]);
+				new([DefaultSelection]);
 
 			Antibiotics.AddRange(
 				Antibiotic.AllAntibiotics.OrderBy(a => a.ANTIBIOTIC).
@@ -66,7 +66,7 @@ namespace AMRIE.WinForms
 
 		private BackgroundWorker Worker;
 
-		private Tuple<string, string> DefaultSelection =
+		private readonly Tuple<string, string> DefaultSelection =
 			new("[Select a value]", string.Empty);
 
 		private static readonly string MIC_TestFormat =

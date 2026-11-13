@@ -1175,14 +1175,9 @@ internal sealed class DatasetGenerator
         decimal Threshold);
     private readonly record struct ResolvedAgent(string AntibioticCode, string TestField);
     private readonly record struct ProbeOrigin(int BreakpointRowIndex, string CutoffName, string ProbeKind, decimal? Threshold);
-    private sealed class ProbeSet
+    private sealed class ProbeSet(DatasetGenerator.PairKey key)
     {
-        public ProbeSet(PairKey key)
-        {
-            Key = key;
-        }
-
-        public PairKey Key { get; }
+        public PairKey Key { get; } = key;
         public Dictionary<string, ProbeOrigin> Probes { get; } = new(StringComparer.Ordinal);
     }
 

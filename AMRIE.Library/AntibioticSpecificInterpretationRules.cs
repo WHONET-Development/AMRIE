@@ -38,7 +38,7 @@ namespace AMRIE.Library
             RoundHalfDilutions = roundHalfDilutions;
             UseIntrinsicResistanceRules = useIntrinsicResistanceRules;
 
-            AntibioticComponents thisAntibiotic = new AntibioticComponents(whonetAntimicrobialFullCode);
+            AntibioticComponents thisAntibiotic = new(whonetAntimicrobialFullCode);
             AntimicrobialTestMethod = thisAntibiotic.TestMethod;
 
             AntimicrobialResult = antimicrobialResult_;
@@ -140,7 +140,7 @@ namespace AMRIE.Library
             distinctInterpretationKeys = [.. distinctInterpretationKeys.Distinct()];
 
 			object syncObject = new();
-			int totalKeys = distinctInterpretationKeys.Count();
+			int totalKeys = distinctInterpretationKeys.Count;
 			int lastReportedProgress = 0;
 			int completedKeys = 0;
 

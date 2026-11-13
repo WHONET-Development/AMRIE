@@ -112,7 +112,7 @@ namespace AMRIE.Library
             public const char BSAC = 'B';
             public const char AFA = 'A';
 
-            public static readonly char[] AllCodes = { CLSI, EUCAST, SFM, SRGA, DIN, NEO, BSAC, AFA };
+            public static readonly char[] AllCodes = [CLSI, EUCAST, SFM, SRGA, DIN, NEO, BSAC, AFA];
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace AMRIE.Library
         public static readonly List<string> MRS_Antibiotics_Except_CPT_BPR =
             [.. AllAntibiotics.Where(a => MRS_Classes.Contains(a.CLASS))
             .Select(a => a.WHONET_ABX_CODE)
-            .Except(new List<string> { "CPT", "BPR" })
+            .Except(["CPT", "BPR"])
             .Distinct()];
 
         private static readonly HashSet<string> ICR_Classes = ["Macrolides", "Lincosamides", "Streptogramins"];
@@ -307,13 +307,13 @@ namespace AMRIE.Library
                 // User-defined antibiotic code pattern: X_# or X_## (3 or 4 characters)
                 int secondUnderscore = fullAntibioticCode.IndexOf('_', 2);
                 return secondUnderscore > 0
-                    ? fullAntibioticCode.Substring(0, secondUnderscore)
+                    ? fullAntibioticCode[..secondUnderscore]
                     : fullAntibioticCode;
             }
 
             // Standard WHONET antibiotic code (3 characters)
             return fullAntibioticCode.Length >= 3
-                ? fullAntibioticCode.Substring(0, 3)
+                ? fullAntibioticCode[..3]
                 : fullAntibioticCode;
         }
 
@@ -359,7 +359,7 @@ namespace AMRIE.Library
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(DATE_MODIFIED)]]))
                             tempModified = DateTime.Parse(values[headerMap[nameof(DATE_MODIFIED)]], System.Globalization.CultureInfo.InvariantCulture);
 
-                        Antibiotic newAntibiotic = new Antibiotic(values[headerMap[nameof(WHONET_ABX_CODE)]], values[headerMap[nameof(WHO_CODE)]],
+                        Antibiotic newAntibiotic = new(values[headerMap[nameof(WHONET_ABX_CODE)]], values[headerMap[nameof(WHO_CODE)]],
                             values[headerMap[nameof(DIN_CODE)]], values[headerMap[nameof(JAC_CODE)]], values[headerMap[nameof(EUCAST_CODE)]],
                             values[headerMap[nameof(USER_CODE)]], values[headerMap[nameof(ANTIBIOTIC)]], values[headerMap[nameof(GUIDELINES)]],
                             values[headerMap[nameof(CLSI)]] == X, values[headerMap[nameof(EUCAST)]] == X, values[headerMap[nameof(SFM)]] == X,

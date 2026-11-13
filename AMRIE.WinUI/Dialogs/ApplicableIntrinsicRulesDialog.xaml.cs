@@ -28,7 +28,7 @@ public sealed partial class ApplicableIntrinsicRulesDialog : ContentDialog
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            _filteredRows = new List<IntrinsicRuleRow>(_allRows);
+            _filteredRows = [.. _allRows];
         }
         else
         {

@@ -7,7 +7,9 @@ using CsvHelper;
 
 namespace AMRIE.Library
 {
-    public class ExpertInterpretationRule
+    public class ExpertInterpretationRule(string ruleCode_, string description_, string organismCode_,
+        string organismTypeCode_, List<ExpertRuleCriterion> ruleCriteria_, string criteriaOperator_,
+        List<string> affectedAntibiotics_, List<string> antibioticExceptions_)
     {
         #region Constants
 
@@ -34,36 +36,22 @@ namespace AMRIE.Library
             public const string And = "AND";
             public const string Or = "OR";
         }
+
         #endregion
-
         #region Init
-
-        public ExpertInterpretationRule(string ruleCode_, string description_, string organismCode_,
-            string organismTypeCode_, List<ExpertRuleCriterion> ruleCriteria_, string criteriaOperator_,
-            List<string> affectedAntibiotics_, List<string> antibioticExceptions_)
-        {
-            RULE_CODE = ruleCode_;
-            DESCRIPTION = description_;
-            ORGANISM_CODE = organismCode_;
-            ORGANISM_CODE_TYPE = organismTypeCode_;
-            RULE_CRITERIA = ruleCriteria_;
-            CriteriaOperator = criteriaOperator_;
-            AFFECTED_ANTIBIOTICS = affectedAntibiotics_;
-            ANTIBIOTIC_EXCEPTIONS = antibioticExceptions_;
-        }
 
         #endregion
 
         #region Properties
 
-        public string RULE_CODE { get; set; }
-        public string DESCRIPTION { get; set; }
-        public string ORGANISM_CODE { get; set; }
-        public string ORGANISM_CODE_TYPE { get; set; }
-        public List<ExpertRuleCriterion> RULE_CRITERIA { get; set; }
-        public string CriteriaOperator { get; set; }
-        public List<string> AFFECTED_ANTIBIOTICS { get; set; }
-        public List<string> ANTIBIOTIC_EXCEPTIONS { get; set; }
+        public string RULE_CODE { get; set; } = ruleCode_;
+        public string DESCRIPTION { get; set; } = description_;
+        public string ORGANISM_CODE { get; set; } = organismCode_;
+        public string ORGANISM_CODE_TYPE { get; set; } = organismTypeCode_;
+        public List<ExpertRuleCriterion> RULE_CRITERIA { get; set; } = ruleCriteria_;
+        public string CriteriaOperator { get; set; } = criteriaOperator_;
+        public List<string> AFFECTED_ANTIBIOTICS { get; set; } = affectedAntibiotics_;
+        public List<string> ANTIBIOTIC_EXCEPTIONS { get; set; } = antibioticExceptions_;
 
         #endregion
 
@@ -236,9 +224,9 @@ namespace AMRIE.Library
         /// <returns></returns>
         public static DataTable CreateTableFromArray(List<ExpertInterpretationRule> expertRules)
         {
-            DataTable expertRuleData = new DataTable();
+            DataTable expertRuleData = new();
 
-            expertRuleData.Columns.AddRange(columns: new[] {
+            expertRuleData.Columns.AddRange(columns: [
                 new DataColumn(nameof(RULE_CODE), typeof(string)),
                 new DataColumn(nameof(DESCRIPTION), typeof(string)),
                 new DataColumn(nameof(ORGANISM_CODE), typeof(string)),
@@ -246,7 +234,7 @@ namespace AMRIE.Library
                 new DataColumn(nameof(RULE_CRITERIA), typeof(string)),
                 new DataColumn(nameof(AFFECTED_ANTIBIOTICS), typeof(string)),
                 new DataColumn(nameof(ANTIBIOTIC_EXCEPTIONS), typeof(string))
-            });
+            ]);
 
             foreach (ExpertInterpretationRule exp in expertRules)
             {
@@ -318,7 +306,7 @@ namespace AMRIE.Library
                             {
                                 // This token represents a test.
                                 string[] testComponents = IO_Library.SplitLine(token, Constants.Delimiters.EqualsSign);
-                                ExpertRuleCriterion thisCriterion = new ExpertRuleCriterion(testComponents[0], testComponents[1]);
+                                ExpertRuleCriterion thisCriterion = new(testComponents[0], testComponents[1]);
                                 ruleCriteria.Add(thisCriterion);
                             }
                             else if (token == RuleOperators.And || token == RuleOperators.Or)
@@ -350,7 +338,7 @@ namespace AMRIE.Library
                         // Exeptions to the affected antibiotics, if any.
                         List<string> antibioticExceptions = [.. IO_Library.SplitLine(values[headerMap[nameof(ANTIBIOTIC_EXCEPTIONS)]], Constants.Delimiters.CommaChar)];
 
-                        ExpertInterpretationRule newRule = new ExpertInterpretationRule(ruleCode, values[headerMap[nameof(DESCRIPTION)]],
+                        ExpertInterpretationRule newRule = new(ruleCode, values[headerMap[nameof(DESCRIPTION)]],
                             values[headerMap[nameof(ORGANISM_CODE)]], values[headerMap[nameof(ORGANISM_CODE_TYPE)]],
                             ruleCriteria, ruleOp, affectedAntibiotics, antibioticExceptions);
 

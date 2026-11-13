@@ -28,7 +28,7 @@ public sealed partial class ApplicableExpertRulesDialog : ContentDialog
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            _filteredRows = new List<ExpertRuleRow>(_allRows);
+            _filteredRows = [.. _allRows];
         }
         else
         {

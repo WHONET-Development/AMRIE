@@ -11,14 +11,14 @@ namespace AMRIE.CLI
 		public static int Main(string[] args)
 		{
 			const char newLine = '\n';
-			if (!(args.Length == 5 && args[0].ToUpperInvariant() == Constants.CommandLineModes.File) 
-				&& !(args.Length == 6 && args[0].ToUpperInvariant() == Constants.CommandLineModes.SingleInterpretation))
+			if (!(args.Length == 5 && args[0].Equals(Constants.CommandLineModes.File, StringComparison.InvariantCultureIgnoreCase)) 
+				&& !(args.Length == 6 && args[0].Equals(Constants.CommandLineModes.SingleInterpretation, StringComparison.InvariantCultureIgnoreCase)))
 			{
 				Console.WriteLine(Translations.Resources.InvalidCommandLineArguments);
 				WriteCliParameterInfoToConsole();
 			}
 
-			else if (args[0].ToUpperInvariant() == Constants.CommandLineModes.File)
+			else if (args[0].Equals(Constants.CommandLineModes.File, StringComparison.InvariantCultureIgnoreCase))
 			{
 				try
 				{
@@ -45,7 +45,7 @@ namespace AMRIE.CLI
 				}
 			}
 
-			else if (args[0].ToUpperInvariant() == Constants.CommandLineModes.SingleInterpretation)
+			else if (args[0].Equals(Constants.CommandLineModes.SingleInterpretation, StringComparison.InvariantCultureIgnoreCase))
 			{
 				try
 				{

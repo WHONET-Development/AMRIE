@@ -3,17 +3,10 @@
     /// <summary>
     /// Container for test name/result.
     /// </summary>
-    public class ExpertRuleCriterion
+    public class ExpertRuleCriterion(string testName_, string testResult_)
     {
+        public readonly string TestName = testName_;
 
-        public ExpertRuleCriterion(string testName_, string testResult_)
-        {
-            TestName = testName_;
-            TestResult = testResult_;
-        }
-
-        public readonly string TestName;
-
-        public readonly string TestResult;
+        public readonly string TestResult = testResult_;
     }
 }

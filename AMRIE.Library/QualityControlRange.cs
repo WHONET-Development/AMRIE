@@ -75,7 +75,7 @@ namespace AMRIE.Library
         /// <returns></returns>
         public static QualityControlRange GetApplicableQualityControlRange(string referenceStrain, string whonetAbxFullDrugCode)
         {
-            AntibioticComponents thisAntibiotic = new AntibioticComponents(whonetAbxFullDrugCode);
+            AntibioticComponents thisAntibiotic = new(whonetAbxFullDrugCode);
 
             IEnumerable<QualityControlRange> matchingRanges =
                 QualityControlRanges.Where(qc =>
@@ -111,7 +111,7 @@ namespace AMRIE.Library
             if (matchingRange == null)
                 return Constants.InterpretationCodes.Uninterpretable;
 
-            AntibioticComponents thisAntibiotic = new AntibioticComponents(whonetAbxFullDrugCode);
+            AntibioticComponents thisAntibiotic = new(whonetAbxFullDrugCode);
 
             decimal numericResult = decimal.Zero;
             string modifier = string.Empty;
@@ -220,7 +220,7 @@ namespace AMRIE.Library
                         if (!string.IsNullOrWhiteSpace(values[headerMap[nameof(DATE_MODIFIED)]]))
                             tempModified = DateTime.Parse(values[headerMap[nameof(DATE_MODIFIED)]], System.Globalization.CultureInfo.InvariantCulture);
 
-                        QualityControlRange newRange = new QualityControlRange(values[headerMap[nameof(GUIDELINE)]],
+                        QualityControlRange newRange = new(values[headerMap[nameof(GUIDELINE)]],
                             tempYear, values[headerMap[nameof(STRAIN)]], values[headerMap[nameof(REFERENCE_TABLE)]],
                             values[headerMap[nameof(WHONET_ORG_CODE)]], values[headerMap[nameof(ANTIBIOTIC)]],
                             values[headerMap[nameof(ABX_TEST)]], values[headerMap[nameof(WHONET_ABX_CODE)]],

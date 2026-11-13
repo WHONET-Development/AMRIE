@@ -13,7 +13,7 @@ namespace AMRIE.Library
         /// Determine if the input matches the WHONET antibiotic column naming conventions.
         /// Example: PEN_ND10, AMP_EM, FOX_FE, X_1_ND10, X_12_NM
         /// </summary>
-        public static readonly Regex ValidAntibioticFieldNameRegex = new Regex(@"^([A-Z]{3}|X_[1-9]\d?)_(" + string.Join("|", Antibiotic.GuidelineCodes.AllCodes) + @")(D.*|M|E)$",
+        public static readonly Regex ValidAntibioticFieldNameRegex = new(@"^([A-Z]{3}|X_[1-9]\d?)_(" + string.Join("|", Antibiotic.GuidelineCodes.AllCodes) + @")(D.*|M|E)$",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace AMRIE.Library
         /// before using this to extract the code portion.
         /// </summary>
         public static readonly Regex ValidAntibioticCode =
-            new Regex(@"^([A-Z]{3}|X_[1-9]\d?)$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            new(@"^([A-Z]{3}|X_[1-9]\d?)$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         #endregion
 
@@ -76,7 +76,7 @@ namespace AMRIE.Library
                 string antibioticResult = DataRowValues[fieldName];
 
                 AntibioticSpecificInterpretationRules thisAbxSpecificRuleSet =
-                    new AntibioticSpecificInterpretationRules(OrganismCode, fieldName, antibioticResult,
+                    new(OrganismCode, fieldName, antibioticResult,
                     userDefinedBreakpoints,
                     guidelineYear: guidelineYear,
                     roundHalfDilutions: roundHalfDilutions,
@@ -129,13 +129,13 @@ namespace AMRIE.Library
         public static string GetSingleInterpretation(InterpretationConfiguration interpretationConfig,
             string organismCode, string antibioticCode, string measurement)
         {
-            Dictionary<string, string> sampleRow = new Dictionary<string, string>
+            Dictionary<string, string> sampleRow = new()
             {
                 { Constants.KeyFields.ORGANISM, organismCode },
                 { antibioticCode, measurement }
             };
 
-            IsolateInterpretation thisInterp = new IsolateInterpretation(sampleRow,
+            IsolateInterpretation thisInterp = new(sampleRow,
                 [.. sampleRow.Keys],
                 interpretationConfig.EnabledExpertInterpretationRules,
                 interpretationConfig.UserDefinedBreakpoints,

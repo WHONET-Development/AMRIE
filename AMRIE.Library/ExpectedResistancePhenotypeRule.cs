@@ -96,7 +96,7 @@ namespace AMRIE.Library
             else
             {
                 // Cannot interpret an unknown organism.
-                ExpectedResistancePhenotypeRule[] empty = new ExpectedResistancePhenotypeRule[0];
+                ExpectedResistancePhenotypeRule[] empty = [];
                 return empty;
             }
 
@@ -213,10 +213,10 @@ namespace AMRIE.Library
         /// <returns></returns>
         public static DataTable CreateTableFromArray(IEnumerable<ExpectedResistancePhenotypeRule> expectedResistanceRules)
         {
-            DataTable expectedResistanceRuleData = new DataTable();
+            DataTable expectedResistanceRuleData = new();
 
-            expectedResistanceRuleData.Columns.AddRange(columns: new[]
-            {
+            expectedResistanceRuleData.Columns.AddRange(columns:
+            [
                 new DataColumn(nameof(GUIDELINE), typeof(string)),
                 new DataColumn(nameof(REFERENCE_TABLE), typeof(string)),
                 new DataColumn(nameof(ORGANISM_CODE), typeof(string)),
@@ -229,7 +229,7 @@ namespace AMRIE.Library
                 new DataColumn(nameof(DATE_ENTERED), typeof(DateTime)),
                 new DataColumn(nameof(DATE_MODIFIED), typeof(DateTime)),
                 new DataColumn(nameof(COMMENTS), typeof(string)),
-            });
+            ]);
 
             foreach (ExpectedResistancePhenotypeRule rule in expectedResistanceRules)
             {
@@ -309,7 +309,7 @@ namespace AMRIE.Library
                             antibioticCode,
                             values[headerMap[nameof(ABX_CODE_TYPE)]]);
 
-                        ExpectedResistancePhenotypeRule newRule = new ExpectedResistancePhenotypeRule(values[headerMap[nameof(GUIDELINE)]], values[headerMap[nameof(REFERENCE_TABLE)]],
+                        ExpectedResistancePhenotypeRule newRule = new(values[headerMap[nameof(GUIDELINE)]], values[headerMap[nameof(REFERENCE_TABLE)]],
                             values[headerMap[nameof(ORGANISM_CODE)]], values[headerMap[nameof(ORGANISM_CODE_TYPE)]], values[headerMap[nameof(EXCEPTION_ORGANISM_CODE)]],
                             values[headerMap[nameof(EXCEPTION_ORGANISM_CODE_TYPE)]], antibioticCode, antibioticCodeType,
                             antibioticExceptions, tempEntered, tempModified, values[headerMap[nameof(COMMENTS)]]);

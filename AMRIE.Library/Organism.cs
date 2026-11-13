@@ -148,53 +148,51 @@ namespace AMRIE.Library
             {
                 List<Organism> allOrgs = [];
 
-                using (CsvReader parser = CsvReader.Create(
+                using CsvReader parser = CsvReader.Create(
                     new StreamReader(organismsTableFile, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
-                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar)))
+                    IO_Library.CreateCsvReaderOptions(Constants.Delimiters.TabChar));
+                if (!parser.Read())
+                    throw new InvalidDataException("The organisms resource is empty.");
+                string[] headers = IO_Library.GetFields(parser);
+                Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
+
+                while (parser.Read())
                 {
-                    if (!parser.Read())
-                        throw new InvalidDataException("The organisms resource is empty.");
-                    string[] headers = IO_Library.GetFields(parser);
-                    Dictionary<string, int> headerMap = IO_Library.GetResourceHeaders(headers);
+                    string[] values = IO_Library.GetFields(parser);
 
-                    while (parser.Read())
-                    {
-                        string[] values = IO_Library.GetFields(parser);
+                    string taxonomicStatus = values[headerMap[nameof(TAXONOMIC_STATUS)]];
 
-                        string taxonomicStatus = values[headerMap[nameof(TAXONOMIC_STATUS)]];
+                    Organism newOrganism = new(
+                        values[headerMap[nameof(WHONET_ORG_CODE)]],
+                        values[headerMap[nameof(ORGANISM)]],
+                        taxonomicStatus,
+                        values[headerMap[nameof(COMMON)]] == "X",
+                        values[headerMap[nameof(COMMON_COMMENSAL)]] == "X",
+                        values[headerMap[nameof(ORGANISM_TYPE)]],
+                        values[headerMap[nameof(ANAEROBE)]] == "X",
+                        values[headerMap[nameof(MORPHOLOGY)]],
+                        values[headerMap[nameof(SUBKINGDOM_CODE)]],
+                        values[headerMap[nameof(FAMILY_CODE)]],
+                        values[headerMap[nameof(GENUS_GROUP)]],
+                        values[headerMap[nameof(GENUS_CODE)]],
+                        values[headerMap[nameof(SPECIES_GROUP)]],
+                        values[headerMap[nameof(SEROVAR_GROUP)]],
+                        values[headerMap[nameof(SCT_CODE)]],
+                        values[headerMap[nameof(SCT_TEXT)]],
+                        values[headerMap[nameof(GBIF_TAXON_ID)]],
+                        values[headerMap[nameof(GBIF_DATASET_ID)]],
+                        values[headerMap[nameof(GBIF_TAXONOMIC_STATUS)]],
+                        values[headerMap[nameof(KINGDOM)]],
+                        values[headerMap[nameof(PHYLUM)]],
+                        values[headerMap[nameof(CLASS)]],
+                        values[headerMap[nameof(ORDER)]],
+                        values[headerMap[nameof(FAMILY)]],
+                        values[headerMap[nameof(GENUS)]]);
 
-                        Organism newOrganism = new Organism(
-                            values[headerMap[nameof(WHONET_ORG_CODE)]],
-                            values[headerMap[nameof(ORGANISM)]],
-                            taxonomicStatus,
-                            values[headerMap[nameof(COMMON)]] == "X",
-                            values[headerMap[nameof(COMMON_COMMENSAL)]] == "X",
-                            values[headerMap[nameof(ORGANISM_TYPE)]],
-                            values[headerMap[nameof(ANAEROBE)]] == "X",
-                            values[headerMap[nameof(MORPHOLOGY)]],
-                            values[headerMap[nameof(SUBKINGDOM_CODE)]],
-                            values[headerMap[nameof(FAMILY_CODE)]],
-                            values[headerMap[nameof(GENUS_GROUP)]],
-                            values[headerMap[nameof(GENUS_CODE)]],
-                            values[headerMap[nameof(SPECIES_GROUP)]],
-                            values[headerMap[nameof(SEROVAR_GROUP)]],
-                            values[headerMap[nameof(SCT_CODE)]],
-                            values[headerMap[nameof(SCT_TEXT)]],
-                            values[headerMap[nameof(GBIF_TAXON_ID)]],
-                            values[headerMap[nameof(GBIF_DATASET_ID)]],
-                            values[headerMap[nameof(GBIF_TAXONOMIC_STATUS)]],
-                            values[headerMap[nameof(KINGDOM)]],
-                            values[headerMap[nameof(PHYLUM)]],
-                            values[headerMap[nameof(CLASS)]],
-                            values[headerMap[nameof(ORDER)]],
-                            values[headerMap[nameof(FAMILY)]],
-                            values[headerMap[nameof(GENUS)]]);
-
-                        allOrgs.Add(newOrganism);
-                    }
-
-                    return allOrgs;
+                    allOrgs.Add(newOrganism);
                 }
+
+                return allOrgs;
             }
             else throw new FileNotFoundException(organismsTableFile);
         }

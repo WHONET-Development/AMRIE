@@ -5,7 +5,7 @@ namespace AMRIE.Library
 {
     public class InterpretationLibrary
     {
-        public static readonly Regex NumericAntibioticResultRegex = new Regex(@"^(|<|>)(|=)(\d+|(|\d+)\.\d+)$",
+        public static readonly Regex NumericAntibioticResultRegex = new(@"^(|<|>)(|=)(\d+|(|\d+)\.\d+)$",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         /// <summary>
@@ -68,17 +68,17 @@ namespace AMRIE.Library
                                     // <, >
                                     numericStartIndex = 1;
 
-                                modifier = resultString.Substring(0, numericStartIndex);
+                                modifier = resultString[..numericStartIndex];
 
                             }
                             else if (resultString.StartsWith(Constants.MeasurementModifiers.EqualsSign))
                             {
                                 // = alone
-                                modifier = resultString.Substring(0, 1);
+                                modifier = resultString[..1];
                                 numericStartIndex = 1;
                             }
 
-                            string numericPart = resultString.Substring(numericStartIndex);
+                            string numericPart = resultString[numericStartIndex..];
                             if (!string.IsNullOrWhiteSpace(numericPart)
                                 && Decimal.TryParse(numericPart,
                                     System.Globalization.NumberStyles.Number,

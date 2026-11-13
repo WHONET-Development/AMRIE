@@ -278,7 +278,7 @@ public sealed partial class BatchConfigDialog : ContentDialog
         var picker = new FileSavePicker();
         WindowHelper.InitializeWithMainWindow(picker);
         picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-        picker.FileTypeChoices.Add("JSON Configuration", new[] { ".json" });
+        picker.FileTypeChoices.Add("JSON Configuration", [".json"]);
         picker.SuggestedFileName = "amrie-config.json";
 
         var file = await picker.PickSaveFileAsync();

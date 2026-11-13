@@ -12,6 +12,14 @@
     <LangVersion>14.0</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="PolyfillLib" Version="11.4.5" />
     <PackageReference Include="System.Text.Json" Version="11.0.0" />

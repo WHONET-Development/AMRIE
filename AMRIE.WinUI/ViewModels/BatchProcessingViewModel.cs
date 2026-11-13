@@ -76,7 +76,7 @@ public partial class BatchProcessingViewModel : ObservableObject
             : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configFile));
     }
 
-    public string[] Delimiters { get; } = new[] { "TAB", "|", ",", ";" };
+    public string[] Delimiters { get; } = ["TAB", "|", ",", ";"];
 
     public BatchProcessingViewModel()
     {
@@ -197,7 +197,7 @@ public partial class BatchProcessingViewModel : ObservableObject
             var picker = new FileSavePicker();
             WindowHelper.InitializeWithMainWindow(picker);
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            picker.FileTypeChoices.Add("Text File", new[] { ".txt" });
+            picker.FileTypeChoices.Add("Text File", [".txt"]);
             picker.SuggestedFileName = "Results.txt";
 
             var file = await picker.PickSaveFileAsync();

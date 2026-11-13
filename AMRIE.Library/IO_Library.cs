@@ -249,7 +249,7 @@ namespace AMRIE.Library
 				return [record];
 
             List<string> results = [];
-            StringBuilder field = new StringBuilder();
+            StringBuilder field = new();
             bool inQualifier = false;
             bool fieldWasQuoted = false;
             bool afterClosingQuote = false;
@@ -368,7 +368,7 @@ namespace AMRIE.Library
                     && IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(columnName);
             }
 
-            Dictionary<string, string> canonicalizedAntibioticValues = new Dictionary<string, string>(StringComparer.Ordinal);
+            Dictionary<string, string> canonicalizedAntibioticValues = new(StringComparer.Ordinal);
             int canonicalizedAntibioticCharacters = 0;
 
             while (true)
@@ -382,7 +382,7 @@ namespace AMRIE.Library
 
                 if (values.Length >= numberOfColumns && values.Any(v => !string.IsNullOrWhiteSpace(v)))
                 {
-                    Dictionary<string, string> rowValues = new Dictionary<string, string>(values.Count(v => !string.IsNullOrWhiteSpace(v)));
+                    Dictionary<string, string> rowValues = new(values.Count(v => !string.IsNullOrWhiteSpace(v)));
                     long characters = 0;
                     int measurements = 0;
 
@@ -622,7 +622,7 @@ namespace AMRIE.Library
 
                         else if (h.EndsWith(InterpSuffix))
                         {
-                            string drugCode = h.Substring(0, h.Length - InterpSuffix.Length);
+                            string drugCode = h[..^InterpSuffix.Length];
 
                             if (row.Item2.ContainsKey(drugCode))
                             {

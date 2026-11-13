@@ -28,7 +28,7 @@ public sealed partial class ApplicableBreakpointsDialog : ContentDialog
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            _filteredRows = new List<BreakpointRow>(_allRows);
+            _filteredRows = [.. _allRows];
         }
         else
         {

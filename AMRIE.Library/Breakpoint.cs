@@ -201,12 +201,12 @@ namespace AMRIE.Library
         {
             userDefinedBreakpoints ??= [];
 
-            if (prioritizedWhonetAbxFullDrugCodes != null && prioritizedWhonetAbxFullDrugCodes.Count() > 1 && returnFirstBreakpointOnly)
+            if (prioritizedWhonetAbxFullDrugCodes != null && prioritizedWhonetAbxFullDrugCodes.Count > 1 && returnFirstBreakpointOnly)
                 throw new ArgumentException("There must be exactly one drug specified when only the first breakpoint is requested.");
 
             if (!Organism.CurrentOrganisms.ContainsKey(whonetOrganismCode))
             {
-                if (Organism.MergedOrganisms.ContainsKey(whonetOrganismCode) && Organism.CurrentOrganisms.ContainsKey(Organism.MergedOrganisms[whonetOrganismCode]))
+                if (!(!Organism.MergedOrganisms.ContainsKey(whonetOrganismCode) || !Organism.CurrentOrganisms.ContainsKey(Organism.MergedOrganisms[whonetOrganismCode])))
                     // This "organism" has been merged into another, usually because genetic sequencing has revealed them to be the same regardless of phenotypic differences.
                     whonetOrganismCode = Organism.MergedOrganisms[whonetOrganismCode];
                 else
@@ -214,8 +214,7 @@ namespace AMRIE.Library
                     return [];
             }
 
-            if (prioritizedSitesOfInfection is null)
-                prioritizedSitesOfInfection = [.. Constants.SitesOfInfection.DefaultOrder];
+            prioritizedSitesOfInfection ??= [.. Constants.SitesOfInfection.DefaultOrder];
 
             Organism o = Organism.CurrentOrganisms[whonetOrganismCode];
 
@@ -225,7 +224,7 @@ namespace AMRIE.Library
             if (prioritizedWhonetAbxFullDrugCodes != null)
                 // Don't change the original list.
                 recodedDrugCodes = [.. prioritizedWhonetAbxFullDrugCodes.ToList().
-                    Select(abx => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(abx) && abx.EndsWith("E") ? abx.Remove(abx.Length - 1) + "M" : abx).
+                    Select(abx => IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(abx) && abx.EndsWith('E') ? abx[..^1] + "M" : abx).
                     Distinct()];
 
             IEnumerable<Breakpoint> breakpointCandidates = recodedDrugCodes == null
@@ -358,9 +357,9 @@ namespace AMRIE.Library
         /// <returns></returns>
         public static DataTable CreateTableFromArray(IEnumerable<Breakpoint> breakpoints)
         {
-            DataTable breakpointData = new DataTable();
+            DataTable breakpointData = new();
 
-            breakpointData.Columns.AddRange(columns: new[] {
+            breakpointData.Columns.AddRange(columns: [
                 new DataColumn(nameof(GUIDELINES), typeof(string)),
                 new DataColumn(nameof(YEAR), typeof(int)),
                 new DataColumn(nameof(TEST_METHOD), typeof(string)),
@@ -382,7 +381,7 @@ namespace AMRIE.Library
                 new DataColumn(nameof(DATE_ENTERED), typeof(DateTime)),
                 new DataColumn(nameof(DATE_MODIFIED), typeof(DateTime)),
                 new DataColumn(nameof(COMMENTS), typeof(string))
-            });
+            ]);
 
             foreach (Breakpoint bp in breakpoints)
             {
@@ -485,7 +484,7 @@ namespace AMRIE.Library
                         if (!userDefined)
                             organismCodeType = ResolveOrganismCodeType(organismCode, organismCodeType);
 
-                        Breakpoint newBreakpoint = new Breakpoint(values[headerMap[nameof(GUIDELINES)]], int.Parse(values[headerMap[nameof(YEAR)]], System.Globalization.CultureInfo.InvariantCulture),
+                        Breakpoint newBreakpoint = new(values[headerMap[nameof(GUIDELINES)]], int.Parse(values[headerMap[nameof(YEAR)]], System.Globalization.CultureInfo.InvariantCulture),
                             values[headerMap[nameof(TEST_METHOD)]], values[headerMap[nameof(POTENCY)]], organismCode,
                             organismCodeType, values[headerMap[nameof(BREAKPOINT_TYPE)]], values[headerMap[nameof(HOST)]],
                             values[headerMap[nameof(SITE_OF_INFECTION)]], values[headerMap[nameof(REFERENCE_TABLE)]], values[headerMap[nameof(REFERENCE_SEQUENCE)]],
