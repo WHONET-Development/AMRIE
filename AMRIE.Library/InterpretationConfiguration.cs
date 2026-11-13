@@ -38,6 +38,13 @@ namespace AMRIE.Library
 
         public InterpretationConfiguration() { }
 
+        private static readonly JsonSerializerOptions jsonSerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        };
+
         /// <summary>
         /// Setup the configuration object.
         /// </summary>
@@ -89,13 +96,8 @@ namespace AMRIE.Library
         public static InterpretationConfiguration ReadConfiguration(string configFile)
         {
             string jsonString = File.ReadAllText(configFile);
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            InterpretationConfiguration config = JsonSerializer.Deserialize<InterpretationConfiguration>(jsonString, options)
+            
+            InterpretationConfiguration config = JsonSerializer.Deserialize<InterpretationConfiguration>(jsonString, jsonSerializerOptions)
                 ?? new InterpretationConfiguration();
 
             if (config.EnabledExpertInterpretationRules != null && config.EnabledExpertInterpretationRules.Count == 0)

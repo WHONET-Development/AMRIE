@@ -139,11 +139,9 @@ namespace AMRIE.Library
         public static List<ExpertInterpretationRule> GetApplicableExpertRules(
             string whonetOrganismCode, List<string> antimicrobialCodes, List<string> otherTests, List<string> enabledExpertInterpretationRules)
         {
-            if (!Organism.CurrentOrganisms.ContainsKey(whonetOrganismCode))
+            if (!Organism.CurrentOrganisms.TryGetValue(whonetOrganismCode, out Organism o))
                 // Cannot determine the expert rules for an unknown organism.
                 return [];
-
-            Organism o = Organism.CurrentOrganisms[whonetOrganismCode];
 
             IEnumerable<ExpertInterpretationRule> expertRules =
                 from ExpertInterpretationRule thisRule in ExpertInterpretationRules

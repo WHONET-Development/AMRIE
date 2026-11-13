@@ -77,8 +77,10 @@ namespace AMRIE.Library
 
             public static char ParseFileDelimiterToken(string delimiterToken)
             {
+#pragma warning disable CA1510 // Use ArgumentNullException throw helper
                 if (delimiterToken == null)
                     throw new ArgumentNullException(nameof(delimiterToken));
+#pragma warning restore CA1510 // Use ArgumentNullException throw helper
                 if (delimiterToken == TabPlaceholder)
                     return TabChar;
                 if (delimiterToken.Length != 1)

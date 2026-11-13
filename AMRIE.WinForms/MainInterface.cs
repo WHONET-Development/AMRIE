@@ -195,7 +195,7 @@ namespace AMRIE.WinForms
 
 				List<string> antibioticTestCodes = GetFullTestCodes();
 
-				if (!antibioticTestCodes.Any())
+				if (antibioticTestCodes.Count == 0)
 				{
 					MessageBox.Show("There was a problem creating the antibiotic code. Please ensure that you have either CLSI or EUCAST checked above.");
 					return;
@@ -441,7 +441,7 @@ namespace AMRIE.WinForms
 
 		#region Library
 
-		private void SearchList(ComboBox targetControl, string searchString)
+		private static void SearchList(ComboBox targetControl, string searchString)
 		{
 			// A reference to the full list of items is stored in the control's Tag.
 			List<Tuple<string, string>> fullList = 
@@ -587,7 +587,7 @@ namespace AMRIE.WinForms
 				Where(fullCode => !string.IsNullOrWhiteSpace(fullCode))];
 		}
 
-		private string Create_FullTestCode(string guidelineName, string antibioticCode, bool diskTest, string diskContent = "")
+		private static string Create_FullTestCode(string guidelineName, string antibioticCode, bool diskTest, string diskContent = "")
 		{
 			char guidelineCode;
 			switch (guidelineName)

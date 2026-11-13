@@ -6,7 +6,7 @@ if (!GeneratorCommandLine.TryParse(args, out GeneratorOptions? options, out stri
     return 2;
 }
 
-GenerationManifest manifest = new DatasetGenerator().Generate(options.OutputDirectory, options.TargetSize);
+GenerationManifest manifest = DatasetGenerator.Generate(options.OutputDirectory, options.TargetSize);
 Console.WriteLine($"Generated {manifest.TotalMeasurementCount:N0} measurements in {manifest.IsolateRows:N0} rows.");
 Console.WriteLine($"Input: {manifest.InputFile} ({manifest.InputFileBytes:N0} bytes)");
 Console.WriteLine($"Manifest: {manifest.ManifestFile}");

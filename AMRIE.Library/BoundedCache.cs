@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace AMRIE.Library
 {
@@ -7,7 +8,7 @@ namespace AMRIE.Library
 
     internal sealed class BoundedCache<TKey, TValue> where TKey : notnull
     {
-        private readonly object sync = new();
+        private readonly Lock sync = new();
         private readonly Dictionary<TKey, (TValue Value, long Characters)> entries = [];
         private readonly Queue<TKey> insertionOrder = new();
         private readonly int maxEntries;

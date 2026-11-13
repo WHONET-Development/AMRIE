@@ -65,8 +65,8 @@ namespace AMRIE.Library
             ColumnNames = columnNames_;
             EnabledExpertInterpretationRules = enabledExpertInterpretationRules_;
 
-            if (DataRowValues.ContainsKey(Constants.KeyFields.ORGANISM) && !string.IsNullOrWhiteSpace(DataRowValues[Constants.KeyFields.ORGANISM]))
-                OrganismCode = DataRowValues[Constants.KeyFields.ORGANISM].Trim();
+            if (DataRowValues.TryGetValue(Constants.KeyFields.ORGANISM, out string orgCode) && !string.IsNullOrWhiteSpace(orgCode))
+                OrganismCode = orgCode.Trim();
             else
                 OrganismCode = string.Empty;
 

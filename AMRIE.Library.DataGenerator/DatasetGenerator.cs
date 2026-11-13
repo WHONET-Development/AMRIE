@@ -20,7 +20,10 @@ internal sealed class DatasetGenerator
         Antibiotic.GuidelineNames.CLSI,
         Antibiotic.GuidelineNames.EUCAST
     };
+
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static readonly IReadOnlyDictionary<string, string> BreakpointAgentCatalogAliases =
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
         new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["CFC"] = "CEC",
@@ -33,7 +36,9 @@ internal sealed class DatasetGenerator
         Breakpoint.BreakpointTypes.ECOFF
     ];
 
-    public GenerationManifest Generate(string outputDirectory, RequestedInputSize? targetSize = null)
+    private static readonly JsonSerializerOptions DefaultJsonSerializerOptions = new() { WriteIndented = true };
+
+    public static GenerationManifest Generate(string outputDirectory, RequestedInputSize? targetSize = null)
     {
         Directory.CreateDirectory(outputDirectory);
         string inputFile = Path.Combine(outputDirectory, "2026-clsi-eucast-boundary-input.txt");
@@ -54,7 +59,7 @@ internal sealed class DatasetGenerator
                 File.Move(workingInputFile, inputFile);
 
             File.WriteAllText(manifest.ManifestFile,
-                JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }),
+                JsonSerializer.Serialize(manifest, DefaultJsonSerializerOptions),
                 new UTF8Encoding(false));
             return manifest;
         }
@@ -65,7 +70,7 @@ internal sealed class DatasetGenerator
         }
     }
 
-    private GenerationManifest GenerateCore(
+    private static GenerationManifest GenerateCore(
         string outputDirectory,
         string inputFile,
         string workingInputFile,
@@ -957,7 +962,9 @@ internal sealed class DatasetGenerator
         return new OutcomeSummary(rows, results, results, results, string.Empty, outcomes);
     }
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static void WriteExpertCases(string outputFile, IReadOnlyList<string> headers, List<ExpertCase> cases)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         Dictionary<string, int> headerIndices = headers
             .Select((header, index) => (header, index))

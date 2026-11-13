@@ -77,6 +77,7 @@ namespace AMRIE.Library
         {
             AntibioticComponents thisAntibiotic = new(whonetAbxFullDrugCode);
 
+#pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
             IEnumerable<QualityControlRange> matchingRanges =
                 QualityControlRanges.Where(qc =>
                 qc.STRAIN.ToUpperInvariant() == referenceStrain.ToUpperInvariant()
@@ -86,6 +87,7 @@ namespace AMRIE.Library
                     (thisAntibiotic.TestMethod.ToUpperInvariant() == Antibiotic.TestMethods.Disk.ToUpperInvariant() ?
                     Antibiotic.TestMethods.Disk.ToUpperInvariant() : Antibiotic.TestMethods.MIC.ToUpperInvariant()))
                 .OrderByDescending(qc => qc.YEAR);
+#pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
 
             if (matchingRanges.Any())
                 return matchingRanges.First();

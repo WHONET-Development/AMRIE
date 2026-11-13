@@ -6,6 +6,7 @@
     <Version>$(VersionPrefix)26.3.26</Version>
     <ApplicationIcon>AMRIE_Square_No_Text.ico</ApplicationIcon>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">

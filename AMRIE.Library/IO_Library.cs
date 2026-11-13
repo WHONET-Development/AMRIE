@@ -572,7 +572,7 @@ namespace AMRIE.Library
             List<string> inputColumnNames,
             IEnumerable<Tuple<Dictionary<string, string>, Dictionary<string, string>>> interpretationResults,
             List<string> interpretationHeaders,
-            TextWriter writer,
+            StreamWriter writer,
             Action<long> rowWritten)
         {
             if (IsCancelled(e, arguments))
@@ -617,16 +617,15 @@ namespace AMRIE.Library
 
                     foreach (string h in outputHeaders)
                     {
-                        if (row.Item1.ContainsKey(h))
-                            thisRow.Add(row.Item1[h]);
+                        if (row.Item1.TryGetValue(h, out string includedValue))
+                            thisRow.Add(includedValue);
 
                         else if (h.EndsWith(InterpSuffix))
                         {
                             string drugCode = h[..^InterpSuffix.Length];
 
-                            if (row.Item2.ContainsKey(drugCode))
+                            if (row.Item2.TryGetValue(drugCode, out string thisInterp))
                             {
-                                string thisInterp = row.Item2[drugCode];
                                 if (!interpretationConfig.IncludeInterpretationComments)
                                     thisInterp = IsolateInterpretation.RemoveComments(thisInterp);
 
@@ -648,8 +647,8 @@ namespace AMRIE.Library
                     // Repeat all but the final 3 columns, which are the variable antibiotics.
                     foreach (string h in outputHeaders.Take(outputHeaders.Count - 3))
                     {
-                        if (row.Item1.ContainsKey(h))
-                            repeatedValueList.Add(row.Item1[h]);
+                        if (row.Item1.TryGetValue(h, out string repeatedValue))
+                            repeatedValueList.Add(repeatedValue);
 
                         else
                             repeatedValueList.Add(string.Empty);
@@ -669,17 +668,16 @@ namespace AMRIE.Library
                         // whether it has an associated interpretation or not.
                         foreach (string antibiotic in antibioticFields)
                         {
-                            if (row.Item1.ContainsKey(antibiotic))
+                            if (row.Item1.TryGetValue(antibiotic, out string measurement))
                             {
-                                List<string> antibioticRowValues = [antibiotic, row.Item1[antibiotic]];
+                                List<string> antibioticRowValues = [antibiotic, measurement];
 
-                                if (row.Item2.ContainsKey(antibiotic))
+                                if (row.Item2.TryGetValue(antibiotic, out string interpretation))
                                 {
-                                    string thisInterp = row.Item2[antibiotic];
                                     if (!interpretationConfig.IncludeInterpretationComments)
-                                        thisInterp = IsolateInterpretation.RemoveComments(thisInterp);
+                                        interpretation = IsolateInterpretation.RemoveComments(interpretation);
 
-                                    antibioticRowValues.Add(thisInterp);
+                                    antibioticRowValues.Add(interpretation);
                                 }
                                 else
                                     antibioticRowValues.Add(string.Empty);
