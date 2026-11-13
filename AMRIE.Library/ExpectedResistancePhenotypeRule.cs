@@ -86,18 +86,17 @@ namespace AMRIE.Library
         public static IEnumerable<ExpectedResistancePhenotypeRule> GetApplicableExpectedResistanceRules(
             string whonetOrganismCode, List<string> prioritizedGuidelines = null, List<string> antimicrobialCodes = null)
         {
-            Organism o;
-            if (Organism.CurrentOrganisms.ContainsKey(whonetOrganismCode))
-                o = Organism.CurrentOrganisms[whonetOrganismCode];
-
-            else if (whonetOrganismCode == AllOrganisms)
-                o = new Organism() { WHONET_ORG_CODE = whonetOrganismCode };
-
-            else
+            if (!Organism.CurrentOrganisms.TryGetValue(whonetOrganismCode, out Organism o))
             {
-                // Cannot interpret an unknown organism.
-                ExpectedResistancePhenotypeRule[] empty = [];
-                return empty;
+                if (whonetOrganismCode == AllOrganisms)
+                    o = new Organism() { WHONET_ORG_CODE = whonetOrganismCode };
+
+                else
+                {
+                    // Cannot interpret an unknown organism.
+                    ExpectedResistancePhenotypeRule[] empty = [];
+                    return empty;
+                }
             }
 
             IEnumerable<ExpectedResistancePhenotypeRule> applicableExpectedResistanceRules =

@@ -25,17 +25,12 @@ namespace AMRIE.Library
             // MIC breakpoint rows apply to ETest values as well.
             public static string GetTestMethodFromCode(char testMethodCode)
             {
-                switch (testMethodCode)
+                return testMethodCode switch
                 {
-                    case TestMethodCodes.Disk:
-                        return Disk;
-
-                    case TestMethodCodes.MIC:
-                    case TestMethodCodes.ETest:
-                        return MIC;
-                }
-
-                throw new ArgumentException(testMethodCode.ToString());
+                    TestMethodCodes.Disk => Disk,
+                    TestMethodCodes.MIC or TestMethodCodes.ETest => MIC,
+                    _ => throw new ArgumentException(testMethodCode.ToString()),
+                };
             }
         }
 
@@ -66,35 +61,18 @@ namespace AMRIE.Library
             /// <exception cref="ArgumentException"></exception>
             public static string GetGuidelineFromCode(char guidelineCode)
             {
-                switch (guidelineCode)
+                return guidelineCode switch
                 {
-                    case GuidelineCodes.CLSI:
-                        return CLSI;
-
-                    case GuidelineCodes.EUCAST:
-                        return EUCAST;
-
-                    case GuidelineCodes.SFM:
-                        return SFM;
-
-                    case GuidelineCodes.SRGA:
-                        return SRGA;
-
-                    case GuidelineCodes.DIN:
-                        return DIN;
-
-                    case GuidelineCodes.NEO:
-                        return NEO;
-
-                    case GuidelineCodes.BSAC:
-                        return BSAC;
-
-                    case GuidelineCodes.AFA:
-                        return AFA;
-
-                    default:
-                        throw new ArgumentException($"Unknown guideline code '{guidelineCode}'.");
-                }
+                    GuidelineCodes.CLSI => CLSI,
+                    GuidelineCodes.EUCAST => EUCAST,
+                    GuidelineCodes.SFM => SFM,
+                    GuidelineCodes.SRGA => SRGA,
+                    GuidelineCodes.DIN => DIN,
+                    GuidelineCodes.NEO => NEO,
+                    GuidelineCodes.BSAC => BSAC,
+                    GuidelineCodes.AFA => AFA,
+                    _ => throw new ArgumentException($"Unknown guideline code '{guidelineCode}'."),
+                };
             }
         }
 

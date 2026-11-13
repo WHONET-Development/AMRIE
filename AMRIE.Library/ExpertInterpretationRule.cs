@@ -111,25 +111,21 @@ namespace AMRIE.Library
                 else
                 {
                     // Other test types.
-                    if (rowValues.ContainsKey(criterion.TestName))
-                        ruleResults.Add(rowValues[criterion.TestName] == criterion.TestResult);
+                    if (rowValues.TryGetValue(criterion.TestName, out string value))
+                        ruleResults.Add(value == criterion.TestResult);
+
                     else
                         // This test was not performed.
                         ruleResults.Add(false);
                 }
             }
 
-            switch (CriteriaOperator)
+            return CriteriaOperator switch
             {
-                case RuleOperators.And:
-                    return ruleResults.Count > 0 && ruleResults.All(r => r);
-
-                case RuleOperators.Or:
-                    return ruleResults.Count > 0 && ruleResults.Any(r => r);
-
-                default:
-                    return false;
-            }
+                RuleOperators.And => ruleResults.Count > 0 && ruleResults.All(r => r),
+                RuleOperators.Or => ruleResults.Count > 0 && ruleResults.Any(r => r),
+                _ => false,
+            };
         }
 
         /// <summary>
@@ -318,21 +314,12 @@ namespace AMRIE.Library
                         }
 
                         string ruleCode = values[headerMap[nameof(RULE_CODE)]];
-                        List<string> affectedAntibiotics;
-                        switch (ruleCode)
+                        List<string> affectedAntibiotics = ruleCode switch
                         {
-                            case RuleCodes.MRStaph:
-                                affectedAntibiotics = Antibiotic.MRS_Antibiotics_Except_CPT_BPR;
-                                break;
-
-                            case RuleCodes.ICR:
-                                affectedAntibiotics = Antibiotic.ICR_Antibiotics;
-                                break;
-
-                            default:
-                                affectedAntibiotics = [.. IO_Library.SplitLine(values[headerMap[nameof(AFFECTED_ANTIBIOTICS)]], Constants.Delimiters.CommaChar)];
-                                break;
-                        }
+                            RuleCodes.MRStaph => Antibiotic.MRS_Antibiotics_Except_CPT_BPR,
+                            RuleCodes.ICR => Antibiotic.ICR_Antibiotics,
+                            _ => [.. IO_Library.SplitLine(values[headerMap[nameof(AFFECTED_ANTIBIOTICS)]], Constants.Delimiters.CommaChar)],
+                        };
                         ;
 
                         // Exeptions to the affected antibiotics, if any.
