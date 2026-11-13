@@ -21,7 +21,7 @@
     <Company>Brigham and Women's Hospital</Company>
     <Product>AMR Interpretation Engine</Product>
     <Description>Antimicrobial Resistance Test Interpretation Engine</Description>
-    <NoWarn>$(NoWarn);CS8305</NoWarn>
+    <NoWarn>$(NoWarn);CS8305;SYSLIB1045</NoWarn>
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);WMC1501</MSBuildWarningsAsMessages>
   </PropertyGroup>
 

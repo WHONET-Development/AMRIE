@@ -164,14 +164,14 @@ public sealed partial class MainWindow : Window
                 ThemeIcon.Glyph = "\uE706"; // Light/Sun icon
                 ThemeToggleItem.Content = "Light mode";
                 Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(ThemeToggleItem, "Theme: Light mode (click to switch to Dark)");
-                if (LightThemeMenuItem != null) LightThemeMenuItem.IsChecked = true;
+                LightThemeMenuItem?.IsChecked = true;
                 break;
 
             case ElementTheme.Dark:
                 ThemeIcon.Glyph = "\uE708"; // Moon icon
                 ThemeToggleItem.Content = "Dark mode";
                 Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(ThemeToggleItem, "Theme: Dark mode (click to switch to System)");
-                if (DarkThemeMenuItem != null) DarkThemeMenuItem.IsChecked = true;
+                DarkThemeMenuItem?.IsChecked = true;
                 break;
 
             case ElementTheme.Default:
@@ -179,7 +179,7 @@ public sealed partial class MainWindow : Window
                 ThemeIcon.Glyph = "\uE790"; // Personalize / Theme icon
                 ThemeToggleItem.Content = "System theme";
                 Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(ThemeToggleItem, "Theme: Use system setting (click to switch to Light)");
-                if (SystemThemeMenuItem != null) SystemThemeMenuItem.IsChecked = true;
+                SystemThemeMenuItem?.IsChecked = true;
                 break;
         }
 

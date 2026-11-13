@@ -172,11 +172,13 @@ namespace AMRIE.WinForms
 				// Recalculate the breakpoints based on the current option set.
 				AntibioticSpecificInterpretationRules.ClearBreakpoints();
 
-				InterpretationConfiguration interpretationConfig = new();
+                InterpretationConfiguration interpretationConfig = new()
+                {
+                    IncludeInterpretationComments = IncludeInterpretationCommentsCheckbox.Checked,
+                    PrioritizedBreakpointTypes = []
+                };
 
-				interpretationConfig.IncludeInterpretationComments = IncludeInterpretationCommentsCheckbox.Checked;
-				interpretationConfig.PrioritizedBreakpointTypes = [];
-				if (BreakpointTypesCheckbox.Checked)
+                if (BreakpointTypesCheckbox.Checked)
 					foreach (string item in BreakpointTypesCheckedListBox.CheckedItems)
 						interpretationConfig.PrioritizedBreakpointTypes.Add(item);
 				else
@@ -233,7 +235,6 @@ namespace AMRIE.WinForms
 				List<string> prioritizedBreakpointTypes = null;
 				List<string> prioritizedSitesOfInfection = null;
 				string orgCode = OrganismComboBox.SelectedValue as string;
-				List<string> prioritizedWhonetAbxFullDrugCodes = null;
 
 				if (GuidelinesCheckbox.Checked)
 				{
@@ -257,7 +258,7 @@ namespace AMRIE.WinForms
 
 				if (ValidateAntibioticSelection())
 				{
-					prioritizedWhonetAbxFullDrugCodes = GetFullTestCodes();
+                    List<string> prioritizedWhonetAbxFullDrugCodes = GetFullTestCodes();
 
 					List<Breakpoint> applicableBreakpoints =
 						Breakpoint.GetApplicableBreakpoints(

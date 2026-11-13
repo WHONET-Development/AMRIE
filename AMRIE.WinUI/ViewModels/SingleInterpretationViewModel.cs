@@ -676,8 +676,7 @@ public partial class SingleInterpretationViewModel : ObservableObject
         await EnsureDataLoadedAsync();
 
         var clsi = Guidelines.FirstOrDefault(g => g.Name.Equals(nameof(Antibiotic.GuidelineNames.CLSI), StringComparison.OrdinalIgnoreCase));
-        if (clsi != null)
-            clsi.IsSelected = true;
+        clsi?.IsSelected = true;
 
         var spn = AllOrganisms.FirstOrDefault(o => o.Code.Equals("spn", StringComparison.OrdinalIgnoreCase))
                   ?? AllOrganisms.FirstOrDefault(o => o.DisplayName.Contains("pneumoniae", StringComparison.OrdinalIgnoreCase));
