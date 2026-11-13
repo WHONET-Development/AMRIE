@@ -120,6 +120,12 @@ public sealed partial class SingleInterpretationPage : Page
                 .Take(50)
                 .ToList();
 
+            if (matches.Count == 0 && System.Text.RegularExpressions.Regex.IsMatch(query, @"^X_\d{1,2}$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                string formattedCode = query.ToUpperInvariant();
+                matches.Add(new Models.AntibioticItem($"User-defined ({formattedCode})", formattedCode));
+            }
+
             sender.ItemsSource = matches;
         }
     }

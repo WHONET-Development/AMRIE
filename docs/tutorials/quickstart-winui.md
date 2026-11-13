@@ -74,10 +74,11 @@ The left-hand navigation rail lets you switch between these sections at any time
 
 Before interpreting data, it is worth familiarizing yourself with the interpretation settings. Click the **Settings** item at the bottom of the left navigation rail (the gear icon).
 
-The Settings page has two cards:
+The Settings page provides three sections:
 
 - **Appearance** — Choose between Light mode, Dark mode, or the system default. This preference is saved between sessions.
-- **About AMRIE** — Displays the application version, the .NET runtime version, and links to the CLSI, EUCAST, SFM, and WHONET websites.
+- **About AMRIE** — Displays the application version, the .NET runtime version, guideline revision metadata, and links to the CLSI, EUCAST, SFM, and WHONET websites, as well as the project documentation.
+- **Licenses & Clinical Attribution** — Review the Mass General Brigham license, third-party open-source notices, and clinical breakpoint attributions bundled with AMRIE directly within native in-app dialogs.
 
 > [!NOTE]
 > Interpretation settings such as the guideline year, enabled expert rules, breakpoint type priorities (Human / Animal / ECOFF), and sites of infection are configured through a **JSON configuration file** (`SampleConfig.json`) rather than through the Settings page UI. See [`SampleConfig.json`](../../AMRIE.Library/Resources/SampleConfig.json) for an annotated example, and the [Configuration Schema reference](../reference/configuration-schema.md) for a full field-by-field description. The How-To guide on [Custom Breakpoints](../how-to/custom-breakpoints.md) explains how to create and load a configuration file tailored to your laboratory's protocols.
@@ -109,6 +110,9 @@ A progress indicator shows how many rows have been processed. For the sample fil
 > [!NOTE]
 > The output file format mirrors the input file, with an additional `_INTERP` column appended immediately after each antibiotic measurement column. For example, if the input contains a `PEN_ND10` column, the output will contain `PEN_ND10` (the original measurement) followed by `PEN_ND10_INTERP` (the interpretation: `S`, `I`, `SDD`, `R`, or `NS`).
 
+> [!TIP]
+> You can inspect or modify your batch configuration visually by clicking **Edit...** next to the Configuration field, or simply drag and drop a `.json` configuration file anywhere on the Batch Processing page.
+
 ---
 
 ## Step 6 — View Results
@@ -129,6 +133,9 @@ Once the batch run completes, open the output file in a text editor or spreadshe
 Rows where the expert rules (MRS, BLNAR, ICR) overrode a breakpoint-based result may show an `!` suffix (e.g., `R!`) when **Include Interpretation Comments** is enabled in the configuration file.
 
 For the **Single Interpretation** workflow, navigate to the **Single Interpretation** page, select a guideline year, enter an organism code (e.g., `spn` for *Streptococcus pneumoniae*), an antibiotic code (e.g., `AMC_NM` for Amoxicillin-clavulanate MIC), and a numeric measurement (e.g., `2`). The interpreted category appears immediately.
+
+> [!TIP]
+> On the Single Interpretation page, use the **Breakpoints**, **Expert Rules**, and **Intrinsic Resistance** buttons to inspect all applicable clinical criteria and rule exceptions matching your selected organism and antibiotic.
 
 ---
 
