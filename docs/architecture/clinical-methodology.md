@@ -12,7 +12,7 @@ AMRIE (Antimicrobial Resistance Test Interpretation Engine) automates the assign
 | European Committee on Antimicrobial Susceptibility Testing | **EUCAST** | Human medicine (Europe and globally) |
 | Société Française de Microbiologie | **SFM / CA-SFM** | Human and veterinary medicine (France) |
 
-Each guideline defines its own breakpoint tables and intrinsic resistance rules. AMRIE selects the applicable guideline for each antibiotic column based on the **WHONET column naming convention** (e.g., `PEN_ND10` / `PEN_NM` / `PEN_NE` → CLSI; `AMK_ED30` / `AMP_EM` / `AMP_EE` → EUCAST; `FOX_FD30` / `FOX_FM` / `FOX_FE` → SFM; or user-defined antibiotics like `X_01_ND10`). Users can further constrain which guideline years and breakpoint types are considered via [`InterpretationConfiguration`](../../AMRIE.Library/InterpretationConfiguration.cs).
+Each guideline defines its own breakpoint tables and intrinsic resistance rules. AMRIE selects the applicable guideline for each antibiotic column based on the **WHONET column naming convention** (e.g., `PEN_ND10` / `PEN_NM` / `PEN_NE` → CLSI; `AMK_ED30` / `AMP_EM` / `AMP_EE` → EUCAST; `FOX_FD30` / `FOX_FM` / `FOX_FE` → SFM; or user-defined antibiotics like `X_1_ND10`). Users can further constrain which guideline years and breakpoint types are considered via [`InterpretationConfiguration`](../../AMRIE.Library/InterpretationConfiguration.cs).
 
 ## Why These Three Guidelines?
 

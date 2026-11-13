@@ -11,9 +11,9 @@ namespace AMRIE.Library
 
         /// <summary>
         /// Determine if the input matches the WHONET antibiotic column naming conventions.
-        /// Example: PEN_ND10, AMP_EM, FOX_FE, X_01_ND10
+        /// Example: PEN_ND10, AMP_EM, FOX_FE, X_1_ND10, X_12_NM
         /// </summary>
-        public static readonly Regex ValidAntibioticFieldNameRegex = new Regex(@"^([A-Z]{3}|X_\d{2})_(" + string.Join("|", Antibiotic.GuidelineCodes.AllCodes) + @")(D.*|M|E)$",
+        public static readonly Regex ValidAntibioticFieldNameRegex = new Regex(@"^([A-Z]{3}|X_[1-9]\d?)_(" + string.Join("|", Antibiotic.GuidelineCodes.AllCodes) + @")(D.*|M|E)$",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace AMRIE.Library
         /// before using this to extract the code portion.
         /// </summary>
         public static readonly Regex ValidAntibioticCode =
-            new Regex(@"^([A-Z]{3}|X_\d{2})$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+            new Regex(@"^([A-Z]{3}|X_[1-9]\d?)$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         #endregion
 
@@ -197,7 +197,7 @@ namespace AMRIE.Library
                 // If this rule contains an antibiotic precondition, we need to evaluate that result using the normal procedure.
                 IEnumerable<string> unevaluatedExpertRuleDrugs =
                     rule.RULE_CRITERIA.Where(c => ValidAntibioticCode.IsMatch(c.TestName)
-                    && DataRowValues.Keys.Any(k => k.StartsWith(c.TestName))).Select(c => c.TestName);
+                    && DataRowValues.Keys.Any(k => ValidAntibioticFieldNameRegex.IsMatch(k) && Antibiotic.ShortCode(k) == c.TestName)).Select(c => c.TestName);
 
                 if (rule.RULE_CRITERIA.Exists(c => c.TestName == ExpertInterpretationRule.PROF_CLASS.CEPH3))
                 {
@@ -209,12 +209,12 @@ namespace AMRIE.Library
 
                 // Exclude the drugs which have already been evaluated.
                 // Use Antibiotic.ShortCode() rather than Substring(0, 3) — codes can be longer
-                // than 3 chars (e.g. X_01 for custom antibiotics).
+                // than 3 chars (e.g. X_1 or X_12 for custom antibiotics).
                 unevaluatedExpertRuleDrugs = unevaluatedExpertRuleDrugs.Except(ResultInterpretations.Keys.Select(k => Antibiotic.ShortCode(k))).Distinct();
 
                 foreach (string abxCode in unevaluatedExpertRuleDrugs)
-                    // This 3-letter abx code might correspond to multiple tests which differ by method (AMP_NM, AMP_ND10, AMP_EM, AMP_ED10, etc.)
-                    foreach (string fullAntibioticCode in DataRowValues.Keys.Where(k => k.StartsWith(abxCode)))
+                    // This abx code might correspond to multiple tests which differ by method (AMP_NM, AMP_ND10, AMP_EM, AMP_ED10, etc.)
+                    foreach (string fullAntibioticCode in DataRowValues.Keys.Where(k => ValidAntibioticFieldNameRegex.IsMatch(k) && Antibiotic.ShortCode(k) == abxCode))
                         // The result is stored in the dictionary by this routine.
                         GetSingleInterpretation(fullAntibioticCode);
 

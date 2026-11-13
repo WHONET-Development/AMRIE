@@ -304,9 +304,10 @@ namespace AMRIE.Library
 
             if (fullAntibioticCode.StartsWith("X_", StringComparison.OrdinalIgnoreCase))
             {
-                // User-defined antibiotic code pattern: X_## (4 characters)
-                return fullAntibioticCode.Length >= 4
-                    ? fullAntibioticCode.Substring(0, 4)
+                // User-defined antibiotic code pattern: X_# or X_## (3 or 4 characters)
+                int secondUnderscore = fullAntibioticCode.IndexOf('_', 2);
+                return secondUnderscore > 0
+                    ? fullAntibioticCode.Substring(0, secondUnderscore)
                     : fullAntibioticCode;
             }
 

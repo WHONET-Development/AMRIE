@@ -39,13 +39,13 @@ namespace AMRIE.Library
 
             if (string.Equals(Code, UserDefinedAntibiotic, StringComparison.OrdinalIgnoreCase))
             {
-                // Enforce WHONET restriction: User-defined antibiotic must be X_## (exactly 2 digits)
-                if (abxComponents.Length < 3 || abxComponents[1].Length != 2
-                    || abxComponents[1][0] < '0' || abxComponents[1][0] > '9'
-                    || abxComponents[1][1] < '0' || abxComponents[1][1] > '9')
+                // Enforce WHONET restriction: User-defined antibiotic must be X_# or X_## (1 or 2 digits, no leading zero)
+                if (abxComponents.Length < 3 || abxComponents[1].Length < 1 || abxComponents[1].Length > 2
+                    || abxComponents[1][0] < '1' || abxComponents[1][0] > '9'
+                    || (abxComponents[1].Length == 2 && (abxComponents[1][1] < '0' || abxComponents[1][1] > '9')))
                 {
                     throw new ArgumentException(
-                        $"Invalid user-defined antibiotic test code '{whonetAntibioticFullCode}'. User-defined antibiotics must follow the pattern X_## (e.g., X_01).",
+                        $"Invalid user-defined antibiotic test code '{whonetAntibioticFullCode}'. User-defined antibiotics must follow the pattern X_# or X_## (e.g., X_1 or X_12).",
                         nameof(whonetAntibioticFullCode));
                 }
 

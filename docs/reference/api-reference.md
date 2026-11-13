@@ -167,7 +167,7 @@ public static string RemoveComments(string interpretation)
 | Field | Type | Description |
 | :---- | :--- | :---------- |
 | `ValidAntibioticFieldNameRegex` | `Regex` | Compiled regex that matches valid WHONET antibiotic column names (e.g., `PEN_ND10`, `AMP_EM`, `FOX_FE`). |
-| `ValidAntibioticCode` | `Regex` | Compiled regex that matches the 3-letter (or user-defined `X_##`) antibiotic code portion only. |
+| `ValidAntibioticCode` | `Regex` | Compiled regex that matches the 3-letter (or user-defined `X_#` / `X_##`) antibiotic code portion only. |
 
 ### Constructor
 

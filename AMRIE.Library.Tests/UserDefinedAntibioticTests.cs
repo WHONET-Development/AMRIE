@@ -12,11 +12,11 @@ namespace AMRIE.Library.Tests
         [InlineData("FOX_FE")]
         [InlineData("CRO_NM")]
         [InlineData("VAN_NE")]
-        [InlineData("X_01_ND10")]
-        [InlineData("X_02_EM")]
+        [InlineData("X_1_ND10")]
+        [InlineData("X_2_EM")]
         [InlineData("X_99_FE")]
         [InlineData("X_10_NM")]
-        [InlineData("X_05_ED25")]
+        [InlineData("X_5_ED25")]
         public void ValidAntibioticFieldNameRegex_MatchesValidFieldNames(string fieldName)
         {
             Assert.True(IsolateInterpretation.ValidAntibioticFieldNameRegex.IsMatch(fieldName),
@@ -24,11 +24,16 @@ namespace AMRIE.Library.Tests
         }
 
         [Theory]
-        [InlineData("X_1_ND10")]      // Single digit (must be X_##)
-        [InlineData("X_100_ND10")]    // Three digits (must be X_##)
+        [InlineData("X__ND10")]       // No digit (must be X_# or X_##)
+        [InlineData("X_0_ND10")]      // Single digit zero disallowed
+        [InlineData("X_00_ND10")]     // Leading zero (X_0# disallowed)
+        [InlineData("X_01_ND10")]     // Leading zero (X_0# disallowed)
+        [InlineData("X_05_ED25")]     // Leading zero (X_0# disallowed)
+        [InlineData("X_100_ND10")]    // Three digits (must be X_# or X_##)
         [InlineData("X_AA_ND10")]     // Non-numeric
         [InlineData("X_ND10")]        // Missing number
-        [InlineData("X_01")]          // Missing guideline and method
+        [InlineData("X_1")]           // Missing guideline and method
+        [InlineData("X_13")]          // Missing guideline and method
         [InlineData("PEN_NC")]        // Invalid test method 'C'
         [InlineData("PEN_NF")]        // Invalid test method 'F'
         [InlineData("PEN_")]          // Trailing underscore only
@@ -44,8 +49,9 @@ namespace AMRIE.Library.Tests
         [InlineData("AMK")]
         [InlineData("AMP")]
         [InlineData("CRO")]
-        [InlineData("X_01")]
-        [InlineData("X_02")]
+        [InlineData("X_1")]
+        [InlineData("X_2")]
+        [InlineData("X_10")]
         [InlineData("X_99")]
         public void ValidAntibioticCode_MatchesValidCodes(string code)
         {
@@ -54,7 +60,10 @@ namespace AMRIE.Library.Tests
         }
 
         [Theory]
-        [InlineData("X_1")]
+        [InlineData("X_0")]
+        [InlineData("X_00")]
+        [InlineData("X_01")]
+        [InlineData("X_09")]
         [InlineData("X_100")]
         [InlineData("X_AA")]
         [InlineData("PE")]
@@ -66,10 +75,13 @@ namespace AMRIE.Library.Tests
         }
 
         [Theory]
-        [InlineData("X_01_ND10", "X_01")]
-        [InlineData("X_02_EM", "X_02")]
+        [InlineData("X_1_ND10", "X_1")]
+        [InlineData("X_2_EM", "X_2")]
+        [InlineData("X_10_NM", "X_10")]
         [InlineData("X_99_FE", "X_99")]
-        [InlineData("X_01", "X_01")]
+        [InlineData("X_1", "X_1")]
+        [InlineData("X_10", "X_10")]
+        [InlineData("X_99", "X_99")]
         [InlineData("PEN_ND10", "PEN")]
         [InlineData("AMK_ED30", "AMK")]
         [InlineData("CRO_NM", "CRO")]
@@ -92,19 +104,27 @@ namespace AMRIE.Library.Tests
         [Fact]
         public void AntibioticComponents_ParsesUserDefinedAntibiotic()
         {
-            var components = new AntibioticComponents("X_01_ND10");
-            Assert.Equal("X_01", components.Code);
+            var components = new AntibioticComponents("X_1_ND10");
+            Assert.Equal("X_1", components.Code);
             Assert.Equal(Antibiotic.GuidelineNames.CLSI, components.Guideline);
             Assert.Equal(Antibiotic.TestMethods.Disk, components.TestMethod);
 
-            var micComponents = new AntibioticComponents("X_02_EM");
-            Assert.Equal("X_02", micComponents.Code);
+            var micComponents = new AntibioticComponents("X_2_EM");
+            Assert.Equal("X_2", micComponents.Code);
             Assert.Equal(Antibiotic.GuidelineNames.EUCAST, micComponents.Guideline);
             Assert.Equal(Antibiotic.TestMethods.MIC, micComponents.TestMethod);
+
+            var twoDigitComponents = new AntibioticComponents("X_10_NM");
+            Assert.Equal("X_10", twoDigitComponents.Code);
+            Assert.Equal(Antibiotic.GuidelineNames.CLSI, twoDigitComponents.Guideline);
+            Assert.Equal(Antibiotic.TestMethods.MIC, twoDigitComponents.TestMethod);
         }
 
         [Theory]
-        [InlineData("X_1_ND10")]
+        [InlineData("X_0_ND10")]
+        [InlineData("X_00_ND10")]
+        [InlineData("X_01_ND10")]
+        [InlineData("X_09_FE")]
         [InlineData("X_100_ND10")]
         [InlineData("X_AB_ND10")]
         [InlineData("X_ND10")]
