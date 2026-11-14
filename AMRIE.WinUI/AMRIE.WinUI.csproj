@@ -43,6 +43,8 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.4-experimental" />
+    <PackageReference Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' Or '$(TargetFramework)' == 'net10.0-windows10.0.26100.0'" Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+    <PackageReference Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'windows' And '$(TargetFramework)' != 'net10.0-windows10.0.26100.0'" Include="Uno.CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.100" />
   </ItemGroup>
 
   <ItemGroup>

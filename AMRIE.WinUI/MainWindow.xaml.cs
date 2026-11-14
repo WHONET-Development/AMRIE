@@ -36,7 +36,9 @@ public sealed partial class MainWindow : Window
             string iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
             if (System.IO.File.Exists(iconPath))
             {
+#if WINDOWS
                 AppWindow.SetIcon(iconPath);
+#endif
             }
         }
         catch { }

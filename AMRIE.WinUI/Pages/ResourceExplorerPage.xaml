@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:AMRIE.WinUI.ViewModels"
     xmlns:models="using:AMRIE.WinUI.Models"
-    xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d"
     Loaded="Page_Loaded">
 
@@ -180,18 +180,32 @@
                 CornerRadius="8"
                 Padding="0">
             <Grid>
-                <!-- Section 0: Breakpoints TableView -->
-                <tabular:TableView Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
+                <!-- Section 0: Breakpoints DataGrid -->
+                <controls:DataGrid Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=0, Converter={StaticResource IntToVisibilityConverter}}"
                                    ItemsSource="{x:Bind ViewModel.FilteredBreakpoints}"
-                                   SelectionMode="None"
-                                   CanUserResizeColumns="True">
-                    <tabular:TableView.Columns>
-                        <tabular:TableViewTextColumn Header="Guide" Binding="{Binding Guidelines}" Width="65" FrozenEdge="Leading" />
-                        <tabular:TableViewTextColumn Header="Year" Binding="{Binding Year}" Width="55" FrozenEdge="Leading" />
-                        <tabular:TableViewTextColumn Header="Method" Binding="{Binding TestMethod}" Width="65" />
-                        <tabular:TableViewTextColumn Header="Potency" Binding="{Binding Potency}" Width="65" />
-                        <tabular:TableViewTemplateColumn Header="Organism" Width="165" SortMemberPath="OrganismCode">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                   AutoGenerateColumns="False"
+                                   CanUserResizeColumns="True"
+                                   CanUserSortColumns="True"
+                                   Sorting="DataGrid_Sorting"
+                                   IsReadOnly="True"
+                                   SelectionMode="Single"
+                                   GridLinesVisibility="Horizontal"
+                                   HeadersVisibility="Column"
+                                   ColumnHeaderHeight="38"
+                                   HorizontalScrollBarVisibility="Auto"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalGridLinesBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                   RowBackground="Transparent"
+                                   AlternatingRowBackground="{ThemeResource SubtleFillColorTransparentBrush}"
+                                   BorderThickness="0"
+                                   Background="Transparent">
+                    <controls:DataGrid.Columns>
+                        <controls:DataGridTextColumn Header="Guide" Binding="{Binding Guidelines}" Width="Auto" MinWidth="70" />
+                        <controls:DataGridTextColumn Header="Year" Binding="{Binding Year}" Width="Auto" MinWidth="60" />
+                        <controls:DataGridTextColumn Header="Method" Binding="{Binding TestMethod}" Width="Auto" MinWidth="75" />
+                        <controls:DataGridTextColumn Header="Potency" Binding="{Binding Potency}" Width="Auto" MinWidth="75" />
+                        <controls:DataGridTemplateColumn Header="Organism" Width="Auto" MinWidth="180" CanUserSort="True" Tag="OrganismCode">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,4" VerticalAlignment="Center">
                                         <StackPanel>
@@ -199,23 +213,21 @@
                                             <TextBlock Text="{x:Bind OrganismName}"
                                                        ToolTipService.ToolTip="{x:Bind OrganismName}"
                                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                       TextTrimming="CharacterEllipsis" />
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{x:Bind PanelAppliesNote}"
                                                        Visibility="{x:Bind HasPanelAppliesNote, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}"
                                                        ToolTipService.ToolTip="{x:Bind PanelAppliesNote}"
                                                        Style="{ThemeResource CaptionTextBlockStyle}"
                                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                                                       FontSize="11"
-                                                       TextTrimming="CharacterEllipsis" />
+                                                       FontSize="11" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTextColumn Header="Type" Binding="{Binding BreakpointType}" Width="65" />
-                        <tabular:TableViewTemplateColumn Header="Antibiotic" Width="150" SortMemberPath="AbxCode">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTextColumn Header="Type" Binding="{Binding BreakpointType}" Width="Auto" MinWidth="75" />
+                        <controls:DataGridTemplateColumn Header="Antibiotic" Width="Auto" MinWidth="165" CanUserSort="True" Tag="AbxCode">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,4" VerticalAlignment="Center">
                                         <StackPanel>
@@ -223,78 +235,89 @@
                                             <TextBlock Text="{x:Bind AbxName}"
                                                        ToolTipService.ToolTip="{x:Bind AbxName}"
                                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                       TextTrimming="CharacterEllipsis" />
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="R" Width="60" SortMemberPath="R">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="R" Width="Auto" MinWidth="65" CanUserSort="True" Tag="R">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind RDisplay}" Foreground="{ThemeResource ResistantTextBrush}" FontWeight="SemiBold" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTextColumn Header="I" Binding="{Binding IDisplay}" Width="55" />
-                        <tabular:TableViewTextColumn Header="SDD" Binding="{Binding SddDisplay}" Width="50" />
-                        <tabular:TableViewTemplateColumn Header="S" Width="60" SortMemberPath="S">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTextColumn Header="I" Binding="{Binding IDisplay}" Width="Auto" MinWidth="55" />
+                        <controls:DataGridTextColumn Header="SDD" Binding="{Binding SddDisplay}" Width="Auto" MinWidth="60" />
+                        <controls:DataGridTemplateColumn Header="S" Width="Auto" MinWidth="65" CanUserSort="True" Tag="S">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind SDisplay}" Foreground="{ThemeResource SusceptibleTextBrush}" FontWeight="SemiBold" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="ECV" Width="55" SortMemberPath="EcvEcoff">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="ECV" Width="Auto" MinWidth="65" CanUserSort="True" Tag="EcvEcoff">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind EcvEcoffDisplay}" FontWeight="SemiBold" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTextColumn Header="Scope" Binding="{Binding Scope}" SortMemberPath="SpecificityRank" Width="100" />
-                        <tabular:TableViewTemplateColumn Header="Site" Width="90" SortMemberPath="SiteOfInfection">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTextColumn Header="Scope" Binding="{Binding Scope}" CanUserSort="True" Tag="SpecificityRank" Width="Auto" MinWidth="105" />
+                        <controls:DataGridTemplateColumn Header="Site" Width="Auto" MinWidth="95" CanUserSort="True" Tag="SiteOfInfection">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind SiteOfInfection}"
-                                                   ToolTipService.ToolTip="{x:Bind SiteOfInfection}"
-                                                   TextTrimming="CharacterEllipsis" />
+                                                   ToolTipService.ToolTip="{x:Bind SiteOfInfection}" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Comments" Width="*" MinWidth="130" SortMemberPath="Comments">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Comments" Width="Auto" MinWidth="240" CanUserSort="True" Tag="Comments">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:BreakpointRow">
                                     <Grid Padding="12,0" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind Comments}"
                                                    ToolTipService.ToolTip="{x:Bind Comments}"
-                                                   TextTrimming="CharacterEllipsis"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                    </tabular:TableView.Columns>
-                </tabular:TableView>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
 
-                <!-- Section 1: Expert Rules TableView -->
-                <tabular:TableView Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=1, Converter={StaticResource IntToVisibilityConverter}}"
+                <!-- Section 1: Expert Rules DataGrid -->
+                <controls:DataGrid Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=1, Converter={StaticResource IntToVisibilityConverter}}"
                                    ItemsSource="{x:Bind ViewModel.FilteredExpertRules}"
-                                   SelectionMode="None"
-                                   CanUserResizeColumns="True">
-                    <tabular:TableView.Columns>
-                        <tabular:TableViewTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="100" FrozenEdge="Leading" />
-                        <tabular:TableViewTemplateColumn Header="Organism" Width="180" SortMemberPath="OrganismCode" FrozenEdge="Leading">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                   AutoGenerateColumns="False"
+                                   CanUserResizeColumns="True"
+                                   CanUserSortColumns="True"
+                                   Sorting="DataGrid_Sorting"
+                                   IsReadOnly="True"
+                                   SelectionMode="Single"
+                                   GridLinesVisibility="Horizontal"
+                                   HeadersVisibility="Column"
+                                   ColumnHeaderHeight="38"
+                                   HorizontalScrollBarVisibility="Auto"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalGridLinesBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                   RowBackground="Transparent"
+                                   AlternatingRowBackground="{ThemeResource SubtleFillColorTransparentBrush}"
+                                   BorderThickness="0"
+                                   Background="Transparent">
+                    <controls:DataGrid.Columns>
+                        <controls:DataGridTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="Auto" MinWidth="105" />
+                        <controls:DataGridTemplateColumn Header="Organism" Width="Auto" MinWidth="190" CanUserSort="True" Tag="OrganismCode">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:ExpertRuleRow">
                                     <Grid Padding="12,4" VerticalAlignment="Center">
                                         <StackPanel>
@@ -302,52 +325,65 @@
                                             <TextBlock Text="{x:Bind OrganismName}"
                                                        ToolTipService.ToolTip="{x:Bind OrganismName}"
                                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                       TextTrimming="CharacterEllipsis" />
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Affected Drugs" Width="220" SortMemberPath="AffectedAntibiotics">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Affected Drugs" Width="Auto" MinWidth="220" CanUserSort="True" Tag="AffectedAntibiotics">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:ExpertRuleRow">
                                     <Grid Padding="12,6" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind AffectedAntibiotics}" TextWrapping="Wrap" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Exceptions" Width="Auto" MinWidth="160" CanUserSort="True" Tag="Exceptions">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:ExpertRuleRow">
                                     <Grid Padding="12,6" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Description" Width="*" SortMemberPath="Description">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Description" Width="Auto" MinWidth="280" CanUserSort="True" Tag="Description">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:ExpertRuleRow">
                                     <Grid Padding="12,6" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                    </tabular:TableView.Columns>
-                </tabular:TableView>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
 
-                <!-- Section 2: Intrinsic Resistance Rules TableView -->
-                <tabular:TableView Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=2, Converter={StaticResource IntToVisibilityConverter}}"
+                <!-- Section 2: Intrinsic Resistance Rules DataGrid -->
+                <controls:DataGrid Visibility="{x:Bind ViewModel.SelectedSectionIndex, Mode=OneWay, ConverterParameter=2, Converter={StaticResource IntToVisibilityConverter}}"
                                    ItemsSource="{x:Bind ViewModel.FilteredIntrinsicRules}"
-                                   SelectionMode="None"
-                                   CanUserResizeColumns="True">
-                    <tabular:TableView.Columns>
-                        <tabular:TableViewTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="100" FrozenEdge="Leading" />
-                        <tabular:TableViewTemplateColumn Header="Organism" Width="180" SortMemberPath="OrganismCode" FrozenEdge="Leading">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                                   AutoGenerateColumns="False"
+                                   CanUserResizeColumns="True"
+                                   CanUserSortColumns="True"
+                                   Sorting="DataGrid_Sorting"
+                                   IsReadOnly="True"
+                                   SelectionMode="Single"
+                                   GridLinesVisibility="Horizontal"
+                                   HeadersVisibility="Column"
+                                   ColumnHeaderHeight="38"
+                                   HorizontalScrollBarVisibility="Auto"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalGridLinesBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                   RowBackground="Transparent"
+                                   AlternatingRowBackground="{ThemeResource SubtleFillColorTransparentBrush}"
+                                   BorderThickness="0"
+                                   Background="Transparent">
+                    <controls:DataGrid.Columns>
+                        <controls:DataGridTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="Auto" MinWidth="105" />
+                        <controls:DataGridTemplateColumn Header="Organism" Width="Auto" MinWidth="190" CanUserSort="True" Tag="OrganismCode">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                     <Grid Padding="12,4" VerticalAlignment="Center">
                                         <StackPanel>
@@ -355,49 +391,47 @@
                                             <TextBlock Text="{x:Bind OrganismName}"
                                                        ToolTipService.ToolTip="{x:Bind OrganismName}"
                                                        Style="{ThemeResource CaptionTextBlockStyle}"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                       TextTrimming="CharacterEllipsis" />
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                                            <tabular:TableViewTemplateColumn Header="Antibiotic" Width="170" SortMemberPath="AbxCode">
-                        <tabular:TableViewTemplateColumn.CellTemplate>
-                            <DataTemplate x:DataType="models:IntrinsicRuleRow">
-                                <Grid Padding="12,4" VerticalAlignment="Center">
-                                    <StackPanel>
-                                        <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
-                                        <TextBlock Text="{x:Bind AbxName}"
-                                                   ToolTipService.ToolTip="{x:Bind AbxName}"
-                                                   Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </tabular:TableViewTemplateColumn.CellTemplate>
-                    </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Antibiotic" Width="Auto" MinWidth="175" CanUserSort="True" Tag="AbxCode">
+                            <controls:DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="models:IntrinsicRuleRow">
+                                    <Grid Padding="12,4" VerticalAlignment="Center">
+                                        <StackPanel>
+                                            <TextBlock Text="{x:Bind AbxCode}" FontWeight="Medium" />
+                                            <TextBlock Text="{x:Bind AbxName}"
+                                                       ToolTipService.ToolTip="{x:Bind AbxName}"
+                                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Exceptions" Width="Auto" MinWidth="160" CanUserSort="True" Tag="Exceptions">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                     <Grid Padding="12,6" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                        <tabular:TableViewTemplateColumn Header="Comments" Width="*" SortMemberPath="Comments">
-                            <tabular:TableViewTemplateColumn.CellTemplate>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                        <controls:DataGridTemplateColumn Header="Comments" Width="Auto" MinWidth="280" CanUserSort="True" Tag="Comments">
+                            <controls:DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                     <Grid Padding="12,6" VerticalAlignment="Center">
                                         <TextBlock Text="{x:Bind Comments}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Grid>
                                 </DataTemplate>
-                            </tabular:TableViewTemplateColumn.CellTemplate>
-                        </tabular:TableViewTemplateColumn>
-                    </tabular:TableView.Columns>
-                </tabular:TableView>
+                            </controls:DataGridTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn>
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
 
                 <!-- Loading Overlay -->
                 <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay}"

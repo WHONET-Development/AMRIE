@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.UI.Xaml.Controls;
+using CommunityToolkit.WinUI.UI.Controls;
 using AMRIE.WinUI.Models;
 
 namespace AMRIE.WinUI.Dialogs;
@@ -44,6 +45,34 @@ public sealed partial class ApplicableIntrinsicRulesDialog : ContentDialog
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         ApplyFilter(SearchBox.Text);
+    }
+
+    private void RulesTable_Sorting(object? sender, DataGridColumnEventArgs e)
+    {
+        string? sortPath = (e.Column.Tag as string)
+            ?? (e.Column as DataGridTextColumn)?.Binding?.Path?.Path
+            ?? e.Column.Header?.ToString();
+        if (string.IsNullOrEmpty(sortPath)) return;
+
+        var newDirection = e.Column.SortDirection == DataGridSortDirection.Ascending
+            ? DataGridSortDirection.Descending
+            : DataGridSortDirection.Ascending;
+
+        foreach (var col in RulesTable.Columns)
+        {
+            if (col != e.Column) col.SortDirection = null;
+        }
+        e.Column.SortDirection = newDirection;
+
+        var prop = typeof(IntrinsicRuleRow).GetProperty(sortPath);
+        if (prop != null)
+        {
+            _filteredRows = newDirection == DataGridSortDirection.Ascending
+                ? _filteredRows.OrderBy(x => prop.GetValue(x, null)).ToList()
+                : _filteredRows.OrderByDescending(x => prop.GetValue(x, null)).ToList();
+            RulesTable.ItemsSource = null;
+            RulesTable.ItemsSource = _filteredRows;
+        }
     }
 }
 
