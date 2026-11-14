@@ -118,22 +118,18 @@ public partial class ResourceExplorerViewModel : ObservableObject
     public ResourceExplorerViewModel()
     {
         _suppressFilter = true;
-        SelectedOrganism = InitializeAvailableOrganisms();
+        var allItem = new OrganismFilterItem { Code = "ALL", Name = "All Organisms & Panels", IsPanel = false, Group = "All" };
+        AvailableOrganisms.Add(allItem);
+        SelectedOrganism = allItem;
         _suppressFilter = false;
         AvailableYears.Add("All Years");
         AvailableYears.Add(Constants.BreakpointTableRevisionYear.ToString());
     }
 
-    private OrganismFilterItem InitializeAvailableOrganisms()
+    private static List<OrganismFilterItem> BuildAvailableOrganismsBackground()
     {
-        BuildTaxonomicLookups();
-        AvailableOrganisms.Clear();
-
-        var allItem = new OrganismFilterItem { Code = "ALL", Name = "All Organisms & Panels", IsPanel = false, Group = "All" };
-        AvailableOrganisms.Add(allItem);
-
         // 13 Curated Clinical Panels from WHONET
-        var panels = new List<OrganismFilterItem>
+        var items = new List<OrganismFilterItem>
         {
             new() { Code = "EBC", Name = "Enterobacterales (Family Panel)", IsPanel = true, Group = "Clinical Panels" },
             new() { Code = "STA", Name = "Staphylococcus sp. (Genus Panel)", IsPanel = true, Group = "Clinical Panels" },
@@ -149,58 +145,57 @@ public partial class ResourceExplorerViewModel : ObservableObject
             new() { Code = "SVI", Name = "Viridans group streptococci (Panel)", IsPanel = true, Group = "Clinical Panels" },
             new() { Code = "ANA", Name = "Anaerobic bacteria (Panel)", IsPanel = true, Group = "Clinical Panels" },
         };
-        foreach (var p in panels) AvailableOrganisms.Add(p);
 
-        // Extract all clinical organisms (common pathogens or organisms having published breakpoints)
-        var bpOrgsSet = new HashSet<string>(
-            Breakpoint.Breakpoints.Select(b => b.ORGANISM_CODE),
-            StringComparer.OrdinalIgnoreCase);
-
-        var panelCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        try
         {
-            "EBC", "STA", "ENT", "STR", "PSE", "AC-", "HA-", "NE-", "NFR", "BCS", "SCN", "SVI", "ANA",
-            "ACI", "PS-", "AN+", "AN-", "SC+", "HIN", "ALL", "Gen", "LAC", "LEU", "PED", "PAS",
-            "CAR", "EIK", "KIN", "CAM", "COF", "AER", "CAN", "BFX", "PFX", "MTX", "MAX", "RGM",
-            "SAL", "BR-", "BS-", "AGT", "PLE", "GCT"
-        };
+            // Extract all clinical organisms (common pathogens or organisms having published breakpoints)
+            var bpOrgsSet = new HashSet<string>(
+                Breakpoint.Breakpoints.Select(b => b.ORGANISM_CODE),
+                StringComparer.OrdinalIgnoreCase);
 
-        var clinicalOrganismsMap = new Dictionary<string, OrganismFilterItem>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var org in Organism.AllOrganisms)
-        {
-            if (string.IsNullOrWhiteSpace(org.WHONET_ORG_CODE)) continue;
-            string code = org.WHONET_ORG_CODE.Trim();
-            if (panelCodes.Contains(code)) continue;
-
-            bool isCommon = org.COMMON;
-            bool hasBreakpoints = bpOrgsSet.Contains(code);
-
-            if (isCommon || hasBreakpoints)
+            var panelCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                if (!clinicalOrganismsMap.ContainsKey(code))
+                "EBC", "STA", "ENT", "STR", "PSE", "AC-", "HA-", "NE-", "NFR", "BCS", "SCN", "SVI", "ANA",
+                "ACI", "PS-", "AN+", "AN-", "SC+", "HIN", "ALL", "Gen", "LAC", "LEU", "PED", "PAS",
+                "CAR", "EIK", "KIN", "CAM", "COF", "AER", "CAN", "BFX", "PFX", "MTX", "MAX", "RGM",
+                "SAL", "BR-", "BS-", "AGT", "PLE", "GCT"
+            };
+
+            var clinicalOrganismsMap = new Dictionary<string, OrganismFilterItem>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var org in Organism.AllOrganisms)
+            {
+                if (string.IsNullOrWhiteSpace(org.WHONET_ORG_CODE)) continue;
+                string code = org.WHONET_ORG_CODE.Trim();
+                if (panelCodes.Contains(code)) continue;
+
+                bool isCommon = org.COMMON;
+                bool hasBreakpoints = bpOrgsSet.Contains(code);
+
+                if (isCommon || hasBreakpoints)
                 {
-                    string name = !string.IsNullOrWhiteSpace(org.ORGANISM) ? org.ORGANISM.Trim() : code;
-                    clinicalOrganismsMap[code] = new OrganismFilterItem
+                    if (!clinicalOrganismsMap.ContainsKey(code))
                     {
-                        Code = code,
-                        Name = name,
-                        IsPanel = false,
-                        Group = "Common Pathogens (Panel + Species Breakpoints)"
-                    };
+                        string name = !string.IsNullOrWhiteSpace(org.ORGANISM) ? org.ORGANISM.Trim() : code;
+                        clinicalOrganismsMap[code] = new OrganismFilterItem
+                        {
+                            Code = code,
+                            Name = name,
+                            IsPanel = false,
+                            Group = "Common Pathogens (Panel + Species Breakpoints)"
+                        };
+                    }
                 }
             }
+
+            var sortedClinicalOrgs = clinicalOrganismsMap.Values
+                .OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
+
+            items.AddRange(sortedClinicalOrgs);
         }
+        catch { }
 
-        var sortedClinicalOrgs = clinicalOrganismsMap.Values
-            .OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        foreach (var org in sortedClinicalOrgs)
-        {
-            AvailableOrganisms.Add(org);
-        }
-
-        return allItem;
+        return items;
     }
 
     private static Dictionary<string, string> BuildOrganismNameLookup()
@@ -280,22 +275,27 @@ public partial class ResourceExplorerViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var years = await Task.Run(LoadAllResources);
-
-            string targetYear = Constants.BreakpointTableRevisionYear.ToString();
-            var yearList = new List<string> { "All Years" };
-            foreach (var year in years)
-            {
-                string yStr = year.ToString();
-                if (!yearList.Contains(yStr))
-                {
-                    yearList.Add(yStr);
-                }
-            }
+            var (years, organismFilters) = await Task.Run(LoadAllResources);
 
             _suppressFilter = true;
             try
             {
+                foreach (var org in organismFilters)
+                {
+                    AvailableOrganisms.Add(org);
+                }
+
+                string targetYear = Constants.BreakpointTableRevisionYear.ToString();
+                var yearList = new List<string> { "All Years" };
+                foreach (var year in years)
+                {
+                    string yStr = year.ToString();
+                    if (!yearList.Contains(yStr))
+                    {
+                        yearList.Add(yStr);
+                    }
+                }
+
                 AvailableYears.Clear();
                 foreach (var yStr in yearList)
                 {
@@ -329,13 +329,14 @@ public partial class ResourceExplorerViewModel : ObservableObject
         }
     }
 
-    private List<int> LoadAllResources()
+    private (List<int> Years, List<OrganismFilterItem> OrganismFilters) LoadAllResources()
     {
         var organismNameCache = BuildOrganismNameLookup();
         var antibioticNameCache = BuildAntibioticNameLookup();
         var years = new List<int>();
 
         BuildTaxonomicLookups();
+        var organismFilters = BuildAvailableOrganismsBackground();
 
         try
         {
@@ -397,7 +398,7 @@ public partial class ResourceExplorerViewModel : ObservableObject
         }
         catch { }
 
-        return years;
+        return (years, organismFilters);
     }
 
     partial void OnSelectedSectionIndexChanged(int value)

@@ -30,6 +30,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Added loaded clinical guideline resource counts and formatted native WinUI rendering (`MarkdownViewerHelper`) for bundled `licenses/` Markdown notices (`CLINICAL-DATA-ATTRIBUTION.md`, `THIRD-PARTY-NOTICES.md`) plus `LICENSE-MGB.txt`.
   - Restored in-app 3-button viewer card for licenses and attributions on `SettingsPage`, removed obsolete external shell-launch handler, and added direct `HyperlinkButton` to AMRIE Documentation (`docs/index.md`).
   - Added user-defined antibiotic code (`X_#` / `X_##`, 1–99 without leading zeroes) tooltip, placeholder hints, and dynamic suggestion items on `SingleInterpretationPage`.
+  - Migrated table presentations from experimental `Microsoft.UI.Xaml.Controls.Tabular.TableView` to `CommunityToolkit.WinUI.UI.Controls.DataGrid` across `ResourceExplorerPage`, `ApplicableBreakpointsDialog`, `ApplicableExpertRulesDialog`, and `ApplicableIntrinsicRulesDialog`, providing production-grade table rendering, Fluent styling, dynamic `Width="Auto"` with `MinWidth` content sizing, full-width edge-to-edge horizontal scrolling, and in-place column sorting.
+  - Eliminated UI freezes and delays after app startup by preheating guideline resources on a background thread in `App.xaml.cs`, moving organism filter construction off the UI thread so `ResourceExplorerPage` navigation is instant, and making the "Get Applicable" lookup buttons immediately responsive with visual feedback.
   - Updated `quickstart-winui.md` tutorial to align with the 3-card Settings layout, visual `BatchConfigDialog` editor, and rule lookup dialogs.
   - Updated `AMRIE.CLI` help fallback (`AMRIE.CLI.exe`) and launch profile name/arguments (`AMRIE.CLI`, `spn AMC_NM "2"`).
 
