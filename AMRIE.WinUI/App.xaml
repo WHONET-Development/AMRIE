@@ -5,25 +5,61 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AMRIE.WinUI"
     xmlns:common="using:AMRIE.WinUI.Common"
-    xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular">
+    xmlns:primitives="using:CommunityToolkit.WinUI.UI.Controls.Primitives">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-                <TabularControlsResources xmlns="using:Microsoft.UI.Xaml.Controls.Tabular" />
             </ResourceDictionary.MergedDictionaries>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="ResistantTextBrush" Color="#A80000" />
                     <SolidColorBrush x:Key="SusceptibleTextBrush" Color="#107C41" />
+                    <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="#F3F3F3" />
+                    <SolidColorBrush x:Key="DataGridColumnHeaderForegroundBrush" Color="#1C1C1C" />
+                    <SolidColorBrush x:Key="DataGridGridLinesBrush" Color="#E5E5E5" />
+                    <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="Transparent" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Default">
                     <SolidColorBrush x:Key="ResistantTextBrush" Color="#FF99A4" />
                     <SolidColorBrush x:Key="SusceptibleTextBrush" Color="#6CCB5F" />
+                    <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="#2D2D2D" />
+                    <SolidColorBrush x:Key="DataGridColumnHeaderForegroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="DataGridGridLinesBrush" Color="#3D3D3D" />
+                    <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="Transparent" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
             <common:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
             <common:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+            <!-- Fluent DataGrid Column Header Styling: Eliminates black headers and vertical text clipping -->
+            <Style TargetType="primitives:DataGridColumnHeader">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="0,0,1,1" />
+                <Setter Property="MinHeight" Value="38" />
+                <Setter Property="Height" Value="38" />
+                <Setter Property="Padding" Value="10,0" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="primitives:DataGridColumnHeader">
+                            <Grid Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  Padding="{TemplateBinding Padding}"
+                                  MinHeight="{TemplateBinding MinHeight}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
             <!-- Consistent input field styling across the app -->
             <Style TargetType="TextBox">

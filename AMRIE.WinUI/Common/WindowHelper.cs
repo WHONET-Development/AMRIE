@@ -1,11 +1,13 @@
 using System;
+#if WINDOWS
 using System.Runtime.InteropServices;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Windows.Graphics;
 using WinRT.Interop;
+#endif
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace AMRIE.WinUI.Common;
 
@@ -13,6 +15,7 @@ public static class WindowHelper
 {
     public static Window? MainWindow { get; set; }
 
+#if WINDOWS
     public static IntPtr GetMainWindowHandle()
     {
         if (MainWindow == null)
@@ -20,15 +23,19 @@ public static class WindowHelper
 
         return WindowNative.GetWindowHandle(MainWindow);
     }
+#endif
 
     /// <summary>
     /// Associates a WinRT picker or dialog with the main window handle.
+    /// On Windows, binds the HWND using WinRT interop; on cross-platform targets (Uno), this is a no-op.
     /// </summary>
     /// <param name="target">The picker or dialog target object.</param>
-    /// <exception cref="InvalidOperationException">Thrown if MainWindow has not yet been initialized.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if MainWindow has not yet been initialized on Windows.</exception>
     public static void InitializeWithMainWindow(object target)
     {
+#if WINDOWS
         InitializeWithWindow.Initialize(target, GetMainWindowHandle());
+#endif
     }
 
     /// <summary>
@@ -38,6 +45,7 @@ public static class WindowHelper
     /// <returns>True if successfully initialized; false if MainWindow is null.</returns>
     public static bool TryInitializeWithMainWindow(object target)
     {
+#if WINDOWS
         try
         {
             if (MainWindow == null) return false;
@@ -48,17 +56,23 @@ public static class WindowHelper
         {
             return false;
         }
+#else
+        return true;
+#endif
     }
 
+#if WINDOWS
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hWnd);
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
     private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+#endif
 
     public static void SetNativeTitleBarTheme(Window window, bool isDark)
     {
+#if WINDOWS
         try
         {
             var hwnd = WindowNative.GetWindowHandle(window);
@@ -66,10 +80,12 @@ public static class WindowHelper
             DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
         }
         catch { }
+#endif
     }
 
     public static void SetWindowSize(Window window, int widthDip, int heightDip)
     {
+#if WINDOWS
         var hwnd = WindowNative.GetWindowHandle(window);
         var dpi = GetDpiForWindow(hwnd);
         var scale = dpi / 96.0;
@@ -80,10 +96,12 @@ public static class WindowHelper
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
         appWindow.Resize(new SizeInt32(widthPx, heightPx));
+#endif
     }
 
     public static void RestoreWindowState(Window window, AppSettings settings)
     {
+#if WINDOWS
         var hwnd = WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
@@ -118,10 +136,12 @@ public static class WindowHelper
         {
             presenter.Maximize();
         }
+#endif
     }
 
     public static void SaveWindowState(Window window)
     {
+#if WINDOWS
         var hwnd = WindowNative.GetWindowHandle(window);
         var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
@@ -144,6 +164,7 @@ public static class WindowHelper
         }
 
         SettingsManager.SaveSettings(settings);
+#endif
     }
 
     /// <summary>

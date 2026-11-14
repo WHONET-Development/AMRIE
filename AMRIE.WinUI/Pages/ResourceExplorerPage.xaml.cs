@@ -1,6 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using CommunityToolkit.WinUI.UI.Controls;
+using AMRIE.WinUI.Models;
 using AMRIE.WinUI.ViewModels;
 
 namespace AMRIE.WinUI.Pages;
@@ -65,5 +68,56 @@ public sealed partial class ResourceExplorerPage : Page
         FilterSearchBox.Focus(FocusState.Keyboard);
         FilterSearchBox.SelectAll();
         args.Handled = true;
+    }
+
+    private void DataGrid_Sorting(object? sender, DataGridColumnEventArgs e)
+    {
+        string? sortPath = (e.Column.Tag as string)
+            ?? (e.Column as DataGridTextColumn)?.Binding?.Path?.Path
+            ?? e.Column.Header?.ToString();
+        if (sender is not DataGrid grid || string.IsNullOrEmpty(sortPath))
+            return;
+
+        var newDirection = e.Column.SortDirection == DataGridSortDirection.Ascending
+            ? DataGridSortDirection.Descending
+            : DataGridSortDirection.Ascending;
+
+        foreach (var col in grid.Columns)
+        {
+            if (col != e.Column) col.SortDirection = null;
+        }
+        e.Column.SortDirection = newDirection;
+
+        if (grid.ItemsSource is System.Collections.ObjectModel.ObservableCollection<BreakpointRow> bpCollection)
+        {
+            SortCollection(bpCollection, sortPath, newDirection == DataGridSortDirection.Ascending);
+        }
+        else if (grid.ItemsSource is System.Collections.ObjectModel.ObservableCollection<ExpertRuleRow> erCollection)
+        {
+            SortCollection(erCollection, sortPath, newDirection == DataGridSortDirection.Ascending);
+        }
+        else if (grid.ItemsSource is System.Collections.ObjectModel.ObservableCollection<IntrinsicRuleRow> irCollection)
+        {
+            SortCollection(irCollection, sortPath, newDirection == DataGridSortDirection.Ascending);
+        }
+    }
+
+    private static void SortCollection<T>(System.Collections.ObjectModel.ObservableCollection<T> collection, string propertyName, bool ascending)
+    {
+        var propertyInfo = typeof(T).GetProperty(propertyName);
+        if (propertyInfo == null) return;
+
+        var sorted = ascending
+            ? collection.OrderBy(x => propertyInfo.GetValue(x, null)).ToList()
+            : collection.OrderByDescending(x => propertyInfo.GetValue(x, null)).ToList();
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            int oldIndex = collection.IndexOf(sorted[i]);
+            if (oldIndex != i)
+            {
+                collection.Move(oldIndex, i);
+            }
+        }
     }
 }

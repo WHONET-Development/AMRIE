@@ -40,5 +40,19 @@ public partial class App : Application
     {
         _window = new MainWindow();
         _window.Activate();
+
+        // Warm up clinical guidelines and static reference tables in background pool immediately
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            try
+            {
+                _ = Breakpoint.Breakpoints;
+                _ = Organism.AllOrganisms;
+                _ = Antibiotic.AllAntibiotics;
+                _ = ExpectedResistancePhenotypeRule.ExpectedResistancePhenotypeRules;
+                _ = ExpertInterpretationRule.ExpertInterpretationRules;
+            }
+            catch { }
+        });
     }
 }
