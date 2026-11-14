@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.UI.Xaml.Controls;
+using CommunityToolkit.WinUI.UI.Controls;
 using AMRIE.WinUI.Models;
 
 namespace AMRIE.WinUI.Dialogs;
@@ -54,6 +55,34 @@ public sealed partial class ApplicableBreakpointsDialog : ContentDialog
     private void HideUndefinedCheck_Changed(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
         ApplyFilter(SearchBox.Text);
+    }
+
+    private void BreakpointsTable_Sorting(object? sender, DataGridColumnEventArgs e)
+    {
+        string? sortPath = (e.Column.Tag as string)
+            ?? (e.Column as DataGridTextColumn)?.Binding?.Path?.Path
+            ?? e.Column.Header?.ToString();
+        if (string.IsNullOrEmpty(sortPath)) return;
+
+        var newDirection = e.Column.SortDirection == DataGridSortDirection.Ascending
+            ? DataGridSortDirection.Descending
+            : DataGridSortDirection.Ascending;
+
+        foreach (var col in BreakpointsTable.Columns)
+        {
+            if (col != e.Column) col.SortDirection = null;
+        }
+        e.Column.SortDirection = newDirection;
+
+        var prop = typeof(BreakpointRow).GetProperty(sortPath);
+        if (prop != null)
+        {
+            _filteredRows = newDirection == DataGridSortDirection.Ascending
+                ? _filteredRows.OrderBy(x => prop.GetValue(x, null)).ToList()
+                : _filteredRows.OrderByDescending(x => prop.GetValue(x, null)).ToList();
+            BreakpointsTable.ItemsSource = null;
+            BreakpointsTable.ItemsSource = _filteredRows;
+        }
     }
 }
 

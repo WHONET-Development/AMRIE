@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AMRIE.Library;
 using Microsoft.UI.Xaml.Controls;
 using AMRIE.WinUI.ViewModels;
 using AMRIE.WinUI.Models;
@@ -120,7 +121,7 @@ public sealed partial class SingleInterpretationPage : Page
                 .Take(50)
                 .ToList();
 
-            if (matches.Count == 0 && System.Text.RegularExpressions.Regex.IsMatch(query, @"^X_\d{1,2}$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            if (matches.Count == 0 && query.StartsWith("X_", StringComparison.OrdinalIgnoreCase) && IsolateInterpretation.ValidAntibioticCode.IsMatch(query))
             {
                 string formattedCode = query.ToUpperInvariant();
                 matches.Add(new Models.AntibioticItem($"User-defined ({formattedCode})", formattedCode));
@@ -186,16 +187,20 @@ public sealed partial class SingleInterpretationPage : Page
     private void MoveSiteDown_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         => SingleInterpretationViewModel.MovePriorityItem(ViewModel.SitesOfInfection, (sender as Microsoft.UI.Xaml.FrameworkElement)?.Tag as SelectableItem, 1);
 
-    private async System.Threading.Tasks.Task ShowLookupDialogAsync<TDialog>(Func<TDialog> createDialog, string logName)
+    private async System.Threading.Tasks.Task ShowLookupDialogAsync<TDialog>(
+        Button? triggerButton,
+        Func<System.Threading.Tasks.Task<TDialog>> createDialogAsync,
+        string logName)
         where TDialog : ContentDialog
     {
         if (_isDialogOpen) return;
         _isDialogOpen = true;
+        if (triggerButton != null) triggerButton.IsEnabled = false;
         try
         {
             await ViewModel.EnsureDataLoadedAsync();
             ViewModel.SyncInputs(OrganismSuggestBox.Text, AntibioticSuggestBox.Text);
-            var dialog = createDialog();
+            var dialog = await createDialogAsync();
             Common.WindowHelper.ApplyDialogTheme(dialog, this);
             await dialog.ShowAsync();
         }
@@ -205,15 +210,16 @@ public sealed partial class SingleInterpretationPage : Page
         }
         finally
         {
+            if (triggerButton != null) triggerButton.IsEnabled = true;
             _isDialogOpen = false;
         }
     }
 
     private async void GetApplicableBreakpoints_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        await ShowLookupDialogAsync(() =>
+        await ShowLookupDialogAsync(sender as Button, async () =>
         {
-            var (rows, summary) = ViewModel.GetApplicableBreakpoints();
+            var (rows, summary) = await System.Threading.Tasks.Task.Run(() => ViewModel.GetApplicableBreakpoints());
             var dialog = new Dialogs.ApplicableBreakpointsDialog();
             dialog.SetData(rows, summary);
             return dialog;
@@ -222,9 +228,9 @@ public sealed partial class SingleInterpretationPage : Page
 
     private async void GetApplicableExpertRules_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        await ShowLookupDialogAsync(() =>
+        await ShowLookupDialogAsync(sender as Button, async () =>
         {
-            var (rows, summary) = ViewModel.GetApplicableExpertRules();
+            var (rows, summary) = await System.Threading.Tasks.Task.Run(() => ViewModel.GetApplicableExpertRules());
             var dialog = new Dialogs.ApplicableExpertRulesDialog();
             dialog.SetData(rows, summary);
             return dialog;
@@ -233,9 +239,9 @@ public sealed partial class SingleInterpretationPage : Page
 
     private async void GetApplicableIntrinsicResistance_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        await ShowLookupDialogAsync(() =>
+        await ShowLookupDialogAsync(sender as Button, async () =>
         {
-            var (rows, summary) = ViewModel.GetApplicableIntrinsicRules();
+            var (rows, summary) = await System.Threading.Tasks.Task.Run(() => ViewModel.GetApplicableIntrinsicRules());
             var dialog = new Dialogs.ApplicableIntrinsicRulesDialog();
             dialog.SetData(rows, summary);
             return dialog;
