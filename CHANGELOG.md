@@ -29,7 +29,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Added keyboard navigation shortcuts (`Ctrl+1`, `Ctrl+2`, `Ctrl+3`, `Ctrl+,`).
   - Added loaded clinical guideline resource counts and formatted native WinUI rendering (`MarkdownViewerHelper`) for bundled `licenses/` Markdown notices (`CLINICAL-DATA-ATTRIBUTION.md`, `THIRD-PARTY-NOTICES.md`) plus `LICENSE-MGB.txt`.
   - Restored in-app 3-button viewer card for licenses and attributions on `SettingsPage`, removed obsolete external shell-launch handler, and added direct `HyperlinkButton` to AMRIE Documentation (`docs/index.md`).
-  - Added user-defined antibiotic code (`X_##`) tooltip, placeholder hints, and dynamic suggestion items on `SingleInterpretationPage`.
+  - Added user-defined antibiotic code (`X_#` / `X_##`, 1–99 without leading zeroes) tooltip, placeholder hints, and dynamic suggestion items on `SingleInterpretationPage`.
   - Updated `quickstart-winui.md` tutorial to align with the 3-card Settings layout, visual `BatchConfigDialog` editor, and rule lookup dialogs.
   - Updated `AMRIE.CLI` help fallback (`AMRIE.CLI.exe`) and launch profile name/arguments (`AMRIE.CLI`, `spn AMC_NM "2"`).
 

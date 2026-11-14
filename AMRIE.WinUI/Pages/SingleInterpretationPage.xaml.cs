@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AMRIE.Library;
 using Microsoft.UI.Xaml.Controls;
 using AMRIE.WinUI.ViewModels;
 using AMRIE.WinUI.Models;
@@ -120,7 +121,7 @@ public sealed partial class SingleInterpretationPage : Page
                 .Take(50)
                 .ToList();
 
-            if (matches.Count == 0 && System.Text.RegularExpressions.Regex.IsMatch(query, @"^X_\d{1,2}$", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            if (matches.Count == 0 && query.StartsWith("X_", StringComparison.OrdinalIgnoreCase) && IsolateInterpretation.ValidAntibioticCode.IsMatch(query))
             {
                 string formattedCode = query.ToUpperInvariant();
                 matches.Add(new Models.AntibioticItem($"User-defined ({formattedCode})", formattedCode));
