@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:AMRIE.WinUI.Models"
-    xmlns:tabular="using:Microsoft.UI.Xaml.Controls.Tabular"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
     Style="{StaticResource DefaultContentDialogStyle}"
     Title="Applicable Intrinsic Resistance Rules">
 
@@ -42,7 +42,7 @@
                  PlaceholderText="Search within fetched intrinsic resistance rules (organism, drug, comments)..."
                  TextChanged="SearchBox_TextChanged" />
 
-        <!-- Intrinsic Rules TableView -->
+        <!-- Intrinsic Rules DataGrid -->
         <Border Grid.Row="2"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -50,13 +50,27 @@
                 CornerRadius="8"
                 MinHeight="250"
                 MaxHeight="420">
-            <tabular:TableView x:Name="RulesTable"
-                               SelectionMode="None"
-                               CanUserResizeColumns="True">
-                <tabular:TableView.Columns>
-                    <tabular:TableViewTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="100" FrozenEdge="Leading" />
-                    <tabular:TableViewTemplateColumn Header="Organism" Width="180" SortMemberPath="OrganismCode" FrozenEdge="Leading">
-                        <tabular:TableViewTemplateColumn.CellTemplate>
+            <controls:DataGrid x:Name="RulesTable"
+                               AutoGenerateColumns="False"
+                               CanUserResizeColumns="True"
+                               CanUserSortColumns="True"
+                               Sorting="RulesTable_Sorting"
+                               IsReadOnly="True"
+                               SelectionMode="Single"
+                               GridLinesVisibility="Horizontal"
+                               HeadersVisibility="Column"
+                               ColumnHeaderHeight="38"
+                               HorizontalScrollBarVisibility="Auto"
+                               VerticalScrollBarVisibility="Auto"
+                               HorizontalGridLinesBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                               RowBackground="Transparent"
+                               AlternatingRowBackground="{ThemeResource SubtleFillColorTransparentBrush}"
+                               BorderThickness="0"
+                               Background="Transparent">
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn Header="Guideline" Binding="{Binding Guideline}" Width="Auto" MinWidth="105" />
+                    <controls:DataGridTemplateColumn Header="Organism" Width="Auto" MinWidth="190" CanUserSort="True" Tag="OrganismCode">
+                        <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                 <Grid Padding="12,4" VerticalAlignment="Center">
                                     <StackPanel>
@@ -64,15 +78,14 @@
                                         <TextBlock Text="{x:Bind OrganismName}"
                                                    ToolTipService.ToolTip="{x:Bind OrganismName}"
                                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>
-                        </tabular:TableViewTemplateColumn.CellTemplate>
-                    </tabular:TableViewTemplateColumn>
-                                        <tabular:TableViewTemplateColumn Header="Antibiotic" Width="170" SortMemberPath="AbxCode">
-                        <tabular:TableViewTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                    <controls:DataGridTemplateColumn Header="Antibiotic" Width="Auto" MinWidth="175" CanUserSort="True" Tag="AbxCode">
+                        <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                 <Grid Padding="12,4" VerticalAlignment="Center">
                                     <StackPanel>
@@ -80,33 +93,32 @@
                                         <TextBlock Text="{x:Bind AbxName}"
                                                    ToolTipService.ToolTip="{x:Bind AbxName}"
                                                    Style="{ThemeResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>
-                        </tabular:TableViewTemplateColumn.CellTemplate>
-                    </tabular:TableViewTemplateColumn>
-                    <tabular:TableViewTemplateColumn Header="Exceptions" Width="160" SortMemberPath="Exceptions">
-                        <tabular:TableViewTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                    <controls:DataGridTemplateColumn Header="Exceptions" Width="Auto" MinWidth="160" CanUserSort="True" Tag="Exceptions">
+                        <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                 <Grid Padding="12,6" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind Exceptions}" TextWrapping="Wrap" />
                                 </Grid>
                             </DataTemplate>
-                        </tabular:TableViewTemplateColumn.CellTemplate>
-                    </tabular:TableViewTemplateColumn>
-                    <tabular:TableViewTemplateColumn Header="Comments" Width="*" SortMemberPath="Comments">
-                        <tabular:TableViewTemplateColumn.CellTemplate>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                    <controls:DataGridTemplateColumn Header="Comments" Width="Auto" MinWidth="280" CanUserSort="True" Tag="Comments">
+                        <controls:DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="models:IntrinsicRuleRow">
                                 <Grid Padding="12,6" VerticalAlignment="Center">
                                     <TextBlock Text="{x:Bind Comments}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Grid>
                             </DataTemplate>
-                        </tabular:TableViewTemplateColumn.CellTemplate>
-                    </tabular:TableViewTemplateColumn>
-                </tabular:TableView.Columns>
-            </tabular:TableView>
+                        </controls:DataGridTemplateColumn.CellTemplate>
+                    </controls:DataGridTemplateColumn>
+                </controls:DataGrid.Columns>
+            </controls:DataGrid>
         </Border>
 
         <Button x:Name="CloseModalButton"
