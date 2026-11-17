@@ -1,0 +1,34 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-desktop</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>AMRIE.WinUI</RootNamespace>
+    <AssemblyName>AMRIE.Desktop</AssemblyName>
+    <ApplicationTitle>AMRIE Desktop</ApplicationTitle>
+    <ApplicationId>org.whonet.amrie.desktop</ApplicationId>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <UnoFeatures>
+      Mvvm;
+      Skia;
+    </UnoFeatures>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CS8305;SYSLIB1045;Uno0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Uno.CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.2.1-dev.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AMRIE.Library\AMRIE.Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="..\AMRIE.WinUI\**\*.xaml" Exclude="..\AMRIE.WinUI\obj\**;..\AMRIE.WinUI\bin\**" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\AMRIE.WinUI\**\*.cs" Exclude="..\AMRIE.WinUI\obj\**;..\AMRIE.WinUI\bin\**" Link="%(RecursiveDir)%(Filename)%(Extension)" />
+    <Content Include="..\AMRIE.WinUI\Assets\**\*" Link="Assets\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\licenses\**\*" Link="licenses\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
