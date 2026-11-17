@@ -6,7 +6,7 @@
 [![License: MGB Open Access 1.0](https://img.shields.io/badge/License-MGB%20Open%20Access%201.0-blue.svg)](License.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**AMRIE** (**A**ntimicrobial **R**esistance Test **I**nterpretation **E**ngine) is a clinical microbiology and public health software suite developed by the **[WHONET](https://whonet.org)** development team at **Brigham and Women's Hospital / Mass General Brigham** (WHO Collaborating Centre for Surveillance of Antimicrobial Resistance).
+**AMRIE** (**A**nti**m**icrobial **R**esistance Test **I**nterpretation **E**ngine) is a clinical microbiology and public health software suite developed by the **[WHONET](https://whonet.org)** development team at **Brigham and Women's Hospital / Mass General Brigham** (WHO Collaborating Centre for Surveillance of Antimicrobial Resistance) and international collaborators on GitHub. (Thank you!)
 
 AMRIE automates the interpretation of quantitative antimicrobial susceptibility testing (AST) measurements—disk diffusion zone diameters (mm), minimal inhibitory concentrations (MIC, $\mu\text{g/mL}$), and ETest gradient strips—into clinical categories (**S**, **I**, **SDD**, **R**, **NS**, **WT**, **NWT**) and quality control ranges according to international guidelines:
 - **[CLSI](https://clsi.org/)** — Clinical and Laboratory Standards Institute
