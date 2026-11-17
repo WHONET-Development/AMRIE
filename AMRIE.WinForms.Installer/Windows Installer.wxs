@@ -235,6 +235,12 @@
 			<Component Id="License_ClinicalData" Guid="E1A2B3C4-0010-4000-8000-B1B2C3D4E510">
 				<File Id="CLINICAL_DATA_ATTRIBUTION.md" Source="..\licenses\CLINICAL-DATA-ATTRIBUTION.md" Name="CLINICAL-DATA-ATTRIBUTION.md" KeyPath="yes" />
 			</Component>
+			<Component Id="License_UnoPlatform" Guid="E1A2B3C4-0011-4000-8000-B1B2C3D4E511">
+				<File Id="LICENSE_UnoPlatform.txt" Source="..\licenses\LICENSE-UnoPlatform.txt" Name="LICENSE-UnoPlatform.txt" KeyPath="yes" />
+			</Component>
+			<Component Id="License_SkiaSharp" Guid="E1A2B3C4-0012-4000-8000-B1B2C3D4E512">
+				<File Id="LICENSE_SkiaSharp.txt" Source="..\licenses\LICENSE-SkiaSharp.txt" Name="LICENSE-SkiaSharp.txt" KeyPath="yes" />
+			</Component>
 		</ComponentGroup>
 	</Fragment>
 </Wix>

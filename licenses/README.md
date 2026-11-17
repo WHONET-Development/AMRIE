@@ -13,11 +13,13 @@ All files in this `licenses/` folder are packaged and distributed alongside the 
 | **[`LICENSE-MGB.txt`](LICENSE-MGB.txt)** | AMRIE Source Code, Binaries, and Bundled Materials | [MGB Open Access License 1.0](../License.md) (Mass General Brigham Incorporated) |
 | **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)** | Master Consolidated Third-Party Software Notices | All direct & transitive NuGet dependencies |
 | **[`LICENSE-CsvHelper.txt`](LICENSE-CsvHelper.txt)** | `CsvHelper` (v34.0.0) by Josh Close | Dual Licensed: Apache License 2.0 OR Microsoft Public License (MS-PL) |
-| **[`LICENSE-CommunityToolkit.txt`](LICENSE-CommunityToolkit.txt)** | `CommunityToolkit.Mvvm` (v8.4.2) by .NET Foundation | MIT License |
+| **[`LICENSE-CommunityToolkit.txt`](LICENSE-CommunityToolkit.txt)** | `CommunityToolkit.Mvvm` (v8.4.2) & `DataGrid` (v7.1.2) by .NET Foundation | MIT License |
 | **[`LICENSE-WindowsAppSDK.txt`](LICENSE-WindowsAppSDK.txt)** | `Microsoft.WindowsAppSDK` & `Windows.SDK.BuildTools` | Microsoft Software License Terms |
 | **[`LICENSE-WebView2.txt`](LICENSE-WebView2.txt)** | `Microsoft.Web.WebView2` (v1.0.3719.77) | BSD 3-Clause License (Microsoft Corporation) |
 | **[`LICENSE-PolyfillLib.txt`](LICENSE-PolyfillLib.txt)** | `PolyfillLib` (v11.4.5) by Simon Cropp & Contributors | MIT License |
 | **[`LICENSE-DotNetRuntime.txt`](LICENSE-DotNetRuntime.txt)** | Microsoft .NET 10 Runtime, `System.Text.Json`, & BCL Libraries | MIT License (.NET Foundation & Microsoft Corporation) |
+| **[`LICENSE-UnoPlatform.txt`](LICENSE-UnoPlatform.txt)** | Uno Platform (`Uno.WinUI`, `Uno.Sdk`, `Uno.UI`, `Uno.CommunityToolkit.*`) | Apache License 2.0 (Uno Platform Inc.) |
+| **[`LICENSE-SkiaSharp.txt`](LICENSE-SkiaSharp.txt)** | `SkiaSharp` & Google Skia 2D Graphics Engine | MIT License (Microsoft Corp.) & BSD 3-Clause (Google Inc.) |
 | **[`CLINICAL-DATA-ATTRIBUTION.md`](CLINICAL-DATA-ATTRIBUTION.md)** | Clinical Breakpoint, QC, and Intrinsic Resistance Tables | CLSI, EUCAST, SFM (CA-SFM), and WHONET |
 
 ---
