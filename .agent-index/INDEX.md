@@ -5,7 +5,7 @@ Scope: Solution-wide semantic inventory covering all projects in the AMRIE solut
 ## Central Index Architecture
 
 The solution-wide agent index is centralized at:
-`W:\AMRIE\.agent-index\`
+`.agent-index\`
 
 All AMRIE projects (`AMRIE.Library`, `AMRIE.CLI`, `AMRIE.Desktop`, `AMRIE.WinForms`, `AMRIE.WinUI`, `AMRIE.WinForms.Installer`, `AMRIE.WinUI.Installer`, `AMRIE.Library.Tests`, `AMRIE.Library.DataGenerator`) are indexed through this single index home.
 
