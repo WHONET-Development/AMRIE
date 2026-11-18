@@ -1,0 +1,115 @@
+{
+    "schema": 2,
+    "comment": "Hand-maintained navigation routes. Each route names the projects whose declarations its selectors are matched against (substring match on the Roslyn documentation id). Selectors that match nothing fail index generation. constantRoutes turns uses of a constants class (and listed string aliases in case labels) into generated 'format:<name>' routes.",
+    "constantRoutes": [],
+    "routes": [
+        {
+            "task": "AMRIE interpretation engine isolate and single interpretation",
+            "projects": [
+                "AMRIE.Library"
+            ],
+            "selectors": [
+                "InterpretationLibrary",
+                "IsolateInterpretation",
+                "SingleInterpretation",
+                "InterpretationConfiguration"
+            ],
+            "notes": "Core library consumed by the AMRIE front ends, CLI, data generator, and tests. Find consumers with relationships.jsonl rows where toProject is AMRIE.Library. Multi-targets net48 and net10.0; records come from the net48 build, consumers bind to the matching framework."
+        },
+        {
+            "task": "AMRIE breakpoints QC ranges and antibiotic components",
+            "projects": [
+                "AMRIE.Library"
+            ],
+            "selectors": [
+                "Breakpoint",
+                "QualityControlRange",
+                "AntibioticComponents"
+            ],
+            "notes": "Breakpoint data model and quality-control ranges used by interpretation."
+        },
+        {
+            "task": "AMRIE expert rules expected resistance phenotypes and antibiotic-specific rules",
+            "projects": [
+                "AMRIE.Library"
+            ],
+            "selectors": [
+                "ExpertInterpretationRule",
+                "ExpertRuleCriterion",
+                "ExpectedResistancePhenotypeRule",
+                "AntibioticSpecificInterpretationRules"
+            ],
+            "notes": "Rule models evaluated after breakpoint interpretation."
+        },
+        {
+            "task": "AMRIE file interpretation input output and caching",
+            "projects": [
+                "AMRIE.Library"
+            ],
+            "selectors": [
+                "FileInterpretationParameters",
+                "IO_Library",
+                "BoundedCache"
+            ],
+            "notes": "Batch/file interpretation parameters, file IO helpers and the bounded cache."
+        },
+        {
+            "task": "AMRIE WinForms front end",
+            "projects": [
+                "AMRIE.WinForms"
+            ],
+            "selectors": [
+                "MainInterface",
+                "BreakpointDisplay",
+                "ExpertRuleDisplay",
+                "FileInterpretationsDisplay"
+            ],
+            "notes": "WinForms views over the interpretation library."
+        },
+        {
+            "task": "AMRIE WinUI front end pages view models dialogs and settings",
+            "projects": [
+                "AMRIE.WinUI"
+            ],
+            "selectors": [
+                "MainWindow",
+                "SingleInterpretationPage",
+                "SingleInterpretationViewModel",
+                "BatchProcessingPage",
+                "BatchProcessingViewModel",
+                "ResourceExplorerPage",
+                "ResourceExplorerViewModel",
+                "SettingsPage",
+                "SettingsManager"
+            ],
+            "notes": "WinUI 3 desktop front end using CommunityToolkit.Mvvm. AMRIE.Desktop shares these XAML and C# files as linked items."
+        },
+        {
+            "task": "AMRIE command line and data generator",
+            "projects": [
+                "AMRIE.CLI",
+                "AMRIE.Library.DataGenerator"
+            ],
+            "selectors": [
+                "Program",
+                "DatasetGenerator",
+                "GeneratorCommandLine",
+                "ScenarioFileExtender"
+            ],
+            "notes": "Console entry points and synthetic dataset generator. Both declare Program; select by project."
+        },
+        {
+            "task": "AMRIE unit and behavior test suites",
+            "projects": [
+                "AMRIE.Library.Tests"
+            ],
+            "selectors": [
+                "BreakpointMatrixTests",
+                "InterpretationBehaviorTests",
+                "UserDefinedAntibioticTests"
+            ],
+            "notes": "xUnit test suites verifying breakpoint matrix evaluation, interpretation behavior, and user-defined antibiotics."
+        }
+    ]
+}
+
