@@ -29,20 +29,25 @@ Before performing broad searches, scanning directories, or reading dozens of sou
    $index = '.agent-index'
    Get-Content "$index\routes.jsonl" | ConvertFrom-Json | Where-Object { $_.task -match 'interpretation|breakpoint|WinUI' }
    ```
-3. **Resolve Exact Declarations**: Query `symbols.jsonl` to get the exact file, start/end line, kind, and containing project:
+3. **Resolve Exact Declarations**: Pre-filter `symbols.jsonl` with `Select-String` before `ConvertFrom-Json` to get the exact file, start/end line, kind, and containing project:
    ```powershell
-   Get-Content "$index\symbols.jsonl" | ConvertFrom-Json | Where-Object { $_.name -eq 'IsolateInterpretation' -or $_.id -like '*InterpretationLibrary*' } | Select-Object project,id,path,start,end
+   Select-String -Path "$index\symbols.jsonl" -Pattern 'IsolateInterpretation|InterpretationLibrary' |
+     ForEach-Object { $_.Line | ConvertFrom-Json } |
+     Select-Object project,id,path,start,end
    ```
-4. **Trace Call Graphs & Cross-Project Usages**: Query `relationships.jsonl` for callers, callees, and event subscriptions:
+4. **Trace Call Graphs & Cross-Project Usages**: Pre-filter `relationships.jsonl` for callers, callees, and event subscriptions:
    ```powershell
    # Who calls this method across ANY project?
-   Get-Content "$index\relationships.jsonl" | ConvertFrom-Json | Where-Object { $_.to -like '*GetInterpretation*' }
+   Select-String -Path "$index\relationships.jsonl" -Pattern 'GetInterpretation' |
+     ForEach-Object { $_.Line | ConvertFrom-Json } |
+     Where-Object { $_.to -like '*GetInterpretation*' }
    ```
 5. **Inspect Global & Static State**: Query `state.jsonl` for static variables, constants, and caches:
    ```powershell
-   Get-Content "$index\state.jsonl" | ConvertFrom-Json | Where-Object { $_.project -eq 'AMRIE.Library' }
+   Select-String -Path "$index\state.jsonl" -Pattern '"project":"AMRIE\.Library"' |
+     ForEach-Object { $_.Line | ConvertFrom-Json }
    ```
-6. **Targeted Reads**: Open only the exact source line spans identified from the index.
+6. **Targeted Reads**: Always pass the exact `start` and `end` line numbers from `symbols.jsonl` to your file-reading tool instead of reading whole files.
 
 ## Index-First Trigger Table
 

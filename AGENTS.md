@@ -16,6 +16,7 @@ Projects covered include:
 
 Run the documented freshness check before relying on generated file/line spans:
 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .agent-index\tools\Update-Index.ps1 -Verify`
+If `-Verify` fails or outputs are missing, run `Update-Index.ps1` (without `-Verify`) to regenerate; do not fall back to broad `grep` or directory scans. Regenerate with `Update-Index.ps1` after significant edits if you need fresh line spans.
 
 Follow task routes from `annotations.json` / `routes.jsonl` into symbol IDs in source, then inspect relevant call graphs, cross-project references, and shared state in `state.jsonl`.
 
