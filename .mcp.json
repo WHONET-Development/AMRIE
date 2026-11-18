@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "lhatse": {
+      "type": "http",
+      "url": "http://127.0.0.1:13661/mcp"
+    }
+  },
+  "mcpServers": {
+    "lhatse": {
+      "type": "http",
+      "url": "http://127.0.0.1:13661/mcp"
+    }
+  }
+}
